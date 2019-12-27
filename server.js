@@ -8,7 +8,7 @@ const mainRouter = require("./routes/main_routes");
 const path = require("path");
 const session = require("express-session");
 
-const hostname = process.env.HOST || "http://localhost";
+const hostname = process.env.HOST;
 const port = process.env.PORT;
 
 <<<<<<< HEAD
@@ -33,11 +33,11 @@ app.set("view engine", "ejs");
 // Session Custom options
 app.use(
   session({
-    secret: process.env.SESS_SECRET || 1000 * 60 * 30,
+    secret: process.env.SESS_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
-      maxAge: process.env.SESS_LIFETIME,
+      maxAge: parseInt(process.env.SESS_LIFETIME, 10),
       sameSite: true,
       secure: process.env.IN_PROD
     }
@@ -60,7 +60,6 @@ app.use((err, req, res, next) => {
   res.send(err.message);
 });
 
-// app.listen(PORT, () => console.log(`http://localhost:${PORT}`));
-app.listen(port, hostname, () => console.log(`${hostname}:${port}`));
+app.listen(port, () => console.log(`listening at ${hostname} on port${port}`));
 
 module.exports = app;
