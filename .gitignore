@@ -1,8 +1,7 @@
 node_modules
 reference.css
-signup.html
 colorlib.css
-index_old.html
-main.css
 layout.css
-main.js
+.env
+appspec.yml
+cloudinary_sample.txt
