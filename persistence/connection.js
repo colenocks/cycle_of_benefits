@@ -1,14 +1,11 @@
 const util = require("util");
 const sql = require("mssql");
-const dotenv = require('dotenv');
-
-dotenv.config();
 
 const dbConfig = {
-  server: process.env.SERVER,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
+  server: "cyobdbinstance.c4hjqdm5joot.eu-west-1.rds.amazonaws.com",
+  database: "cyobDB",
+  user: "cyobmaster",
+  password: "cyob1234",
   connectionLimit: 10
 };
 
@@ -26,7 +23,4 @@ pool
 
 pool.query = util.promisify(pool.query);
 
-module.exports = {
-  pool,
-  sql
-};
+module.exports = { pool, sql };
