@@ -1,33 +1,30 @@
-const fs = require('fs');
-const express = require('express');
-const path = require('path');
-const User = require('../persistence/user');
-const Project = require('../persistence/project');
-const Control = require('../persistence/control');
-const multer = require('multer');
-const cloudinary = require('../persistence/cloudinary');
-
+const express = require("express");
+const path = require("path");
+const User = require("../persistence/user");
+const Project = require("../persistence/project");
+const Control = require("../persistence/control");
+const multer = require("multer");
 // const upload = multer({ dest: "/assets/projects/images" });
 
 //using the diskStorage option instead of dest to have full control uploaded images
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-    cb(null, 'dist/assets/projects');
+    cb(null, "dist/assets/projects");
   },
   filename: function(req, file, cb) {
     // the null as first argument means no error
-    cb(null, Date.now() + '-' + file.originalname);
-  },
+    cb(null, Date.now() + "-" + file.originalname);
+  }
 });
 
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 3000000, //3mb max
+    fileSize: 3000000 //3mb max
   },
   fileFilter: function(req, file, cb) {
     checkFileType(file, cb);
-  },
+  }
 });
 
 const router = express.Router();
@@ -38,44 +35,40 @@ const project = new Project();
 const control = new Control();
 
 //get index page
-router.get('/', (req, res, next) => {
+router.get("/", (req, res, next) => {
   // console.log(req.session.userid + ": " + req.session.cookie.maxAge);
-  res.render('index');
+  res.render("index");
 });
 
-router.get('/usersession', (req, res) => {
+router.get("/usersession", (req, res) => {
   if (req.session.userid) {
-    res.json({
-      session: req.session.userid,
-    });
+    res.json({ session: req.session.userid });
     return;
   }
-  res.json({
-    errMessage: 'Session expired, Login',
-  });
+  res.json({ errMessage: "Session expired, Login" });
 });
 
-router.get('/projects', (req, res) => {
-  res.render('projects');
+router.get("/projects", (req, res) => {
+  res.render("projects");
 });
 
-router.get('/about', (req, res) => {
-  res.render('about');
+router.get("/about", (req, res) => {
+  res.render("about");
 });
 
-router.get('/register', (req, res) => {
-  res.render('register');
+router.get("/register", (req, res) => {
+  res.render("register");
 });
 
-router.get('/login', (req, res) => {
+router.get("/login", (req, res) => {
   if (!req.session.userid) {
-    res.render('login');
+    res.render("login");
     return;
   }
-  res.redirect('/profile');
+  res.redirect("/profile");
 });
 
-router.get('/project:id', (req, res, next) => {
+router.get("/project:id", (req, res, next) => {
   const proj_id = req.params.id;
   project.getProject(proj_id, data => {
     if (data) {
@@ -85,75 +78,74 @@ router.get('/project:id', (req, res, next) => {
       //     .splice(1) /*remove the 'dist' from path*/
       //     .join("/")
       // );
-      res.render('viewproject', {
-        id: data.projId ? data.projId : '',
-        type: data.proj_type ? data.proj_type : 'other',
-        title: data.proj_title ? data.proj_title : '',
-        details: data.proj_details ? data.proj_details : '',
-        address: data.proj_address ? data.proj_address : '',
-        city: data.proj_city ? data.proj_city : '',
-        status: data.proj_status ? data.proj_status : '',
+      res.render("viewproject", {
+        id: data.projId ? data.projId : "",
+        type: data.proj_type ? data.proj_type : "other",
+        title: data.proj_title ? data.proj_title : "",
+        details: data.proj_details ? data.proj_details : "",
+        address: data.proj_address ? data.proj_address : "",
+        city: data.proj_city ? data.proj_city : "",
+        status: data.proj_status ? data.proj_status : "",
         worth: data.reward_points ? data.reward_points : 0,
-        tools: data.proj_tools ? data.proj_tools : '',
+        tools: data.proj_tools ? data.proj_tools : "",
         current: data.current_workers ? data.current_workers : 0,
         maxworkers: data.max_no_workers ? data.max_no_workers : 1,
-        postedby: data.posted_by ? data.posted_by : '',
-        duration: data.estimated_duration ? data.estimated_duration : 'unknown',
+        postedby: data.posted_by ? data.posted_by : "",
+        duration: data.estimated_duration ? data.estimated_duration : "unknown",
         image:
           data.proj_photo !== null
             ? data.proj_photo
-                .split('\\')
+                .split("\\")
                 .splice(1) /*remove the 'dist' from path*/
-                .join('/')
-                .toLowerCase() || data.proj_photo
-            : '',
+                .join("/").toLowerCase() || data.proj_photo
+            : ""
       });
       return;
     }
-    console.log('Project exists in Database but without parameter');
-    res.redirect('/projects');
+    console.log("Project exists in Database but without parameter");
+    res.redirect("/projects");
   });
 });
 
-router.get('/profile', (req, res) => {
+router.get("/profile", (req, res) => {
   if (req.session.userid) {
-    if (req.session.userid === 'admin') {
-      res.render('admincontrol');
+    if (req.session.userid === "admin") {
+      res.render("admincontrol");
     } else {
       //get userdata and render profile
       user.getProfile(req.session.userid, userprofile => {
         if (userprofile) {
-          res.render('profile.ejs', {
-            username: userprofile.userId ? userprofile.userId : '',
-            firstname: userprofile.first_name ? userprofile.first_name : '',
-            lastname: userprofile.last_name ? userprofile.last_name : '',
-            email: userprofile.email_address ? userprofile.email_address : '',
-            age: userprofile.date_of_birth ? userprofile.date_of_birth : '',
-            address: userprofile.home_address ? userprofile.home_address : '',
-            phone: userprofile.mobile_number ? userprofile.mobile_number : '',
-            nationalId: userprofile.nationalId ? userprofile.nationalId : '',
+          res.render("profile.ejs", {
+            username: userprofile.userId ? userprofile.userId : "",
+            firstname: userprofile.first_name ? userprofile.first_name : "",
+            lastname: userprofile.last_name ? userprofile.last_name : "",
+            email: userprofile.email_address ? userprofile.email_address : "",
+            age: userprofile.date_of_birth ? userprofile.date_of_birth : "",
+            address: userprofile.home_address ? userprofile.home_address : "",
+            phone: userprofile.mobile_number ? userprofile.mobile_number : "",
+            nationalId: userprofile.nationalId ? userprofile.nationalId : "",
             state: userprofile.state_of_origin
               ? userprofile.state_of_origin
-              : '',
+              : "",
             points: userprofile.user_reward_points
               ? userprofile.user_reward_points
-              : '0',
+              : "0"
           });
           return;
         }
-        console.log('profile route Error: Could not find user profile');
+        console.log("profile route Error: Could not find user profile");
       });
     }
   } else {
-    res.redirect('/login');
+    res.redirect("/login");
   }
 });
 
-router.get('/contact', (req, res) => {
-  res.render('contact');
+router.get("/contact", (req, res) => {
+  res.render("contact");
 });
 
-router.put('/updateuser', (req, res) => {
+router.put("/updateuser", (req, res) => {
   const profile = {
     username: req.body.username,
     fname: req.body.fname /* ? req.body.fname : "" */,
@@ -163,42 +155,38 @@ router.put('/updateuser', (req, res) => {
     address: req.body.address /* ? req.body.address : "" */,
     phone: req.body.phone /* ? req.body.phone : "" */,
     state: req.body.state /* ? req.body.state : "" */,
-    nationalId: req.body.nationalId /*? req.body.nationalId : "" */,
+    nationalId: req.body.nationalId /*? req.body.nationalId : "" */
   };
   user.updateProfile(profile.username, profile, response => {
     if (response) {
-      console.log(response + 'row(s) affected.');
+      console.log(response + "row(s) affected.");
       res.json({
-        message: 'Profile successfully updated',
+        message: "Profile successfully updated"
       });
     } else {
-      console.log('Put: Could not update profile');
-      res.json({
-        errMessage: 'Could not update profile from server',
-      });
+      console.log("Put: Could not update profile");
+      res.json({ errMessage: "Could not update profile from server" });
     }
   });
 });
 
 //Load Projects
-router.get('/allprojects', (req, res) => {
+router.get("/allprojects", (req, res) => {
   project.allProjects(data => {
     if (data) {
       res.json(data.recordset);
       return;
     }
-    res.json({
-      errMessage: 'Could not retrieve project data',
-    });
+    res.json({ errMessage: "Could not retrieve project data" });
   });
 });
 
 /* Add user and project to worklist */
-router.post('/enlist', (req, res) => {
+router.post("/enlist", (req, res) => {
   if (req.session.userid) {
     const proj = {
       userid: req.session.userid,
-      projid: req.body.projid,
+      projid: req.body.projid
     };
     //getProject
     project.getProject(proj.projid, projrecord => {
@@ -206,66 +194,54 @@ router.post('/enlist', (req, res) => {
         project.enlistWorker(projrecord, proj.userid, rows => {
           if (rows) {
             //if user is successfully added to list of workers
-            res.json({
-              message: 'You have been enlisted successfully',
-            });
+            res.json({ message: "You have been enlisted successfully" });
           } else {
             res.json({
               errMessage:
-                'You have already been listed as a worker for this project!',
+                "You have already been listed as a worker for this project!"
             });
           }
         });
       } else {
-        res.json({
-          errMessage: 'Project record not found',
-        });
+        res.json({ errMessage: "Project record not found" });
       }
     });
   } else {
-    res.json({
-      errMessage: 'you must be logged in to enlist',
-    });
+    res.json({ errMessage: "you must be logged in to enlist" });
   }
 });
 
 /* Get All user projects */
-router.get('/getuserproject', (req, res) => {
+router.get("/getuserproject", (req, res) => {
   if (req.session.userid) {
   } else {
-    res.json({
-      errMessage: 'you must be logged in',
-    });
+    res.json({ errMessage: "you must be logged in" });
   }
 });
 
 /*Remove user from worklist */
-router.delete('/dropworker', (req, res) => {
+router.delete("/dropworker", (req, res) => {
   if (req.session.userid) {
   } else {
-    res.json({
-      errMessage: 'you must be logged in',
-    });
+    res.json({ errMessage: "you must be logged in" });
   }
 });
 
 /* increment current workers */
-router.put('/currentworkers', (req, res) => {
+router.put("/currentworkers", (req, res) => {
   if (req.session.userid) {
     const proj = {
       userid: req.session.userid,
-      projid: req.body.projid /* ? req.body.projid : "" */,
+      projid: req.body.projid /* ? req.body.projid : "" */
     };
     project.getProject(proj.projid, projrecord => {
       if (projrecord) {
         project.updateCurrentWorker(projrecord, result => {
           if (result) {
-            res.json({
-              message: 'All clear for enlisting',
-            });
+            res.json({ message: "All clear for enlisting" });
           } else {
             res.json({
-              errMessage: 'Sorry, This Project has already been assigned!',
+              errMessage: "Sorry, This Project has already been assigned!"
             });
           }
         });
@@ -275,28 +251,27 @@ router.put('/currentworkers', (req, res) => {
 });
 
 //project view post
-router.post('/projectview', (req, res) => {
+router.post("/projectview", (req, res) => {
   project.findProject(req.body.id, projid => {
     if (projid) {
       res.json({
-        redirect_path: '/project' + projid,
+        redirect_path: "/project" + projid
       });
     } else {
-      res.json({
-        errMessage: 'Cannot find project',
-      });
+      res.json({ errMessage: "Cannot find project" });
     }
   });
 });
 
 // Add Project
-router.post('/addproject', upload.single('image'), async (req, res, next) => {
+router.post("/addproject", upload.single("image"), (req, res, next) => {
   // console.log("maxworkers: " + req.body.max);
   if (!req.file) {
-    console.log('No file uploaded');
+    console.log("No file uploaded");
     return;
   }
-  const { url: imageurl } = await cloudLink(req.file);
+  const file = req.file;
+  let imageurl = file.path.toLowerCase();
   // console.log(file);
   if (req.session.userid) {
     // Everything went fine.
@@ -312,48 +287,23 @@ router.post('/addproject', upload.single('image'), async (req, res, next) => {
       duration: req.body.duration,
       maxworkers: parseInt(req.body.max, 10),
       image: imageurl,
-      postedby: req.session.userid,
+      postedby: req.session.userid
     };
-
-    console.log(proj);
-
     //add to database
     project.addProject(proj, projectdata => {
       if (projectdata) {
-        res.json({
-          message: 'Project has been Submitted!',
-        });
+        res.json({ message: "Project has been Submitted!" });
       } else {
-        res.json({
-          errMessage: 'Could not add project',
-        });
+        res.json({ errMessage: "Could not add project" });
       }
     });
   } else {
-    res.redirect('/login');
+    res.redirect("/login");
   }
 });
 
-// Image upload
-const cloudLink = async file => {
-  try {
-    // Upload file to cloudinary
-    const uploader = async path => cloudinary.uploads(path, 'Images');
-    const { path } = file;
-    const url = await uploader(path);
-    fs.unlinkSync(path);
-
-    return url;
-  } catch (error) {
-    return {
-      status: 'Request failed',
-      error,
-    };
-  }
-};
-
 //login Post
-router.post('/login', (req, res) => {
+router.post("/login", (req, res) => {
   const { username, password } = req.body;
   if (username && password) {
     user.login(username, password, id => {
@@ -362,100 +312,91 @@ router.post('/login', (req, res) => {
         // req.session.name = userdata.first_name + " " + userdata.last_name;
         req.session.userid = id;
         res.json({
-          redirect_path: '/profile',
+          redirect_path: "/profile"
         });
       } else {
-        res.status(404).json({
-          errMessage: 'Login Failed',
-        });
-        console.log('Login Post Err: user not found');
+        res.status(404).json({ errMessage: "Login Failed" });
+        console.log("Login Post Err: user not found");
       }
     });
   }
 });
 
 //register post
-router.post('/submitregister', (req, res) => {
+router.post("/submitregister", (req, res) => {
   // console.log(req.body);
   let userObj = {
     username: req.body.username,
     password: req.body.password,
     firstname: req.body.firstname,
     lastname: req.body.lastname,
-    email: req.body.email,
+    email: req.body.email
   };
   user.createProfile(userObj, data => {
     if (data) {
-      console.log(data + ' user created');
+      console.log(data + " user created");
       res.json({
-        status: 'Registeration Successful',
-        redirect_path: '/login',
+        status: "Registeration Successful",
+        redirect_path: "/login"
       });
     } else {
-      console.log('Error: Unable to create user');
-      res.json({
-        message: 'Sorry! This User already exists',
-      });
+      console.log("Error: Unable to create user");
+      res.json({ message: "Sorry! This User already exists" });
     }
   });
 });
 
-router.get('/login-check', (req, res) => {
+router.get("/login-check", (req, res) => {
   if (req.session.userid) {
-    res.redirect('/profile');
+    res.redirect("/profile");
   } else {
-    res.redirect('/login');
+    res.redirect("/login");
   }
 });
 
-router.put('/redeemreward', (req, res) => {
+router.put("/redeemreward", (req, res) => {
   if (req.session.userid) {
     let reward = {
       used: parseInt(req.body.used, 10),
       // total: parseInt(req.body.total, 10),
-      benefit: req.body.benefit,
+      benefit: req.body.benefit
     };
     user.useReward(req.session.userid, reward, rewardused => {
       if (rewardused) {
         res.json({
           message:
-            'You have successfully redeemed ' +
+            "You have successfully redeemed " +
             reward.used +
-            ' points in ' +
+            " points in " +
             reward.benefit +
-            ' benefits .\n Check your email on instructions on how to collect',
+            " benefits .\n Check your email on instructions on how to collect"
         });
       } else {
         res.json({
-          errMessage:
-            'Something went wrong with getting your reward, Try again',
+          errMessage: "Something went wrong with getting your reward, Try again"
         });
       }
     });
   }
 });
 
-router.put('/loadpoints', (req, res) => {
+router.put("/loadpoints", (req, res) => {
   project.distributePoints(response => {
     if (response) {
-      res.json({
-        message: 'Your Reward Points have been added',
-      });
+      res.json({ message: "Your Reward Points have been added" });
       return;
     }
-    res.json({
-      errMessage: 'Projects are yet to be completed',
-    });
+    res.json({ errMessage: "Projects are yet to be completed" });
   });
 });
 
 // Get logout page
-router.get('/logout', (req, res) => {
+router.get("/logout", (req, res) => {
   // Check if the session is exist
   if (req.session.userid) {
     // destroy the session and redirect the user to the index page.
     req.session.destroy(function() {
-      res.redirect('/');
+      res.redirect("/");
     });
   }
 });
@@ -464,10 +405,10 @@ router.get('/logout', (req, res) => {
 /**************************************************/
 
 /* showAllusers */
-router.get('/showusers', (req, res) => {});
+router.get("/showusers", (req, res) => {});
 
 /* updateProject */
-router.put('/updateproject', (req, res) => {
+router.put("/updateproject", (req, res) => {
   const proj = {
     id: parseInt(req.body.id, 10),
     type: req.body.type,
@@ -478,92 +419,82 @@ router.put('/updateproject', (req, res) => {
     city: req.body.city,
     duration: req.body.duration,
     point: parseInt(req.body.point, 10),
-    maxworkers: parseInt(req.body.maxworkers, 10),
+    maxworkers: parseInt(req.body.maxworkers, 10)
   };
   project.updateProject(proj, updated => {
     if (updated) {
-      res.json({
-        message: proj.id + ' has been successfully updated',
-      });
+      res.json({ message: proj.id + " has been successfully updated" });
       return;
     }
-    res.json({
-      errMessage: 'Could not update project',
-    });
+    res.json({ errMessage: "Could not update project" });
   });
 });
 
 /* archiveProject */
-router.delete('/archiveproject', (req, res) => {
+router.delete("/archiveproject", (req, res) => {
   if (req.session.userid) {
     control.archiveProject(req.body.projid, archived => {
       if (archived) {
-        res.json({
-          message: 'Project archived',
-        });
+        res.json({ message: "Project archived" });
         return;
       }
       res.json({
-        errMessage: 'Project was not archived',
+        errMessage: "Project was not archived"
       });
     });
   }
 });
 
 /* showAllRedeemedRewards */
-router.get('/showrewards', (req, res) => {
+router.get("/showrewards", (req, res) => {
   control.getAllRewardRequests(data => {
     if (data) {
       res.json(data.recordset);
       return;
     }
     res.json({
-      errMessage: 'could not display rewards table',
+      errMessage: "could not display rewards table"
     });
   });
 });
 
 /* RemoveUser */
-router.delete('/removeuser', (req, res) => {
+router.delete("/removeuser", (req, res) => {
   user.find(req.body.userid, id => {
     if (id) {
       control.removeUser(req.body.userid, deleted => {
         if (deleted) {
-          res.json({
-            message: 'User Deleted',
-          });
+          res.json({ message: "User Deleted" });
           return;
         }
         res.json({
-          errMessage: 'User was not deleted',
+          errMessage: "User was not deleted"
         });
       });
     } else {
       res.json({
-        errMessage: 'This user does not exist',
+        errMessage: "This user does not exist"
       });
     }
   });
 });
 
 /* RemoveProject */
-router.delete('/removeproject', (req, res) => {
+router.delete("/removeproject", (req, res) => {
   project.findProject(req.body.projid, id => {
     if (id) {
       control.removeProject(req.body.projid, removed => {
         if (removed) {
-          res.json({
-            message: 'Project removed',
-          });
+          res.json({ message: "Project removed" });
           return;
         }
         res.json({
-          errMessage: 'Error with removing project',
+          errMessage: "Error with removing project"
         });
       });
     } else {
       res.json({
-        errMessage: 'This project does not exist',
+        errMessage: "This project does not exist"
       });
     }
   });
@@ -571,19 +502,19 @@ router.delete('/removeproject', (req, res) => {
 
 function checkFileType(file, cb) {
   // Define the allowed extension
-  let fileExts = ['png', 'jpg', 'jpeg', 'gif'];
+  let fileExts = ["png", "jpg", "jpeg", "gif"];
 
   // Check allowed extensions
   let isAllowedExt = fileExts.includes(
-    file.originalname.split('.')[1].toLowerCase()
+    file.originalname.split(".")[1].toLowerCase()
   );
   // Mime type must be an image
-  let isAllowedMimeType = file.mimetype.startsWith('image/');
+  let isAllowedMimeType = file.mimetype.startsWith("image/");
 
   if (isAllowedExt && isAllowedMimeType) {
     return cb(null, true); // no errors
   } else {
-    cb('Error: File type not allowed!');
+    cb("Error: File type not allowed!");
   }
 }
 /* Add project point */
