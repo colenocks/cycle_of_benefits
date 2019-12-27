@@ -1,27 +1,26 @@
 "use strict";
+require("dotenv").config();
 const express = require("express");
 const app = express();
 
 const bodyParser = require("body-parser");
 const mainRouter = require("./routes/main_routes");
 const path = require("path");
-// const serveStatic = require('serve-static')
 const session = require("express-session");
-const HALF_HOUR = 1000 * 60 * 30; //30 minutes
 
-const {
-  PORT = process.env.PORT ? process.env.PORT : 1433,
-  NODE_ENV = "development",
-  SESS_SECRET = "cyob//!Icardi?!",
-  SESS_LIFETIME = HALF_HOUR
-} = process.env;
+const hostname = process.env.HOST || "http://localhost";
+const port = process.env.PORT;
 
+<<<<<<< HEAD
 const IN_PROD = NODE_ENV === "production";
 
 app.use(express.static("dist"));
 app.use(express.static("assets"));
 // Virtual Path Prefix '/static'
 // app.use('/images', express.static('public'))
+=======
+app.use(express.static(path.join(__dirname, "dist")));
+>>>>>>> replace const variables with environment variables
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -34,13 +33,13 @@ app.set("view engine", "ejs");
 // Session Custom options
 app.use(
   session({
-    secret: SESS_SECRET,
+    secret: process.env.SESS_SECRET || 1000 * 60 * 30,
     resave: false,
     saveUninitialized: false,
     cookie: {
-      maxAge: SESS_LIFETIME,
+      maxAge: process.env.SESS_LIFETIME,
       sameSite: true,
-      secure: IN_PROD
+      secure: process.env.IN_PROD
     }
   })
 );
@@ -61,10 +60,7 @@ app.use((err, req, res, next) => {
   res.send(err.message);
 });
 
-app.listen(PORT, () => console.log(`http://localhost:${PORT}`));
-
-function hi() {
-  alert("I can see you");
-}
+// app.listen(PORT, () => console.log(`http://localhost:${PORT}`));
+app.listen(port, hostname, () => console.log(`${hostname}:${port}`));
 
 module.exports = app;
