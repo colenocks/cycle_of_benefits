@@ -29,8 +29,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       maxAge: parseInt(process.env.SESS_LIFETIME, 10),
-      sameSite: true,
-      secure: process.env.IN_PROD
+      sameSite: true
+      // secure: process.env.IN_PROD
     }
   })
 );
@@ -51,6 +51,6 @@ app.use((err, req, res, next) => {
   res.send(err.message);
 });
 
-app.listen(port, () => console.log(`listening at ${hostname} on port${port}`));
+app.listen(port, () => console.log(`listening at ${hostname} on port:${port}`));
 
 module.exports = app;
