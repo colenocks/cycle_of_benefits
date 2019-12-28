@@ -1,15 +1,19 @@
 const express = require("express");
+const dotenv = require("dotenv");
 const path = require("path");
+const fs = require("fs");
 const User = require("../persistence/user");
 const Project = require("../persistence/project");
 const Control = require("../persistence/control");
 const multer = require("multer");
-// const upload = multer({ dest: "/assets/projects/images" });
+const cloudinary = require("../persistence/cloudinary");
+
+dotenv.config();
 
 //using the diskStorage option instead of dest to have full control uploaded images
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-    cb(null, "dist/assets/projects");
+    cb(null, "/projects");
   },
   filename: function(req, file, cb) {
     // the null as first argument means no error
@@ -20,7 +24,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 3000000 //3mb max
+    fileSize: parseInt(process.env.MULTER_FILE_SIZE, 10)
   },
   fileFilter: function(req, file, cb) {
     checkFileType(file, cb);
@@ -72,12 +76,6 @@ router.get("/project:id", (req, res, next) => {
   const proj_id = req.params.id;
   project.getProject(proj_id, data => {
     if (data) {
-      // console.log(
-      //   data.proj_photo
-      //     .split("\\")
-      //     .splice(1) /*remove the 'dist' from path*/
-      //     .join("/")
-      // );
       res.render("viewproject", {
         id: data.projId ? data.projId : "",
         type: data.proj_type ? data.proj_type : "other",
@@ -92,13 +90,7 @@ router.get("/project:id", (req, res, next) => {
         maxworkers: data.max_no_workers ? data.max_no_workers : 1,
         postedby: data.posted_by ? data.posted_by : "",
         duration: data.estimated_duration ? data.estimated_duration : "unknown",
-        image:
-          data.proj_photo !== null
-            ? data.proj_photo
-                .split("\\")
-                .splice(1) /*remove the 'dist' from path*/
-                .join("/").toLowerCase() || data.proj_photo
-            : ""
+        image: data.proj_photo ? data.proj_photo : ""
       });
       return;
     }
@@ -263,16 +255,33 @@ router.post("/projectview", (req, res) => {
   });
 });
 
+//Image upload middleware
+const cloudLink = async file => {
+  try {
+    // Upload file to cloudinary
+    const uploader = async path => cloudinary.uploads(path, "cyob_images");
+    const { path } = file;
+    const url = await uploader(path);
+    fs.unlinkSync(path);
+
+    return url;
+  } catch (error) {
+    return {
+      status: "Request failed",
+      error
+    };
+  }
+};
+
 // Add Project
-router.post("/addproject", upload.single("image"), (req, res, next) => {
+router.post("/addproject", upload.single("image"), async (req, res, next) => {
   // console.log("maxworkers: " + req.body.max);
   if (!req.file) {
     console.log("No file uploaded");
     return;
   }
-  const file = req.file;
-  let imageurl = file.path.toLowerCase();
-  // console.log(file);
+
+  const { url: imageurl } = await cloudLink(req.file);
   if (req.session.userid) {
     // Everything went fine.
     // let imageurl = file.path;
@@ -500,23 +509,6 @@ router.delete("/removeproject", (req, res) => {
   });
 });
 
-function checkFileType(file, cb) {
-  // Define the allowed extension
-  let fileExts = ["png", "jpg", "jpeg", "gif"];
-
-  // Check allowed extensions
-  let isAllowedExt = fileExts.includes(
-    file.originalname.split(".")[1].toLowerCase()
-  );
-  // Mime type must be an image
-  let isAllowedMimeType = file.mimetype.startsWith("image/");
-
-  if (isAllowedExt && isAllowedMimeType) {
-    return cb(null, true); // no errors
-  } else {
-    cb("Error: File type not allowed!");
-  }
-}
 /* Add project point */
 /* router.put("/addpoint", (req, res) => {
   const project = {
