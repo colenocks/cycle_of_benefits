@@ -13,7 +13,7 @@ dotenv.config();
 //using the diskStorage option instead of dest to have full control uploaded images
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-    cb(null, "/projects");
+    cb(null, "dist/assets/projects");
   },
   filename: function(req, file, cb) {
     // the null as first argument means no error
@@ -27,7 +27,7 @@ const upload = multer({
     fileSize: parseInt(process.env.MULTER_FILE_SIZE, 10)
   },
   fileFilter: function(req, file, cb) {
-    checkFileType(file, cb);
+    cloudinary.checkFileType(file, cb);
   }
 });
 
@@ -107,7 +107,7 @@ router.get("/profile", (req, res) => {
       //get userdata and render profile
       user.getProfile(req.session.userid, userprofile => {
         if (userprofile) {
-          res.render("profile.ejs", {
+          res.render("profile", {
             username: userprofile.userId ? userprofile.userId : "",
             firstname: userprofile.first_name ? userprofile.first_name : "",
             lastname: userprofile.last_name ? userprofile.last_name : "",
@@ -275,17 +275,16 @@ const cloudLink = async file => {
 
 // Add Project
 router.post("/addproject", upload.single("image"), async (req, res, next) => {
-  // console.log("maxworkers: " + req.body.max);
   if (!req.file) {
     console.log("No file uploaded");
     return;
   }
+  // console.log(req.file);
 
   const { url: imageurl } = await cloudLink(req.file);
   if (req.session.userid) {
     // Everything went fine.
     // let imageurl = file.path;
-    // console.log(file.filename);
     let proj = {
       type: req.body.type,
       title: req.body.title,
@@ -298,6 +297,7 @@ router.post("/addproject", upload.single("image"), async (req, res, next) => {
       image: imageurl,
       postedby: req.session.userid
     };
+    // console.log(proj);
     //add to database
     project.addProject(proj, projectdata => {
       if (projectdata) {

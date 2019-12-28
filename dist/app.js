@@ -114,8 +114,6 @@ if (document.querySelector(".signin-div")) {
               });
             };
           }
-        } else {
-          console.log("not admin");
         }
       } else {
         // functions.displayAlert(data.errMessage, "info");
