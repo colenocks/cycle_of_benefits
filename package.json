@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/colenocks/Cycle_of_benefits.git"
+    "url": "git+https://github.com/colenocks/cycle_of_benefits.git"
   },
   "author": "Coleman Enocks",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/colenocks/Cycle_of_benefits/issues"
+    "url": "https://github.com/colenocks/cycle_of_benefits/issues"
   },
-  "homepage": "https://github.com/colenocks/Cycle_of_benefits#readme",
+  "homepage": "https://github.com/colenocks/cycle_of_benefits#readme",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
