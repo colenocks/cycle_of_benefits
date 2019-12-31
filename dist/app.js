@@ -292,8 +292,7 @@ if (document.querySelector(".boxes")) {
 
 /* Load all projects */
 if (document.querySelector(".projects")) {
-  /* create dynamic contents */
-  const ProjectList = [];
+  /* create and dynamically add projects */
   function appendProjects(recordset) {
     let pill = document.querySelector(".project-pills");
     let project_ = document.createElement("li");
@@ -359,6 +358,24 @@ if (document.querySelector(".projects")) {
     pill.appendChild(project_);
     // document.body.appendChild("pill");
   }
+  /* view Project page */
+  function viewProject() {
+    let projectRow = document.querySelectorAll(".project_");
+    let projectBtn = document.querySelectorAll(".project-button > input");
+    let projectId = document.querySelectorAll(".project-id");
+    // let postedBy = document.querySelectorAll(".project-posted");
+    //set static url
+    for (let i = 0; i < projectRow.length; i++) {
+      projectBtn[i].onclick = function() {
+        usersession.viewProject(projectId[i], projectidUrl => {
+          if (projectidUrl) {
+            location.assign(location.origin + projectidUrl);
+          }
+        });
+      };
+    }
+  }
+
   // fetch data
   functions
     .fetchData("/allprojects", {
@@ -384,26 +401,8 @@ if (document.querySelector(".projects")) {
       }
     })
     .catch(err => {
-      console.log("Fetch Error: All projects: " + err);
+      console.log("All projects Fetch Error:  " + err);
     });
-
-  /* view Project page */
-  function viewProject() {
-    let projectRow = document.querySelectorAll(".project_");
-    let projectBtn = document.querySelectorAll(".project-button > input");
-    let projectId = document.querySelectorAll(".project-id");
-    // let postedBy = document.querySelectorAll(".project-posted");
-    //set static url
-    for (let i = 0; i < projectRow.length; i++) {
-      projectBtn[i].onclick = function() {
-        usersession.viewProject(projectId[i], projectidUrl => {
-          if (projectidUrl) {
-            location.assign(location.origin + projectidUrl);
-          }
-        });
-      };
-    }
-  }
 }
 
 /* Add project */
@@ -499,4 +498,72 @@ if (document.querySelector(".rewards")) {
       }
     });
   }
+}
+
+/* View my Enlisted projects */
+if (document.querySelector(".messages")) {
+  const myEnlistedProjects = function(recordset) {
+    let list = document.querySelector(".myprojects");
+    let myproject_ = document.createElement("li");
+    myproject_.classList.add("myproject_");
+
+    let proj_id = document.createElement("div");
+    proj_id.classList.add("myproject-id");
+    let proj_title = document.createElement("div");
+    proj_title.classList.add("myproject-title");
+    let proj_status = document.createElement("div");
+    proj_status.classList.add("myproject-status");
+
+    let proj_button = document.createElement("div");
+    proj_button.classList.add("myproject-button");
+    let input = document.createElement("input");
+    input.classList.add("my-btn");
+    input.setAttribute("type", "button");
+    input.setAttribute("value", "Cancel");
+    input.style.background = "red";
+    proj_button.appendChild(input);
+
+    proj_id.appendChild(document.createTextNode(recordset.projId));
+    proj_title.appendChild(document.createTextNode(recordset.proj_title));
+    proj_status.appendChild(document.createTextNode(recordset.proj_status));
+
+    myproject_.appendChild(proj_id);
+    myproject_.appendChild(proj_title);
+    myproject_.appendChild(proj_status);
+    myproject_.appendChild(proj_button);
+
+    list.appendChild(myproject_);
+  };
+
+  /* Cancel/De-enlist from project */
+  const cancelProject = function() {
+    let projectRow = document.querySelectorAll(".myproject_");
+    let projectBtn = document.querySelectorAll(".myproject-button > input");
+    let projectId = document.querySelectorAll(".myproject-id");
+    for (let i = 0; i < projectRow.length; i++) {
+      projectBtn[i].onclick = function() {
+        if (confirm("Are you sure you want to cancel out?")) {
+          usersession.withdrawFromProject(projectId[i], data => {
+            if (data.message) {
+              functions.displayAlert(data.message, "success");
+            } else {
+              functions.displayAlert(data.errMessage, "error");
+            }
+          });
+        }
+      };
+    }
+  };
+
+  usersession.viewMyProjects(data => {
+    if (!data.errMessage) {
+      for (let i = 0; i < data.length; i++) {
+        myEnlistedProjects(data[i]);
+      }
+      cancelProject();
+    } else {
+      console.log("Oga, nothing show");
+      functions.displayAlert(data.errMessage, "error");
+    }
+  });
 }

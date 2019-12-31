@@ -428,6 +428,58 @@ UserSession.prototype = {
       .catch(err => {
         console.log("Load Points Fetch err: ", err);
       });
+  },
+
+  withdrawFromProject: function(projectId, callback) {
+    let url = "/dropworker";
+    let project = {
+      projid: projectId.textContent
+    };
+    functions
+      .fetchData(url, {
+        method: "DELETE",
+        headers: {
+          Accept: [
+            "application/x-www-form-urlencoded",
+            "application/json",
+            "text/plain",
+            "*/*"
+          ],
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(project)
+      })
+      .then(response => {
+        if (response) callback(response);
+      })
+      .catch(err => {
+        console.log("withdraw project Fetch err: ", err);
+      });
+  },
+
+  viewMyProjects: function(callback) {
+    let url = "/getuserproject";
+    functions
+      .fetchData(url, {
+        method: "GET",
+        headers: {
+          Accept: [
+            "application/x-www-form-urlencoded",
+            "application/json",
+            "text/plain",
+            "*/*"
+          ],
+          "Content-Type": "application/json"
+        }
+      })
+      .then(data => {
+        if (data) {
+          callback(data);
+        }
+      })
+      .catch(err => {
+        console.log("view projects Fetch err: ", err);
+      });
   }
 };
 

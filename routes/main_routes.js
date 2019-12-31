@@ -13,7 +13,7 @@ dotenv.config();
 //using the diskStorage option instead of dest to have full control uploaded images
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-    cb(null, "dist/assets/projects");
+    cb(null, "projects");
   },
   filename: function(req, file, cb) {
     // the null as first argument means no error
@@ -206,16 +206,32 @@ router.post("/enlist", (req, res) => {
 /* Get All user projects */
 router.get("/getuserproject", (req, res) => {
   if (req.session.userid) {
-  } else {
-    res.json({ errMessage: "you must be logged in" });
+    project.getUserProjects(req.session.userid, data => {
+      if (data) {
+        res.json(data.recordset);
+      } else {
+        res.json({ errMessage: "You have not enlisted for any projects" });
+      }
+    });
   }
 });
 
 /*Remove user from worklist */
 router.delete("/dropworker", (req, res) => {
   if (req.session.userid) {
+    project.dropWorker(req.body.projid, req.session.userid, response => {
+      if (response) {
+        res.json({
+          message: "You have cancelled out of the project: " + req.body.projid
+        });
+      } else {
+        res.json({
+          errMessage: "You have already been removed from this project"
+        });
+      }
+    });
   } else {
-    res.json({ errMessage: "you must be logged in" });
+    res.json({ errMessage: "you are not logged in" });
   }
 });
 
@@ -280,7 +296,6 @@ router.post("/addproject", upload.single("image"), async (req, res, next) => {
     return;
   }
   // console.log(req.file);
-
   const { url: imageurl } = await cloudLink(req.file);
   if (req.session.userid) {
     // Everything went fine.

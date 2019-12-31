@@ -5,27 +5,27 @@ const sql = require("mssql");
 function Project() {}
 
 Project.prototype = {
-  // generateId: function(callback) {
-  //   let request = new dbconnect.sql.Request(dbconnect.pool);
-  //   request
-  //     .query("SELECT * FROM cyobDB.dbo.Tbl_Projects")
-  //     .then(data => {
-  //       if (data) {
-  //         //get last Id
-  //         const row = data.rowsAffected;
-  //         const lastId = data.recordset[row - 1].projId;
-  //         const newId = lastId + 1;
-  //         console.log(newId);
-  //         callback(newId);
-  //         return;
-  //       } else {
-  //         callback(null);
-  //       }
-  //     })
-  //     .catch(err => {
-  //       console.log("Generate Id- Fetch error: " + err);
-  //     });
-  // },
+  /* generateId: function(callback) {
+    let request = new dbconnect.sql.Request(dbconnect.pool);
+    request
+      .query("SELECT * FROM cyobDB.dbo.Tbl_Projects")
+      .then(data => {
+        if (data) {
+          //get last Id
+          const row = data.rowsAffected;
+          const lastId = data.recordset[row - 1].projId;
+          const newId = lastId + 1;
+          console.log(newId);
+          callback(newId);
+          return;
+        } else {
+          callback(null);
+        }
+      })
+      .catch(err => {
+        console.log("Generate Id- Fetch error: " + err);
+      });
+  }, */
 
   findProject: (projid, callback) => {
     if (projid) {
@@ -131,18 +131,43 @@ Project.prototype = {
               let subqueryString = `UPDATE cyobDB.dbo.Tbl_Projects
                SET proj_status = 'Assigned'
                WHERE projId = ${projectRecord[i].projId}
+               AND proj_status <> 'Completed';
+               
+               UPDATE cyobDB.dbo.Tbl_Worklist
+               SET proj_status = 'Assigned'
+               WHERE projId = ${projectRecord[i].projId}
                AND proj_status <> 'Completed'`;
               request
                 .query(subqueryString)
                 .then(data => {
                   if (data.rowsAffected == 1) {
                     console.log(
-                      data.rowsAffected + " row(s) updated as Completed"
+                      data.rowsAffected + " row(s) updated status to Assigned"
                     );
                   }
                 })
                 .catch(err => {
                   console.log("allprojects- subquery error: " + err);
+                });
+            } else {
+              let subqueryString2 = `UPDATE cyobDB.dbo.Tbl_Projects
+               SET proj_status = 'Open'
+               WHERE projId = ${projectRecord[i].projId};
+               
+               UPDATE cyobDB.dbo.Tbl_Worklist
+               SET proj_status = 'Open'
+               WHERE projId = ${projectRecord[i].projId}`;
+              request
+                .query(subqueryString2)
+                .then(data => {
+                  if (data.rowsAffected == 1) {
+                    console.log(
+                      data.rowsAffected + " row(s) updated status to Open"
+                    );
+                  }
+                })
+                .catch(err => {
+                  console.log("allprojects- subquery2 error: " + err);
                 });
             }
           }
@@ -250,7 +275,8 @@ Project.prototype = {
           for (let i = 0; i < projectRecord.length; i++) {
             let id = projectRecord[i].projId;
             //1. get all users in worklist table for the completed project
-            let subqueryString = `SELECT * FROM cyobDB.dbo.Tbl_Worklist WHERE projId = ${id}`;
+            let subqueryString = `SELECT * FROM cyobDB.dbo.Tbl_Worklist
+             WHERE projId = ${id}`;
             request
               .query(subqueryString)
               .then(data => {
@@ -263,7 +289,9 @@ Project.prototype = {
                   //2. Distribute reward points to associated users
                   for (let i = 0; i < numWorkers; i++) {
                     let user = worklistRecord[i].userId;
-                    let innerQuery = `UPDATE cyobDB.dbo.Tbl_Profiles SET user_reward_points = user_reward_points + ${point} WHERE userId = '${user}'`;
+                    let innerQuery = `UPDATE cyobDB.dbo.Tbl_Profiles 
+                    SET user_reward_points = user_reward_points + ${point} 
+                    WHERE userId = '${user}'`;
                     request
                       .query(innerQuery)
                       .then(data => {
@@ -304,13 +332,20 @@ Project.prototype = {
     //delete all record with the project id
   },
 
+  //Sets Project as completed
   projectCompleted: function(projid, callback) {
     this.findProject(projid, id => {
       if (id) {
         let request = new dbconnect.sql.Request(dbconnect.pool);
         let queryString = `UPDATE cyobDB.dbo.Tbl_Projects
-                                    SET proj_status = 'Completed'
-                                    WHERE projId = ${projid}`;
+        SET proj_status = 'Completed'
+        SET reward_points = 0
+        WHERE projId = ${projid};
+        
+        UPDATE cyobDB.dbo.Tbl_Worklist
+        SET proj_status = 'Completed'
+        WHERE projId = ${projid}`;
+
         request
           .query(queryString)
           .then(data => {
@@ -326,9 +361,65 @@ Project.prototype = {
     });
   },
 
-  getUserProject: function(projid, callback) {},
+  getUserProjects: function(userid, callback) {
+    let request = new dbconnect.sql.Request(dbconnect.pool);
+    let queryString = `SELECT t1.projId, t2.proj_title, t1.proj_status, t1.reward_points, t1.userId 
+      FROM cyobDB.dbo.Tbl_Worklist AS t1
+      INNER JOIN 
+      (SELECT projId, proj_title FROM cyobDB.dbo.Tbl_Projects) AS t2
+      ON t1.projId = t2.projId
+      WHERE t1.userId = '${userid}'
+      AND t1.proj_status <> 'Completed'`;
+    request
+      .query(queryString)
+      .then(data => {
+        if (data.recordset) {
+          callback(data);
+          return;
+        }
+        callback(null);
+      })
+      .catch(err => console.log(err));
+  },
 
-  dropWorker: function(projid, callback) {}
+  dropWorker: function(projid, userid, callback) {
+    this.getProject(projid, record => {
+      if (record && record.current_workers > 0) {
+        let request = new dbconnect.sql.Request(dbconnect.pool);
+        let queryString = `DELETE FROM cyobDB.dbo.Tbl_Worklist
+          WHERE projId = ${record.projId}
+          AND userId = '${userid}'`;
+        request
+          .query(queryString)
+          .then(data => {
+            if (data.rowsAffected.length == 1) {
+              /* Get/update project status from/in projects table */
+              /* Decrement current workers */
+              let subQuery = `UPDATE cyobDB.dbo.Tbl_Projects
+              SET current_workers = current_workers - 1
+              WHERE projId = ${record.projId}`;
+
+              request
+                .query(subQuery)
+                .then(data => {
+                  if (data.rowsAffected.length == 1) {
+                    console.log(
+                      userid + " successfully dropped from " + projid
+                    );
+                    callback(true);
+                    return;
+                  }
+                })
+                .catch(err => console.log(err));
+            }
+          })
+          .catch(err => console.log(err));
+      } else {
+        console.log("User has already been removed from the list");
+        callback(null);
+      }
+    });
+  }
 };
 
 module.exports = Project;
