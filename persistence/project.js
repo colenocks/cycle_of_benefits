@@ -96,7 +96,7 @@ Project.prototype = {
   },
 
   getProject: function(projectId, callback) {
-    let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects WHERE projId = ${projectId}`;
+    let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects_Approved WHERE projId = ${projectId}`;
     let request = new dbconnect.sql.Request(dbconnect.pool);
     request
       .query(queryString)
