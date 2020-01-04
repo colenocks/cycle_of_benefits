@@ -3,10 +3,6 @@ import * as myfetch from "./js/fetch.js";
 
 const usersession = new myfetch.UserSession();
 
-if (document.querySelector("#project-image img")) {
-  let img = document.querySelector("#project-image img").getAttribute("src");
-  console.log(img);
-}
 /* Menu Button Toggle functionality */
 if (document.querySelector(".menu-btn")) {
   functions.menuToggle();
@@ -68,8 +64,18 @@ if (document.querySelector(".signin-div")) {
             updateProject.setAttribute("id", "updateProject");
             updateProject.classList.add("my-btn", "left-btn");
             console.log("Welcome Admin");
-            //   Append edit button
+
+            //Create Add Button
+            let AddBtn = document.createElement("button");
+            AddBtn.classList.add("my-btn", "left-btn");
+            let addtext = document.createTextNode("ADD");
+            AddBtn.appendChild(addtext);
+            AddBtn.style.margin = "0 10px";
+            AddBtn.style.color = "blue";
+
+            //   Append edit and add buttons
             editProject.appendChild(editBtn);
+            editProject.appendChild(AddBtn);
 
             //switch enlist button to edit project
             interest.replaceWith(updateProject);
@@ -82,6 +88,7 @@ if (document.querySelector(".signin-div")) {
 
             updateProject.setAttribute("disabled", true);
             let editToggle = false;
+
             //edit click listener function
             editBtn.onclick = function() {
               if (!editToggle) {
@@ -112,6 +119,12 @@ if (document.querySelector(".signin-div")) {
                   editToggle = false;
                 }
               });
+            };
+
+            AddBtn.onclick = function(e) {
+              e.preventDefault();
+              let id = document.getElementById("view_id");
+              usersession.approveProject(id);
             };
           }
         }
@@ -292,79 +305,12 @@ if (document.querySelector(".boxes")) {
 
 /* Load all projects */
 if (document.querySelector(".projects")) {
-  /* create and dynamically add projects */
-  function appendProjects(recordset) {
-    let pill = document.querySelector(".project-pills");
-    let project_ = document.createElement("li");
-    project_.classList.add("project_");
-
-    let proj_id = document.createElement("div");
-    proj_id.classList.add("project-id");
-    let proj_title = document.createElement("div");
-    proj_title.classList.add("project-title");
-    let proj_worth = document.createElement("div");
-    proj_worth.classList.add("project-worth");
-    let proj_posted = document.createElement("div");
-    proj_posted.classList.add("project-posted");
-    let proj_status = document.createElement("div");
-    proj_status.classList.add("project-status");
-    let proj_workers = document.createElement("div");
-    proj_workers.classList.add("project-workers");
-    let proj_current_workers = document.createElement("span");
-    proj_current_workers.classList.add("current");
-    let proj_total_workers = document.createElement("span");
-    proj_total_workers.classList.add("total");
-    let proj_button = document.createElement("div");
-    proj_button.classList.add("project-button");
-    let input = document.createElement("input");
-    input.classList.add("my-btn");
-    input.setAttribute("type", "button");
-    input.setAttribute("value", "View");
-
-    /* Add text contents */
-    proj_id.appendChild(document.createTextNode(recordset.projId));
-    proj_title.appendChild(document.createTextNode(recordset.proj_title));
-    proj_status.appendChild(document.createTextNode(recordset.proj_status));
-    proj_worth.appendChild(document.createTextNode(recordset.reward_points));
-    proj_current_workers.appendChild(
-      document.createTextNode(
-        recordset.current_workers ? recordset.current_workers + "/" : 0 + "/"
-      )
-    );
-    proj_total_workers.appendChild(
-      document.createTextNode(
-        recordset.max_no_workers ? recordset.max_no_workers : 0
-      )
-    );
-
-    proj_workers.append(proj_current_workers);
-    proj_workers.append(proj_total_workers);
-    proj_posted.appendChild(document.createTextNode(recordset.posted_by));
-    proj_button.appendChild(input);
-
-    /* Append to project group */
-    project_.appendChild(proj_id);
-    project_.appendChild(proj_title);
-    project_.appendChild(proj_status);
-    project_.appendChild(proj_worth);
-    project_.appendChild(proj_workers);
-    project_.appendChild(proj_posted);
-    project_.appendChild(proj_button);
-
-    /* Visual design for completed projects */
-    if (recordset.proj_status == "Completed") {
-      project_.style.backgroundColor = "#888";
-    }
-    pill.appendChild(project_);
-    // document.body.appendChild("pill");
-  }
   /* view Project page */
   function viewProject() {
     let projectRow = document.querySelectorAll(".project_");
     let projectBtn = document.querySelectorAll(".project-button > input");
     let projectId = document.querySelectorAll(".project-id");
-    // let postedBy = document.querySelectorAll(".project-posted");
-    //set static url
+
     for (let i = 0; i < projectRow.length; i++) {
       projectBtn[i].onclick = function() {
         usersession.viewProject(projectId[i], projectidUrl => {
@@ -379,7 +325,7 @@ if (document.querySelector(".projects")) {
   // fetch data
   functions
     .fetchData("/allprojects", {
-      method: "Get",
+      method: "GET",
       headers: {
         Accept: [
           "application/x-www-form-urlencoded",
@@ -393,7 +339,7 @@ if (document.querySelector(".projects")) {
     .then(data => {
       if (data) {
         for (let i = 0; i < data.length; i++) {
-          appendProjects(data[i]);
+          functions.appendProjects(data[i]);
         }
         viewProject();
       } else {
