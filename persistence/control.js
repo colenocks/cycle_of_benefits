@@ -4,11 +4,11 @@ const dbconnect = require("./connection");
 function Control() {}
 
 Control.prototype = {
-  archiveProject: function(projid, callback) {
+  /*  archiveProject: function(projid, callback) {
     if (projid) {
       let request = new dbconnect.sql.Request(dbconnect.pool);
       let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Worklist
-      WHERE projId = ${project.projid}
+      WHERE projId = ${projid}
       AND proj_status = 'Completed'`;
       request
         .query(queryString)
@@ -21,43 +21,38 @@ Control.prototype = {
             let rows = 0;
             //1. loop through and delete all worklist rows with associated projid
             for (let i = 0; i < len; i++) {
-              request
-                .query(innerQuery)
-                .then(data => {
-                  rows++;
-                  if (rows == len) {
-                    console.log("project archived: " + isArchived);
-                    isArchived = true;
-                    callback("Done");
-                    return;
-                  }
-                  callback(null);
-                })
-                .catch(err => console.log(err));
+              request.query(innerQuery).then(data => {
+                rows++;
+                if (rows == len && data.rowsAffected >= 1) {
+                  console.log("project archived: " + isArchived);
+                  // isArchived = true;
+                  // callback(true);
+                }
+                // else {callback(null)};
+              });
             }
-            //2. add project to archived projects table
-            /* if (isArchived) {
-              request
-                .query(
-                  `INSERT INTO cyobDB.dbo.Tbl_Archives
-                    SELECT * FROM cyobDB.dbo.Tbl_Projects
-                    WHERE projId = ${projid}`
-                )
-                .then(data => {
-                  if (data.rowsAffected.length == 1) {
-                    console.log(projid + " Project has been sent to Archive");
-                    callback("project Archived");
-                    return;
-                  }
-                  callback(null);
-                })
-                .catch(err => console.log(err));
-            } */
           }
+          //2. add project to archived projects table
+          // if (isArchived) {
+          request
+            .query(
+              `DELETE FROM cyobDB.dbo.Tbl_Projects_Approved
+                    WHERE projId = ${projid}`
+            )
+            .then(data => {
+              if (data.rowsAffected == 1) {
+                console.log(projid + " Project has been sent to Archive");
+                callback(true);
+                return;
+              }
+              callback(null);
+            })
+            .catch(err => console.log(err));
+          // }
         })
         .catch(err => console.log(err));
     }
-  },
+  }, */
 
   getAllRewardRequests: function(callback) {
     let request = new dbconnect.sql.Request(dbconnect.pool);
@@ -76,21 +71,49 @@ Control.prototype = {
       });
   },
 
-  addProjectPoint: function(project, callback) {
-    //Add other fields to the project, rewards point, estimated period
+  getAllProjects: function(callback) {
+    let queryString = `SELECT t1.* FROM Tbl_Projects t1
+    WHERE t1.projId NOT IN (SELECT t2.projId FROM
+     Tbl_Projects_Approved t2)`;
     let request = new dbconnect.sql.Request(dbconnect.pool);
-    let queryString = `UPDATE cyobDB.dbo.Tbl_Projects
-               SET reward_points = ${project.point},
-               estimated_duration = '${project.duration}' 
-               WHERE projId = ${project.projId}`;
     request
       .query(queryString)
       .then(data => {
-        if (data.rowsAffected.length == 1) {
-          callback("points Added");
+        if (data.recordset.length > 0) {
+          callback(data);
           return;
         }
         callback(null);
+      })
+      .catch(err => console.log(err));
+  },
+
+  approveProject: function(id, callback) {
+    let request = new dbconnect.sql.Request(dbconnect.pool);
+    let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects_Approved 
+               WHERE projId = ${id}`;
+    request
+      .query(queryString)
+      .then(data => {
+        if (data.rowsAffected == 1) {
+          console.log("Project already added");
+          callback(null);
+        } else {
+          //Add into table
+          let innerQuery = `INSERT INTO cyobDB.dbo.Tbl_Projects_Approved
+        SELECT * FROM cyobDB.dbo.Tbl_Projects
+         WHERE projId = ${id}`;
+          request
+            .query(innerQuery)
+            .then(data => {
+              if (data.rowsAffected == 1) {
+                callback(true);
+                return;
+              }
+              callback(null);
+            })
+            .catch(err => console.log(err));
+        }
       })
       .catch(err => console.log(err));
   },
@@ -106,7 +129,7 @@ Control.prototype = {
     request
       .query(queryStrings)
       .then(data => {
-        if (data.rowsAffected.length > 1) {
+        if (data.rowsAffected > 1) {
           callback(true);
           return;
         }
@@ -122,7 +145,7 @@ Control.prototype = {
     request
       .query(queryString)
       .then(data => {
-        if (data.rowsAffected.length > 1) {
+        if (data.rowsAffected > 1) {
           callback(true);
           return;
         }

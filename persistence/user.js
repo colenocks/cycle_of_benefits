@@ -100,7 +100,6 @@ User.prototype = {
           );
           if (submittedUsername === "admin" && submittedPassword === "admin") {
             callback(userRecord.userId);
-            return;
           } else if (validPassword) {
             callback(userRecord.userId);
           } else {

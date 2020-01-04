@@ -187,6 +187,10 @@ router.post("/enlist", (req, res) => {
           if (rows) {
             //if user is successfully added to list of workers
             res.json({ message: "You have been enlisted successfully" });
+          } else if (rows === "complete") {
+            res.json({
+              errMessage: "This project has already been completed!"
+            });
           } else {
             res.json({
               errMessage:
@@ -249,7 +253,8 @@ router.put("/currentworkers", (req, res) => {
             res.json({ message: "All clear for enlisting" });
           } else {
             res.json({
-              errMessage: "Sorry, This Project has already been assigned!"
+              errMessage:
+                "Sorry, This Project has already been assigned/Completed!"
             });
           }
         });
@@ -316,7 +321,9 @@ router.post("/addproject", upload.single("image"), async (req, res, next) => {
     //add to database
     project.addProject(proj, projectdata => {
       if (projectdata) {
-        res.json({ message: "Project has been Submitted!" });
+        res.json({
+          message: "Your proposed project has been Received, Wait for approval!"
+        });
       } else {
         res.json({ errMessage: "Could not add project" });
       }
@@ -431,6 +438,32 @@ router.get("/logout", (req, res) => {
 /* showAllusers */
 router.get("/showusers", (req, res) => {});
 
+/* Get all projects */
+router.get("/getallprojects", (req, res) => {
+  control.getAllProjects(data => {
+    if (data) {
+      res.json(data.recordset);
+      return;
+    }
+    res.json({ errMessage: "Could not retrieve project data" });
+  });
+});
+
+/* Approve proposed project */
+router.post("/approveproject", (req, res) => {
+  console.log(req.body.projid);
+  const projid = req.body.projid;
+  control.approveProject(projid, approved => {
+    if (approved) {
+      res.json({ message: "Project has been approved and uploaded" });
+      return;
+    }
+    res.json({
+      errMessage: "Project may have already been uploaded, Check and Try again!"
+    });
+  });
+});
+
 /* updateProject */
 router.put("/updateproject", (req, res) => {
   const proj = {
@@ -455,7 +488,7 @@ router.put("/updateproject", (req, res) => {
 });
 
 /* archiveProject */
-router.delete("/archiveproject", (req, res) => {
+/* router.delete("/archiveproject", (req, res) => {
   if (req.session.userid) {
     control.archiveProject(req.body.projid, archived => {
       if (archived) {
@@ -467,7 +500,7 @@ router.delete("/archiveproject", (req, res) => {
       });
     });
   }
-});
+}); */
 
 /* showAllRedeemedRewards */
 router.get("/showrewards", (req, res) => {
@@ -523,22 +556,5 @@ router.delete("/removeproject", (req, res) => {
     }
   });
 });
-
-/* Add project point */
-/* router.put("/addpoint", (req, res) => {
-  const project = {
-    point: req.body.point,
-    duration: req.body.duration
-  };
-  control.addProjectPoint(project, added => {
-    if (added) {
-      res.json({ message: "Points and duration have been added to project" });
-      return;
-    }
-    res.json({
-      errMessage: "Points/Project Duration were not added to project"
-    });
-  });
-}); */
 
 module.exports = router;

@@ -48,6 +48,7 @@
 }
 
 #display-body {
+  width: 70%;
   display: relative;
   height: fit-content;
   padding: 2%;

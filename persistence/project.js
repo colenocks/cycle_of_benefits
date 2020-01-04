@@ -8,7 +8,7 @@ Project.prototype = {
   /* generateId: function(callback) {
     let request = new dbconnect.sql.Request(dbconnect.pool);
     request
-      .query("SELECT * FROM cyobDB.dbo.Tbl_Projects")
+      .query("SELECT * FROM cyobDB.dbo.Tbl_Projects_Approved")
       .then(data => {
         if (data) {
           //get last Id
@@ -82,7 +82,7 @@ Project.prototype = {
         request
           .query(queryString)
           .then(data => {
-            if (data.rowsAffected.length == 1) {
+            if (data.rowsAffected == 1) {
               callback(true);
               return;
             }
@@ -114,7 +114,7 @@ Project.prototype = {
   },
 
   allProjects: function(callback) {
-    let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects`;
+    let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects_Approved`;
     let request = new dbconnect.sql.Request(dbconnect.pool);
     request
       .query(queryString)
@@ -128,7 +128,7 @@ Project.prototype = {
               projectRecord[i].current_workers ==
               projectRecord[i].max_no_workers
             ) {
-              let subqueryString = `UPDATE cyobDB.dbo.Tbl_Projects
+              let subqueryString = `UPDATE cyobDB.dbo.Tbl_Projects_Approved
                SET proj_status = 'Assigned'
                WHERE projId = ${projectRecord[i].projId}
                AND proj_status <> 'Completed';
@@ -150,7 +150,7 @@ Project.prototype = {
                   console.log("allprojects- subquery error: " + err);
                 });
             } else {
-              let subqueryString2 = `UPDATE cyobDB.dbo.Tbl_Projects
+              let subqueryString2 = `UPDATE cyobDB.dbo.Tbl_Projects_Approved
                SET proj_status = 'Open'
                WHERE projId = ${projectRecord[i].projId};
                
@@ -185,11 +185,13 @@ Project.prototype = {
     //check worklist
     this.checkWorklistForDuplicates(project.projId, userid, noduplicate => {
       if (noduplicate) {
-        if (project.current_workers < project.max_no_workers) {
+        if (project.proj_status === "Completed") {
+          callback("complete");
+        } else if (project.current_workers < project.max_no_workers) {
           let queryString = `INSERT INTO cyobDB.dbo.Tbl_Worklist (projId, proj_status, reward_points, userId)
           SELECT t2.projId, t2.proj_status, t2.reward_points, t1.userId 
           FROM Tbl_Profiles as t1
-          CROSS JOIN Tbl_Projects as t2
+          CROSS JOIN Tbl_Projects_Approved as t2
           WHERE t1.userId = '${userid}' AND t2.projId = ${project.projId}`;
           let request = new dbconnect.sql.Request(dbconnect.pool);
           request
@@ -216,7 +218,7 @@ Project.prototype = {
   updateCurrentWorker: function(project, callback) {
     let request = new dbconnect.sql.Request(dbconnect.pool);
     if (project.current_workers < project.max_no_workers) {
-      let queryString = `UPDATE cyobDB.dbo.Tbl_Projects
+      let queryString = `UPDATE cyobDB.dbo.Tbl_Projects_Approved
                SET current_workers = current_workers + 1
                WHERE projId = ${project.projId}`;
       request
@@ -263,7 +265,7 @@ Project.prototype = {
 
   distributePoints: function(callback) {
     //when project status = "assigned"
-    let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects 
+    let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects_Approved 
                       WHERE proj_status = 'Assigned'`;
     let request = new dbconnect.sql.Request(dbconnect.pool);
     request
@@ -337,7 +339,7 @@ Project.prototype = {
     this.findProject(projid, id => {
       if (id) {
         let request = new dbconnect.sql.Request(dbconnect.pool);
-        let queryString = `UPDATE cyobDB.dbo.Tbl_Projects
+        let queryString = `UPDATE cyobDB.dbo.Tbl_Projects_Approved
         SET proj_status = 'Completed'
         SET reward_points = 0
         WHERE projId = ${projid};
@@ -349,7 +351,7 @@ Project.prototype = {
         request
           .query(queryString)
           .then(data => {
-            if (data.rowsAffected.length == 1) {
+            if (data.rowsAffected == 1) {
               console.log(projid + " Project has been flagged as Completed");
               callback(true);
               return;
@@ -366,7 +368,7 @@ Project.prototype = {
     let queryString = `SELECT t1.projId, t2.proj_title, t1.proj_status, t1.reward_points, t1.userId 
       FROM cyobDB.dbo.Tbl_Worklist AS t1
       INNER JOIN 
-      (SELECT projId, proj_title FROM cyobDB.dbo.Tbl_Projects) AS t2
+      (SELECT projId, proj_title FROM cyobDB.dbo.Tbl_Projects_Approved) AS t2
       ON t1.projId = t2.projId
       WHERE t1.userId = '${userid}'
       AND t1.proj_status <> 'Completed'`;
@@ -392,17 +394,17 @@ Project.prototype = {
         request
           .query(queryString)
           .then(data => {
-            if (data.rowsAffected.length == 1) {
+            if (data.rowsAffected == 1) {
               /* Get/update project status from/in projects table */
               /* Decrement current workers */
-              let subQuery = `UPDATE cyobDB.dbo.Tbl_Projects
+              let subQuery = `UPDATE cyobDB.dbo.Tbl_Projects_Approved
               SET current_workers = current_workers - 1
               WHERE projId = ${record.projId}`;
 
               request
                 .query(subQuery)
                 .then(data => {
-                  if (data.rowsAffected.length == 1) {
+                  if (data.rowsAffected == 1) {
                     console.log(
                       userid + " successfully dropped from " + projid
                     );
