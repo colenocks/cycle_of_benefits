@@ -22,34 +22,35 @@ let RemoveProjectBtn = document.getElementById("RemoveProject");
 const showAllusers = () => {};
 
 const archiveProject = id => {
-  let url = "/archiveproject";
-  const proj = {
-    projid: id.value
-  };
-  let options = {
-    method: "DELETE",
-    headers: {
-      Accept: [
-        "application/x-www-form-urlencoded",
-        "application/json",
-        "text/plain",
-        "*/*"
-      ],
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(proj)
-  };
+  functions.displayAlert("Coming soon", "info");
+  // let url = "/archiveproject";
+  // const proj = {
+  //   projid: id.value
+  // };
+  // let options = {
+  //   method: "DELETE",
+  //   headers: {
+  //     Accept: [
+  //       "application/x-www-form-urlencoded",
+  //       "application/json",
+  //       "text/plain",
+  //       "*/*"
+  //     ],
+  //     "Content-Type": "application/json"
+  //   },
+  //   body: JSON.stringify(proj)
+  // };
 
-  functions
-    .fetchData(url, options)
-    .then(data => {
-      if (data.errMessage) {
-        functions.displayAlert(data.errMessage, "error");
-      } else {
-        functions.displayAlert(data.message, "success");
-      }
-    })
-    .catch(err => console.log(err));
+  // functions
+  //   .fetchData(url, options)
+  //   .then(data => {
+  //     if (data.errMessage) {
+  //       functions.displayAlert(data.errMessage, "error");
+  //     } else {
+  //       functions.displayAlert(data.message, "success");
+  //     }
+  //   })
+  //   .catch(err => console.log(err));
 };
 
 const showAllRedeemedRewards = () => {
@@ -141,7 +142,55 @@ const RemoveProject = id => {
 };
 
 showAllProjectsBtn.onclick = () => {
-  window.location.assign("/projects");
+  function viewProject() {
+    let projectRow = document.querySelectorAll(".project_");
+    let projectBtn = document.querySelectorAll(".project-button > input");
+    let projectId = document.querySelectorAll(".project-id");
+
+    for (let i = 0; i < projectRow.length; i++) {
+      projectBtn[i].onclick = function() {
+        usersession.viewProject(projectId[i], projectidUrl => {
+          if (projectidUrl) {
+            location.assign(location.origin + projectidUrl);
+          }
+        });
+      };
+    }
+  }
+
+  let url = "/getallprojects";
+  let options = {
+    method: "GET",
+    headers: {
+      Accept: [
+        "application/x-www-form-urlencoded",
+        "application/json",
+        "text/plain",
+        "*/*"
+      ],
+      "Content-Type": "application/json"
+    }
+  };
+
+  functions
+    .fetchData(url, options)
+    .then(data => {
+      if (data.errMessage) {
+        functions.displayAlert(data.errMessage, "error");
+      } else {
+        let projectRow = document.querySelector(".project-pills:last-child");
+        let hr = document.createElement("hr");
+        let proposed = document.createElement("h4");
+        proposed.appendChild(document.createTextNode("User Proposed Projects"));
+        projectRow.appendChild(proposed);
+        projectRow.appendChild(hr);
+        data.forEach(record => {
+          functions.appendProjects(record);
+        });
+        viewProject();
+      }
+    })
+    .catch(err => console.log(err));
 };
 
 showAllRedeemedRewardsBtn.onclick = showAllRedeemedRewards;
