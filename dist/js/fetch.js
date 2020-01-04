@@ -168,53 +168,81 @@ UserSession.prototype = {
     }
   },
 
+  approveProject: function(id) {
+    let url = "/approveproject";
+    const approve = {
+      projid: id.textContent
+    };
+    const options = {
+      method: "POST",
+      headers: {
+        Accept: [
+          "application/x-www-form-urlencoded",
+          "application/json",
+          "text/plain",
+          "*/*"
+        ],
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(approve)
+    };
+
+    functions
+      .fetchData(url, options)
+      .then(data => {
+        if (data.message) {
+          functions.displayAlert(data.message, "success");
+        } else {
+          functions.displayAlert(data.errMessage, "error");
+        }
+      })
+      .catch(error => {
+        console.log("add project Fetch error: " + error);
+      });
+  },
+
   updateProject: function(form, callback) {
     // validation
-    if (!functions.validateSignupForm(form.formName)) {
-      functions.displayAlert("Fill all required fields", "error");
-      return false;
-    } else {
-      let url = "/updateproject";
-      const project = {
-        id: form.id.textContent,
-        type: form.type.value,
-        title: form.title.value,
-        details: form.details.value,
-        tools: form.tools.value,
-        address: form.address.value,
-        city: form.city.value,
-        status: form.status.value,
-        maxworkers: form.maxworkers.value,
-        duration: form.duration.value,
-        point: form.point.value
-      };
-      const options = {
-        method: "PUT",
-        headers: {
-          Accept: [
-            "application/x-www-form-urlencoded",
-            "application/json",
-            "text/plain",
-            "*/*"
-          ],
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(project)
-      };
+    let url = "/updateproject";
+    const project = {
+      id: form.id.textContent,
+      type: form.type.value,
+      title: form.title.value,
+      details: form.details.value,
+      tools: form.tools.value,
+      address: form.address.value,
+      city: form.city.value,
+      status: form.status.value,
+      maxworkers: form.maxworkers.value,
+      duration: form.duration.value,
+      point: form.point.value
+    };
+    const options = {
+      method: "PUT",
+      headers: {
+        Accept: [
+          "application/x-www-form-urlencoded",
+          "application/json",
+          "text/plain",
+          "*/*"
+        ],
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(project)
+    };
 
-      functions
-        .fetchData(url, options)
-        .then(data => {
-          if (data.message) {
-            callback(data.message);
-            return;
-          }
-          functions.displayAlert(data.errMessage, "error");
-        })
-        .catch(error => {
-          console.log("post project Fetch error: " + error);
-        });
-    }
+    functions
+      .fetchData(url, options)
+      .then(data => {
+        if (data.message) {
+          callback(data.message);
+          return;
+        }
+        functions.displayAlert(data.errMessage, "error");
+      })
+      .catch(error => {
+        console.log("post project Fetch error: " + error);
+      });
   },
 
   viewProject: function(projectId, callback) {
