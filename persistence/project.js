@@ -386,7 +386,11 @@ Project.prototype = {
 
   dropWorker: function(projid, userid, callback) {
     this.getProject(projid, record => {
-      if (record && record.current_workers > 0) {
+      if (
+        record &&
+        record.current_workers > 0 &&
+        record.proj_status !== "Completed"
+      ) {
         let request = new dbconnect.sql.Request(dbconnect.pool);
         let queryString = `DELETE FROM cyobDB.dbo.Tbl_Worklist
           WHERE projId = ${record.projId}
