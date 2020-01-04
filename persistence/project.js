@@ -29,7 +29,7 @@ Project.prototype = {
 
   findProject: (projid, callback) => {
     if (projid) {
-      let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects
+      let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects_Approved
                         WHERE projId = ${projid}`;
       let request = new dbconnect.sql.Request(dbconnect.pool);
       request
