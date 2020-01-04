@@ -166,6 +166,73 @@ function validateSignupForm(formName) {
   return true;
 }
 
+/* create and dynamically add projects */
+function appendProjects(recordset) {
+  let pill = document.querySelector(".project-pills");
+  let project_ = document.createElement("li");
+  project_.classList.add("project_");
+
+  let proj_id = document.createElement("div");
+  proj_id.classList.add("project-id");
+  let proj_title = document.createElement("div");
+  proj_title.classList.add("project-title");
+  let proj_worth = document.createElement("div");
+  proj_worth.classList.add("project-worth");
+  let proj_posted = document.createElement("div");
+  proj_posted.classList.add("project-posted");
+  let proj_status = document.createElement("div");
+  proj_status.classList.add("project-status");
+  let proj_workers = document.createElement("div");
+  proj_workers.classList.add("project-workers");
+  let proj_current_workers = document.createElement("span");
+  proj_current_workers.classList.add("current");
+  let proj_total_workers = document.createElement("span");
+  proj_total_workers.classList.add("total");
+  let proj_button = document.createElement("div");
+  proj_button.classList.add("project-button");
+  let input = document.createElement("input");
+  input.classList.add("my-btn");
+  input.setAttribute("type", "button");
+  input.setAttribute("value", "View");
+
+  /* Add text contents */
+  proj_id.appendChild(document.createTextNode(recordset.projId));
+  proj_title.appendChild(document.createTextNode(recordset.proj_title));
+  proj_status.appendChild(document.createTextNode(recordset.proj_status));
+  proj_worth.appendChild(document.createTextNode(recordset.reward_points));
+  proj_current_workers.appendChild(
+    document.createTextNode(
+      recordset.current_workers ? recordset.current_workers + "/" : 0 + "/"
+    )
+  );
+  proj_total_workers.appendChild(
+    document.createTextNode(
+      recordset.max_no_workers ? recordset.max_no_workers : 0
+    )
+  );
+
+  proj_workers.append(proj_current_workers);
+  proj_workers.append(proj_total_workers);
+  proj_posted.appendChild(document.createTextNode(recordset.posted_by));
+  proj_button.appendChild(input);
+
+  /* Append to project group */
+  project_.appendChild(proj_id);
+  project_.appendChild(proj_title);
+  project_.appendChild(proj_status);
+  project_.appendChild(proj_worth);
+  project_.appendChild(proj_workers);
+  project_.appendChild(proj_posted);
+  project_.appendChild(proj_button);
+
+  /* Visual design for completed projects */
+  if (recordset.proj_status == "Completed") {
+    project_.style.backgroundColor = "#888";
+  }
+  pill.appendChild(project_);
+  // document.body.appendChild("pill");
+}
+
 async function fetchData(url, options) {
   const rawResponse = await fetch(url, options);
   const jsonData = await rawResponse.json();
@@ -181,5 +248,6 @@ export {
   clearCurrentData,
   clearFormFields,
   validateSignupForm,
-  fetchData
+  fetchData,
+  appendProjects
 };
