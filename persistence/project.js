@@ -49,6 +49,28 @@ Project.prototype = {
     }
   },
 
+  findProposedProject: (projid, callback) => {
+    if (projid) {
+      let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects
+                        WHERE projId = ${projid}`;
+      let request = new dbconnect.sql.Request(dbconnect.pool);
+      request
+        .query(queryString)
+        .then(data => {
+          if (data.recordset.length > 0) {
+            let projRecord = data.recordset[0];
+            callback(projRecord.projId);
+            return;
+          }
+          console.log("Proposed Project does not exist");
+          callback(null);
+        })
+        .catch(err => {
+          console.log("FindError- Error running query: " + err);
+        });
+    }
+  },
+
   addProject: function(proj, callback) {
     let queryString = `INSERT INTO cyobDB.dbo.Tbl_Projects (proj_type, proj_title, proj_details, proj_photo, proj_address, proj_city, proj_tools, max_no_workers, estimated_duration, posted_by) 
     VALUES ('${proj.type}','${proj.title}', '${proj.details}', '${proj.image}', '${proj.address}' , '${proj.city}', '${proj.tools}', ${proj.maxworkers}, '${proj.duration}','${proj.postedby}')`;
@@ -72,12 +94,12 @@ Project.prototype = {
   },
 
   updateProject: function(projObj, callback) {
-    this.findProject(projObj.id, foundId => {
-      if (foundId) {
+    this.findProject(projObj.id, Id => {
+      if (Id) {
         let request = new dbconnect.sql.Request(dbconnect.pool);
-        let queryString = `UPDATE cyobDB.dbo.Tbl_Projects 
+        let queryString = `UPDATE cyobDB.dbo.Tbl_Projects_Approved 
         SET proj_type ='${projObj.type}', proj_title ='${projObj.title}', proj_details ='${projObj.details}', proj_address ='${projObj.address}', proj_city ='${projObj.city}', proj_tools ='${projObj.tools}', max_no_workers =${projObj.maxworkers}, estimated_duration ='${projObj.duration}', reward_points =${projObj.point}
-        WHERE projId = ${foundId}`;
+        WHERE projId = ${Id}`;
 
         request
           .query(queryString)
@@ -91,12 +113,53 @@ Project.prototype = {
           .catch(err => {
             console.log(err);
           });
+      } else {
+        //find project in other table
+        this.findProposedProject(projObj.id, Id => {
+          if (Id) {
+            let request = new dbconnect.sql.Request(dbconnect.pool);
+            let queryString = `UPDATE cyobDB.dbo.Tbl_Projects 
+            SET proj_type ='${projObj.type}', proj_title ='${projObj.title}', proj_details ='${projObj.details}', proj_address ='${projObj.address}', proj_city ='${projObj.city}', proj_tools ='${projObj.tools}', max_no_workers =${projObj.maxworkers}, estimated_duration ='${projObj.duration}', reward_points =${projObj.point}
+            WHERE projId = ${Id}`;
+
+            request
+              .query(queryString)
+              .then(data => {
+                if (data.rowsAffected == 1) {
+                  callback(true);
+                  return;
+                }
+                callback(null);
+              })
+              .catch(err => {
+                console.log(err);
+              });
+          }
+        });
       }
     });
   },
 
   getProject: function(projectId, callback) {
     let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects_Approved WHERE projId = ${projectId}`;
+    let request = new dbconnect.sql.Request(dbconnect.pool);
+    request
+      .query(queryString)
+      .then(data => {
+        let projectRecord = data.recordset[0];
+        if (projectRecord) {
+          callback(projectRecord);
+        } else {
+          callback(null);
+        }
+      })
+      .catch(err => {
+        console.log("GetProject- Error running query: " + err);
+      });
+  },
+
+  getProposedProject: function(projectId, callback) {
+    let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects WHERE projId = ${projectId}`;
     let request = new dbconnect.sql.Request(dbconnect.pool);
     request
       .query(queryString)

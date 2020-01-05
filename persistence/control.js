@@ -121,10 +121,10 @@ Control.prototype = {
   removeUser: function(userid, callback) {
     let request = new dbconnect.sql.Request(dbconnect.pool);
     // two queries
-    let queryStrings = `DELETE FROM cyobDB.dbo.Tbl_Users
+    let queryStrings = `DELETE FROM cyobDB.dbo.Tbl_Profiles
                       WHERE userId = '${userid}';
-
-                      DELETE FROM cyobDB.dbo.Tbl_Profiles
+                      
+                      DELETE FROM cyobDB.dbo.Tbl_Users
                       WHERE userId = '${userid}'`;
     request
       .query(queryStrings)
