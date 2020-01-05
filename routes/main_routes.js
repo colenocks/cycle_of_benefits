@@ -13,7 +13,7 @@ dotenv.config();
 //using the diskStorage option instead of dest to have full control uploaded images
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-    cb(null, "projects");
+    cb(null, "dist/assets/projects");
   },
   filename: function(req, file, cb) {
     // the null as first argument means no error
@@ -92,10 +92,34 @@ router.get("/project:id", (req, res, next) => {
         duration: data.estimated_duration ? data.estimated_duration : "unknown",
         image: data.proj_photo ? data.proj_photo : ""
       });
+    } else if (req.session.userid == "admin") {
+      project.getProposedProject(proj_id, data => {
+        if (data) {
+          res.render("viewproject", {
+            id: data.projId ? data.projId : "",
+            type: data.proj_type ? data.proj_type : "other",
+            title: data.proj_title ? data.proj_title : "",
+            details: data.proj_details ? data.proj_details : "",
+            address: data.proj_address ? data.proj_address : "",
+            city: data.proj_city ? data.proj_city : "",
+            status: data.proj_status ? data.proj_status : "",
+            worth: data.reward_points ? data.reward_points : 0,
+            tools: data.proj_tools ? data.proj_tools : "",
+            current: data.current_workers ? data.current_workers : 0,
+            maxworkers: data.max_no_workers ? data.max_no_workers : 1,
+            postedby: data.posted_by ? data.posted_by : "",
+            duration: data.estimated_duration
+              ? data.estimated_duration
+              : "unknown",
+            image: data.proj_photo ? data.proj_photo : ""
+          });
+        }
+      });
       return;
+    } else {
+      console.log("Project exists in Database but...");
+      res.redirect("/projects");
     }
-    console.log("Project exists in Database but without parameter");
-    res.redirect("/projects");
   });
 });
 
@@ -270,6 +294,18 @@ router.post("/projectview", (req, res) => {
       res.json({
         redirect_path: "/project" + projid
       });
+      return;
+    } else if (req.session.userid == "admin") {
+      //Admin: Check other table
+      project.findProposedProject(req.body.id, id => {
+        if (id) {
+          console.log("found proposed proj");
+          res.json({
+            redirect_path: "/project" + id
+          });
+        }
+      });
+      return;
     } else {
       res.json({ errMessage: "Cannot find project" });
     }
@@ -300,7 +336,6 @@ router.post("/addproject", upload.single("image"), async (req, res, next) => {
     console.log("No file uploaded");
     return;
   }
-  // console.log(req.file);
   const { url: imageurl } = await cloudLink(req.file);
   if (req.session.userid) {
     // Everything went fine.
@@ -317,7 +352,6 @@ router.post("/addproject", upload.single("image"), async (req, res, next) => {
       image: imageurl,
       postedby: req.session.userid
     };
-    // console.log(proj);
     //add to database
     project.addProject(proj, projectdata => {
       if (projectdata) {
