@@ -74,7 +74,10 @@ const showAllRedeemedRewards = () => {
       if (data.errMessage) {
         functions.displayAlert(data.errMessage, "error");
       } else {
-        functions.displayAlert("Rewards Display coming soon", "success");
+        functions.displayAlert(
+          "Found Requests! Rewards display coming soon",
+          "success"
+        );
       }
     })
     .catch(err => console.log(err));

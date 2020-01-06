@@ -18,6 +18,7 @@ if (document.querySelector(".signin-div")) {
       if (data.session) {
         //display styles
         let userLink = document.querySelector(".signin-link");
+        let formbutton = document.querySelector(".form-button");
         let iconLink = document.createElement("a");
         let userIcon = document.createElement("i");
         userIcon.classList.add("fas", "fa-user", "fa-2x");
@@ -47,7 +48,6 @@ if (document.querySelector(".signin-div")) {
               point: document.getElementById("view_worth")
             };
 
-            let projectForm = document.getElementById("project-form");
             let editProject = document.getElementById("editProject");
             let interest = document.getElementById("interest");
 
@@ -78,30 +78,30 @@ if (document.querySelector(".signin-div")) {
             editProject.appendChild(AddBtn);
 
             //switch enlist button to edit project
-            interest.replaceWith(updateProject);
+            formbutton.removeChild(interest);
+            formbutton.appendChild(updateProject);
 
-            let inputFields = Array.from(
-              projectForm.querySelectorAll("input[type=text]")
+            let fields = Array.from(
+              form.formName.querySelectorAll("input[type=text]")
             );
-            let initialValues = [];
-            functions.saveCurrentData(initialValues, form.formName);
 
             updateProject.setAttribute("disabled", true);
             let editToggle = false;
 
             //edit click listener function
-            editBtn.onclick = function() {
+            editBtn.onclick = function(e) {
+              e.preventDefault();
               if (!editToggle) {
-                for (let i = 0; i < inputFields.length; i++) {
-                  inputFields[i].classList.add("edit-profile");
-                  inputFields[i].removeAttribute("disabled");
+                for (let i = 0; i < fields.length; i++) {
+                  fields[i].classList.add("edit-profile");
+                  fields[i].removeAttribute("disabled");
                 }
                 updateProject.removeAttribute("disabled");
                 editToggle = true;
               } else {
-                for (let i = 0; i < inputFields.length; i++) {
-                  inputFields[i].classList.remove("edit-profile");
-                  inputFields[i].setAttribute("disabled", true);
+                for (let i = 0; i < fields.length; i++) {
+                  fields[i].classList.remove("edit-profile");
+                  fields[i].setAttribute("disabled", true);
                 }
                 updateProject.setAttribute("disabled", true);
                 editToggle = false;
@@ -114,8 +114,6 @@ if (document.querySelector(".signin-div")) {
               usersession.updateProject(form, response => {
                 if (response) {
                   functions.displayAlert(response, "success");
-                  functions.clearCurrentData();
-                  functions.saveCurrentData(initialValues, form.formName);
                   editToggle = false;
                 }
               });
@@ -384,7 +382,6 @@ if (document.querySelector("#project")) {
     e.preventDefault();
     usersession.enlistWorker(form, result => {
       if (result) {
-        console.log("enlist fetch success");
         usersession.incrementWorkers(form, incremented => {
           if (incremented) {
             functions.displayAlert(result, "success");
