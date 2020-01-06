@@ -60,7 +60,7 @@ Control.prototype = {
     request
       .query(queryString)
       .then(data => {
-        if (data.recordset > 0) {
+        if (data.recordset.length > 0) {
           callback(data);
           return;
         }

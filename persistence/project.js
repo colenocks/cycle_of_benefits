@@ -146,8 +146,8 @@ Project.prototype = {
     request
       .query(queryString)
       .then(data => {
-        let projectRecord = data.recordset[0];
-        if (projectRecord) {
+        if (data) {
+          let projectRecord = data.recordset[0];
           callback(projectRecord);
         } else {
           callback(null);
@@ -282,7 +282,7 @@ Project.prototype = {
     let request = new dbconnect.sql.Request(dbconnect.pool);
     if (project.current_workers < project.max_no_workers) {
       let queryString = `UPDATE cyobDB.dbo.Tbl_Projects_Approved
-               SET current_workers = current_workers + 1
+               SET current_workers = Coalesce(current_workers , 0) + 1
                WHERE projId = ${project.projId}`;
       request
         .query(queryString)
@@ -350,16 +350,19 @@ Project.prototype = {
                   let rewards = worklistRecord[0].reward_points;
                   let numWorkers = worklistRecord.length;
                   let point = Math.floor(rewards / numWorkers);
+
                   let count = 0;
                   //2. Distribute reward points to associated users
                   for (let i = 0; i < numWorkers; i++) {
                     let user = worklistRecord[i].userId;
+                    //set user_reward value
                     let innerQuery = `UPDATE cyobDB.dbo.Tbl_Profiles 
-                    SET user_reward_points = user_reward_points + ${point} 
+                    SET user_reward_points = Coalesce(user_reward_points, 0) + ${point} 
                     WHERE userId = '${user}'`;
                     request
                       .query(innerQuery)
                       .then(data => {
+                        worklistRecord[i].user_reward = point;
                         count++;
                         if (count == numWorkers) {
                           console.log(
@@ -403,8 +406,8 @@ Project.prototype = {
       if (id) {
         let request = new dbconnect.sql.Request(dbconnect.pool);
         let queryString = `UPDATE cyobDB.dbo.Tbl_Projects_Approved
-        SET proj_status = 'Completed'
-        SET reward_points = 0
+        SET proj_status = 'Completed',
+        reward_points = 0
         WHERE projId = ${projid};
         
         UPDATE cyobDB.dbo.Tbl_Worklist
@@ -414,7 +417,7 @@ Project.prototype = {
         request
           .query(queryString)
           .then(data => {
-            if (data.rowsAffected == 1) {
+            if (data.rowsAffected > 0) {
               console.log(projid + " Project has been flagged as Completed");
               callback(true);
               return;
@@ -449,43 +452,41 @@ Project.prototype = {
 
   dropWorker: function(projid, userid, callback) {
     this.getProject(projid, record => {
-      if (
-        record &&
-        record.current_workers > 0 &&
-        record.proj_status !== "Completed"
-      ) {
-        let request = new dbconnect.sql.Request(dbconnect.pool);
-        let queryString = `DELETE FROM cyobDB.dbo.Tbl_Worklist
+      if (record) {
+        if (record.current_workers > 0 && record.proj_status !== "Completed") {
+          let request = new dbconnect.sql.Request(dbconnect.pool);
+          let queryString = `DELETE FROM cyobDB.dbo.Tbl_Worklist
           WHERE projId = ${record.projId}
           AND userId = '${userid}'`;
-        request
-          .query(queryString)
-          .then(data => {
-            if (data.rowsAffected == 1) {
-              /* Get/update project status from/in projects table */
-              /* Decrement current workers */
-              let subQuery = `UPDATE cyobDB.dbo.Tbl_Projects_Approved
+          request
+            .query(queryString)
+            .then(data => {
+              if (data.rowsAffected == 1) {
+                /* Get/update project status from/in projects table */
+                /* Decrement current workers */
+                let subQuery = `UPDATE cyobDB.dbo.Tbl_Projects_Approved
               SET current_workers = current_workers - 1
               WHERE projId = ${record.projId}`;
 
-              request
-                .query(subQuery)
-                .then(data => {
-                  if (data.rowsAffected == 1) {
-                    console.log(
-                      userid + " successfully dropped from " + projid
-                    );
-                    callback(true);
-                    return;
-                  }
-                })
-                .catch(err => console.log(err));
-            }
-          })
-          .catch(err => console.log(err));
-      } else {
-        console.log("User has already been removed from the list");
-        callback(null);
+                request
+                  .query(subQuery)
+                  .then(data => {
+                    if (data.rowsAffected == 1) {
+                      console.log(
+                        userid + " successfully dropped from " + projid
+                      );
+                      callback(true);
+                      return;
+                    }
+                  })
+                  .catch(err => console.log(err));
+              }
+            })
+            .catch(err => console.log(err));
+        } else {
+          console.log("User has already been removed from the list");
+          callback(null);
+        }
       }
     });
   }

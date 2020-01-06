@@ -246,6 +246,7 @@ router.get("/getuserproject", (req, res) => {
 
 /*Remove user from worklist */
 router.delete("/dropworker", (req, res) => {
+  console.log(req.body.projid);
   if (req.session.userid) {
     project.dropWorker(req.body.projid, req.session.userid, response => {
       if (response) {
@@ -274,7 +275,7 @@ router.put("/currentworkers", (req, res) => {
       if (projrecord) {
         project.updateCurrentWorker(projrecord, result => {
           if (result) {
-            res.json({ message: "All clear for enlisting" });
+            res.json({ message: "Welcome aboard" });
           } else {
             res.json({
               errMessage:
