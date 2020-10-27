@@ -2,9 +2,9 @@ const express = require("express");
 const dotenv = require("dotenv");
 const path = require("path");
 const fs = require("fs");
-const User = require("../persistence/user");
-const Project = require("../persistence/project");
-const Control = require("../persistence/control");
+const User = require("../controllers/user");
+const Project = require("../controllers/project");
+const Control = require("../controllers/control");
 const multer = require("multer");
 const cloudinary = require("../persistence/cloudinary");
 
@@ -12,23 +12,23 @@ dotenv.config();
 
 //using the diskStorage option instead of dest to have full control uploaded images
 const storage = multer.diskStorage({
-  destination: function(req, file, cb) {
+  destination: function (req, file, cb) {
     cb(null, "dist/assets/projects");
   },
-  filename: function(req, file, cb) {
+  filename: function (req, file, cb) {
     // the null as first argument means no error
     cb(null, Date.now() + "-" + file.originalname);
-  }
+  },
 });
 
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: parseInt(process.env.MULTER_FILE_SIZE, 10)
+    fileSize: parseInt(process.env.MULTER_FILE_SIZE, 10),
   },
-  fileFilter: function(req, file, cb) {
+  fileFilter: function (req, file, cb) {
     cloudinary.checkFileType(file, cb);
-  }
+  },
 });
 
 const router = express.Router();
@@ -74,7 +74,7 @@ router.get("/login", (req, res) => {
 
 router.get("/project:id", (req, res, next) => {
   const proj_id = req.params.id;
-  project.getProject(proj_id, data => {
+  project.getProject(proj_id, (data) => {
     if (data) {
       res.render("viewproject", {
         id: data.projId ? data.projId : "",
@@ -90,10 +90,10 @@ router.get("/project:id", (req, res, next) => {
         maxworkers: data.max_no_workers ? data.max_no_workers : 1,
         postedby: data.posted_by ? data.posted_by : "",
         duration: data.estimated_duration ? data.estimated_duration : "unknown",
-        image: data.proj_photo ? data.proj_photo : ""
+        image: data.proj_photo ? data.proj_photo : "",
       });
     } else if (req.session.userid == "admin") {
-      project.getProposedProject(proj_id, data => {
+      project.getProposedProject(proj_id, (data) => {
         if (data) {
           res.render("viewproject", {
             id: data.projId ? data.projId : "",
@@ -111,7 +111,7 @@ router.get("/project:id", (req, res, next) => {
             duration: data.estimated_duration
               ? data.estimated_duration
               : "unknown",
-            image: data.proj_photo ? data.proj_photo : ""
+            image: data.proj_photo ? data.proj_photo : "",
           });
         }
       });
@@ -129,7 +129,7 @@ router.get("/profile", (req, res) => {
       res.render("admincontrol");
     } else {
       //get userdata and render profile
-      user.getProfile(req.session.userid, userprofile => {
+      user.getProfile(req.session.userid, (userprofile) => {
         if (userprofile) {
           res.render("profile", {
             username: userprofile.userId ? userprofile.userId : "",
@@ -145,7 +145,7 @@ router.get("/profile", (req, res) => {
               : "",
             points: userprofile.user_reward_points
               ? userprofile.user_reward_points
-              : "0"
+              : "0",
           });
           return;
         }
@@ -171,13 +171,13 @@ router.put("/updateuser", (req, res) => {
     address: req.body.address /* ? req.body.address : "" */,
     phone: req.body.phone /* ? req.body.phone : "" */,
     state: req.body.state /* ? req.body.state : "" */,
-    nationalId: req.body.nationalId /*? req.body.nationalId : "" */
+    nationalId: req.body.nationalId /*? req.body.nationalId : "" */,
   };
-  user.updateProfile(profile.username, profile, response => {
+  user.updateProfile(profile.username, profile, (response) => {
     if (response) {
       console.log(response + "row(s) affected.");
       res.json({
-        message: "Profile successfully updated"
+        message: "Profile successfully updated",
       });
     } else {
       console.log("Put: Could not update profile");
@@ -188,7 +188,7 @@ router.put("/updateuser", (req, res) => {
 
 //Load Projects
 router.get("/allprojects", (req, res) => {
-  project.allProjects(data => {
+  project.allProjects((data) => {
     if (data) {
       res.json(data.recordset);
       return;
@@ -202,23 +202,23 @@ router.post("/enlist", (req, res) => {
   if (req.session.userid) {
     const proj = {
       userid: req.session.userid,
-      projid: req.body.projid
+      projid: req.body.projid,
     };
     //getProject
-    project.getProject(proj.projid, projrecord => {
+    project.getProject(proj.projid, (projrecord) => {
       if (projrecord) {
-        project.enlistWorker(projrecord, proj.userid, rows => {
+        project.enlistWorker(projrecord, proj.userid, (rows) => {
           if (rows) {
             //if user is successfully added to list of workers
             res.json({ message: "You have been enlisted successfully" });
           } else if (rows === "complete") {
             res.json({
-              errMessage: "This project has already been completed!"
+              errMessage: "This project has already been completed!",
             });
           } else {
             res.json({
               errMessage:
-                "You have already been listed as a worker for this project!"
+                "You have already been listed as a worker for this project!",
             });
           }
         });
@@ -234,7 +234,7 @@ router.post("/enlist", (req, res) => {
 /* Get All user projects */
 router.get("/getuserproject", (req, res) => {
   if (req.session.userid) {
-    project.getUserProjects(req.session.userid, data => {
+    project.getUserProjects(req.session.userid, (data) => {
       if (data) {
         res.json(data.recordset);
       } else {
@@ -248,14 +248,14 @@ router.get("/getuserproject", (req, res) => {
 router.delete("/dropworker", (req, res) => {
   console.log(req.body.projid);
   if (req.session.userid) {
-    project.dropWorker(req.body.projid, req.session.userid, response => {
+    project.dropWorker(req.body.projid, req.session.userid, (response) => {
       if (response) {
         res.json({
-          message: "You have cancelled out of the project: " + req.body.projid
+          message: "You have cancelled out of the project: " + req.body.projid,
         });
       } else {
         res.json({
-          errMessage: "You have already been removed from this project"
+          errMessage: "You have already been removed from this project",
         });
       }
     });
@@ -269,17 +269,17 @@ router.put("/currentworkers", (req, res) => {
   if (req.session.userid) {
     const proj = {
       userid: req.session.userid,
-      projid: req.body.projid /* ? req.body.projid : "" */
+      projid: req.body.projid /* ? req.body.projid : "" */,
     };
-    project.getProject(proj.projid, projrecord => {
+    project.getProject(proj.projid, (projrecord) => {
       if (projrecord) {
-        project.updateCurrentWorker(projrecord, result => {
+        project.updateCurrentWorker(projrecord, (result) => {
           if (result) {
             res.json({ message: "Welcome aboard" });
           } else {
             res.json({
               errMessage:
-                "Sorry, This Project has already been assigned/Completed!"
+                "Sorry, This Project has already been assigned/Completed!",
             });
           }
         });
@@ -290,19 +290,19 @@ router.put("/currentworkers", (req, res) => {
 
 //project view post
 router.post("/projectview", (req, res) => {
-  project.findProject(req.body.id, projid => {
+  project.findProject(req.body.id, (projid) => {
     if (projid) {
       res.json({
-        redirect_path: "/project" + projid
+        redirect_path: "/project" + projid,
       });
       return;
     } else if (req.session.userid == "admin") {
       //Admin: Check other table
-      project.findProposedProject(req.body.id, id => {
+      project.findProposedProject(req.body.id, (id) => {
         if (id) {
           console.log("found proposed proj");
           res.json({
-            redirect_path: "/project" + id
+            redirect_path: "/project" + id,
           });
         }
       });
@@ -314,10 +314,10 @@ router.post("/projectview", (req, res) => {
 });
 
 //Image upload middleware
-const cloudLink = async file => {
+const cloudLink = async (file) => {
   try {
     // Upload file to cloudinary
-    const uploader = async path => cloudinary.uploads(path, "cyob_images");
+    const uploader = async (path) => cloudinary.uploads(path, "cyob_images");
     const { path } = file;
     const url = await uploader(path);
     fs.unlinkSync(path);
@@ -326,7 +326,7 @@ const cloudLink = async file => {
   } catch (error) {
     return {
       status: "Request failed",
-      error
+      error,
     };
   }
 };
@@ -351,13 +351,14 @@ router.post("/addproject", upload.single("image"), async (req, res, next) => {
       duration: req.body.duration,
       maxworkers: parseInt(req.body.max, 10),
       image: imageurl,
-      postedby: req.session.userid
+      postedby: req.session.userid,
     };
     //add to database
-    project.addProject(proj, projectdata => {
+    project.addProject(proj, (projectdata) => {
       if (projectdata) {
         res.json({
-          message: "Your proposed project has been Received, Wait for approval!"
+          message:
+            "Your proposed project has been Received, Wait for approval!",
         });
       } else {
         res.json({ errMessage: "Could not add project" });
@@ -372,13 +373,13 @@ router.post("/addproject", upload.single("image"), async (req, res, next) => {
 router.post("/login", (req, res) => {
   const { username, password } = req.body;
   if (username && password) {
-    user.login(username, password, id => {
+    user.login(username, password, (id) => {
       if (id) {
         //on login, make a session
         // req.session.name = userdata.first_name + " " + userdata.last_name;
         req.session.userid = id;
         res.json({
-          redirect_path: "/profile"
+          redirect_path: "/profile",
         });
       } else {
         res.status(404).json({ errMessage: "Login Failed" });
@@ -396,14 +397,14 @@ router.post("/submitregister", (req, res) => {
     password: req.body.password,
     firstname: req.body.firstname,
     lastname: req.body.lastname,
-    email: req.body.email
+    email: req.body.email,
   };
-  user.createProfile(userObj, data => {
+  user.createProfile(userObj, (data) => {
     if (data) {
       console.log(data + " user created");
       res.json({
         status: "Registeration Successful",
-        redirect_path: "/login"
+        redirect_path: "/login",
       });
     } else {
       console.log("Error: Unable to create user");
@@ -425,9 +426,9 @@ router.put("/redeemreward", (req, res) => {
     let reward = {
       used: parseInt(req.body.used, 10),
       // total: parseInt(req.body.total, 10),
-      benefit: req.body.benefit
+      benefit: req.body.benefit,
     };
-    user.useReward(req.session.userid, reward, rewardused => {
+    user.useReward(req.session.userid, reward, (rewardused) => {
       if (rewardused) {
         res.json({
           message:
@@ -435,11 +436,12 @@ router.put("/redeemreward", (req, res) => {
             reward.used +
             " points in " +
             reward.benefit +
-            " benefits .\n Check your email on instructions on how to collect"
+            " benefits .\n Check your email on instructions on how to collect",
         });
       } else {
         res.json({
-          errMessage: "Something went wrong with getting your reward, Try again"
+          errMessage:
+            "Something went wrong with getting your reward, Try again",
         });
       }
     });
@@ -447,7 +449,7 @@ router.put("/redeemreward", (req, res) => {
 });
 
 router.put("/loadpoints", (req, res) => {
-  project.distributePoints(response => {
+  project.distributePoints((response) => {
     if (response) {
       res.json({ message: "Your Reward Points have been added" });
       return;
@@ -461,7 +463,7 @@ router.get("/logout", (req, res) => {
   // Check if the session is exist
   if (req.session.userid) {
     // destroy the session and redirect the user to the index page.
-    req.session.destroy(function() {
+    req.session.destroy(function () {
       res.redirect("/");
     });
   }
@@ -475,7 +477,7 @@ router.get("/showusers", (req, res) => {});
 
 /* Get all projects */
 router.get("/getallprojects", (req, res) => {
-  control.getAllProjects(data => {
+  control.getAllProjects((data) => {
     if (data) {
       res.json(data.recordset);
       return;
@@ -488,13 +490,14 @@ router.get("/getallprojects", (req, res) => {
 router.post("/approveproject", (req, res) => {
   console.log(req.body.projid);
   const projid = req.body.projid;
-  control.approveProject(projid, approved => {
+  control.approveProject(projid, (approved) => {
     if (approved) {
       res.json({ message: "Project has been approved and uploaded" });
       return;
     }
     res.json({
-      errMessage: "Project may have already been uploaded, Check and Try again!"
+      errMessage:
+        "Project may have already been uploaded, Check and Try again!",
     });
   });
 });
@@ -511,9 +514,9 @@ router.put("/updateproject", (req, res) => {
     city: req.body.city,
     duration: req.body.duration,
     point: parseInt(req.body.point, 10),
-    maxworkers: parseInt(req.body.maxworkers, 10)
+    maxworkers: parseInt(req.body.maxworkers, 10),
   };
-  project.updateProject(proj, updated => {
+  project.updateProject(proj, (updated) => {
     if (updated) {
       res.json({ message: proj.id + " has been successfully updated" });
       return;
@@ -539,33 +542,33 @@ router.put("/updateproject", (req, res) => {
 
 /* showAllRedeemedRewards */
 router.get("/showrewards", (req, res) => {
-  control.getAllRewardRequests(data => {
+  control.getAllRewardRequests((data) => {
     if (data) {
       res.json(data.recordset);
       return;
     }
     res.json({
-      errMessage: "could not display rewards table"
+      errMessage: "could not display rewards table",
     });
   });
 });
 
 /* RemoveUser */
 router.delete("/removeuser", (req, res) => {
-  user.find(req.body.userid, id => {
+  user.find(req.body.userid, (id) => {
     if (id) {
-      control.removeUser(req.body.userid, deleted => {
+      control.removeUser(req.body.userid, (deleted) => {
         if (deleted) {
           res.json({ message: "User Deleted" });
           return;
         }
         res.json({
-          errMessage: "User was not deleted"
+          errMessage: "User was not deleted",
         });
       });
     } else {
       res.json({
-        errMessage: "This user does not exist"
+        errMessage: "This user does not exist",
       });
     }
   });
@@ -573,20 +576,20 @@ router.delete("/removeuser", (req, res) => {
 
 /* RemoveProject */
 router.delete("/removeproject", (req, res) => {
-  project.findProject(req.body.projid, id => {
+  project.findProject(req.body.projid, (id) => {
     if (id) {
-      control.removeProject(req.body.projid, removed => {
+      control.removeProject(req.body.projid, (removed) => {
         if (removed) {
           res.json({ message: "Project removed" });
           return;
         }
         res.json({
-          errMessage: "Error with removing project"
+          errMessage: "Error with removing project",
         });
       });
     } else {
       res.json({
-        errMessage: "This project does not exist"
+        errMessage: "This project does not exist",
       });
     }
   });

@@ -1,4 +1,4 @@
-const dbconnect = require("./connection");
+const dbconnect = require("../persistence/connection");
 const sql = require("mssql");
 
 //Project Interface
@@ -34,7 +34,7 @@ Project.prototype = {
       let request = new dbconnect.sql.Request(dbconnect.pool);
       request
         .query(queryString)
-        .then(data => {
+        .then((data) => {
           if (data.recordset.length > 0) {
             let projRecord = data.recordset[0];
             callback(projRecord.projId);
@@ -43,7 +43,7 @@ Project.prototype = {
           console.log("Project does not exist");
           callback(null);
         })
-        .catch(err => {
+        .catch((err) => {
           console.log("FindError- Error running query: " + err);
         });
     }
@@ -56,7 +56,7 @@ Project.prototype = {
       let request = new dbconnect.sql.Request(dbconnect.pool);
       request
         .query(queryString)
-        .then(data => {
+        .then((data) => {
           if (data.recordset.length > 0) {
             let projRecord = data.recordset[0];
             callback(projRecord.projId);
@@ -65,13 +65,13 @@ Project.prototype = {
           console.log("Proposed Project does not exist");
           callback(null);
         })
-        .catch(err => {
+        .catch((err) => {
           console.log("FindError- Error running query: " + err);
         });
     }
   },
 
-  addProject: function(proj, callback) {
+  addProject: function (proj, callback) {
     let queryString = `INSERT INTO cyobDB.dbo.Tbl_Projects (proj_type, proj_title, proj_details, proj_photo, proj_address, proj_city, proj_tools, max_no_workers, estimated_duration, posted_by) 
     VALUES ('${proj.type}','${proj.title}', '${proj.details}', '${proj.image}', '${proj.address}' , '${proj.city}', '${proj.tools}', ${proj.maxworkers}, '${proj.duration}','${proj.postedby}')`;
 
@@ -79,7 +79,7 @@ Project.prototype = {
     let request = new dbconnect.sql.Request(dbconnect.pool);
     request
       .query(queryString)
-      .then(data => {
+      .then((data) => {
         if (data.rowsAffected == 1) {
           // return the record of project
           callback(proj);
@@ -88,13 +88,13 @@ Project.prototype = {
         }
         // dbconnect.pool.close();
       })
-      .catch(err => {
+      .catch((err) => {
         console.log("AddProject- Error running query: " + err);
       });
   },
 
-  updateProject: function(projObj, callback) {
-    this.findProject(projObj.id, Id => {
+  updateProject: function (projObj, callback) {
+    this.findProject(projObj.id, (Id) => {
       if (Id) {
         let request = new dbconnect.sql.Request(dbconnect.pool);
         let queryString = `UPDATE cyobDB.dbo.Tbl_Projects_Approved 
@@ -103,19 +103,19 @@ Project.prototype = {
 
         request
           .query(queryString)
-          .then(data => {
+          .then((data) => {
             if (data.rowsAffected == 1) {
               callback(true);
               return;
             }
             callback(null);
           })
-          .catch(err => {
+          .catch((err) => {
             console.log(err);
           });
       } else {
         //find project in other table
-        this.findProposedProject(projObj.id, Id => {
+        this.findProposedProject(projObj.id, (Id) => {
           if (Id) {
             let request = new dbconnect.sql.Request(dbconnect.pool);
             let queryString = `UPDATE cyobDB.dbo.Tbl_Projects 
@@ -124,14 +124,14 @@ Project.prototype = {
 
             request
               .query(queryString)
-              .then(data => {
+              .then((data) => {
                 if (data.rowsAffected == 1) {
                   callback(true);
                   return;
                 }
                 callback(null);
               })
-              .catch(err => {
+              .catch((err) => {
                 console.log(err);
               });
           }
@@ -140,12 +140,12 @@ Project.prototype = {
     });
   },
 
-  getProject: function(projectId, callback) {
+  getProject: function (projectId, callback) {
     let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects_Approved WHERE projId = ${projectId}`;
     let request = new dbconnect.sql.Request(dbconnect.pool);
     request
       .query(queryString)
-      .then(data => {
+      .then((data) => {
         if (data) {
           let projectRecord = data.recordset[0];
           callback(projectRecord);
@@ -153,17 +153,17 @@ Project.prototype = {
           callback(null);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.log("GetProject- Error running query: " + err);
       });
   },
 
-  getProposedProject: function(projectId, callback) {
+  getProposedProject: function (projectId, callback) {
     let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects WHERE projId = ${projectId}`;
     let request = new dbconnect.sql.Request(dbconnect.pool);
     request
       .query(queryString)
-      .then(data => {
+      .then((data) => {
         let projectRecord = data.recordset[0];
         if (projectRecord) {
           callback(projectRecord);
@@ -171,17 +171,17 @@ Project.prototype = {
           callback(null);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.log("GetProject- Error running query: " + err);
       });
   },
 
-  allProjects: function(callback) {
+  allProjects: function (callback) {
     let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects_Approved`;
     let request = new dbconnect.sql.Request(dbconnect.pool);
     request
       .query(queryString)
-      .then(data => {
+      .then((data) => {
         if (data.recordset.length > 0) {
           /* Check and update status columns */
           let projectRecord = data.recordset;
@@ -202,14 +202,14 @@ Project.prototype = {
                AND proj_status <> 'Completed'`;
               request
                 .query(subqueryString)
-                .then(data => {
+                .then((data) => {
                   if (data.rowsAffected == 1) {
                     console.log(
                       data.rowsAffected + " row(s) updated status to Assigned"
                     );
                   }
                 })
-                .catch(err => {
+                .catch((err) => {
                   console.log("allprojects- subquery error: " + err);
                 });
             } else {
@@ -222,14 +222,14 @@ Project.prototype = {
                WHERE projId = ${projectRecord[i].projId}`;
               request
                 .query(subqueryString2)
-                .then(data => {
+                .then((data) => {
                   if (data.rowsAffected == 1) {
                     console.log(
                       data.rowsAffected + " row(s) updated status to Open"
                     );
                   }
                 })
-                .catch(err => {
+                .catch((err) => {
                   console.log("allprojects- subquery2 error: " + err);
                 });
             }
@@ -239,14 +239,14 @@ Project.prototype = {
         }
         callback(null);
       })
-      .catch(err => {
+      .catch((err) => {
         console.log("allprojects- Error running query:" + err);
       });
   },
 
-  enlistWorker: function(project, userid, callback) {
+  enlistWorker: function (project, userid, callback) {
     //check worklist
-    this.checkWorklistForDuplicates(project.projId, userid, noduplicate => {
+    this.checkWorklistForDuplicates(project.projId, userid, (noduplicate) => {
       if (noduplicate) {
         if (project.proj_status === "Completed") {
           callback("complete");
@@ -259,14 +259,14 @@ Project.prototype = {
           let request = new dbconnect.sql.Request(dbconnect.pool);
           request
             .query(queryString)
-            .then(data => {
+            .then((data) => {
               if (data.rowsAffected == 1) {
                 callback(true);
                 return;
               }
               console.log("could not insert into worklist");
             })
-            .catch(err => {
+            .catch((err) => {
               console.log("enlistWorker- Error running query: " + err);
             });
         } else {
@@ -278,7 +278,7 @@ Project.prototype = {
     });
   },
 
-  updateCurrentWorker: function(project, callback) {
+  updateCurrentWorker: function (project, callback) {
     let request = new dbconnect.sql.Request(dbconnect.pool);
     if (project.current_workers < project.max_no_workers) {
       let queryString = `UPDATE cyobDB.dbo.Tbl_Projects_Approved
@@ -286,13 +286,13 @@ Project.prototype = {
                WHERE projId = ${project.projId}`;
       request
         .query(queryString)
-        .then(data => {
+        .then((data) => {
           if (data.rowsAffected == 1) {
             callback(data.rowsAffected);
             return;
           }
         })
-        .catch(err => {
+        .catch((err) => {
           //query failed
           console.log("Update query error" + err);
         });
@@ -302,15 +302,15 @@ Project.prototype = {
     }
   },
 
-  checkWorklistForDuplicates: function(projid, userid, callback) {
-    this.findProject(projid, id => {
+  checkWorklistForDuplicates: function (projid, userid, callback) {
+    this.findProject(projid, (id) => {
       if (id) {
         let request = new dbconnect.sql.Request(dbconnect.pool);
         let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Worklist
                         WHERE projId = ${id} AND userId = '${userid}'`;
         request
           .query(queryString)
-          .then(data => {
+          .then((data) => {
             // if no duplicate is found
             if (data.rowsAffected == 0) {
               callback(true);
@@ -318,7 +318,7 @@ Project.prototype = {
             }
             callback(null);
           })
-          .catch(err => {
+          .catch((err) => {
             console.log("checkDuplicate- Error running query: " + err);
           });
       }
@@ -326,14 +326,14 @@ Project.prototype = {
     /* check for duplicate user for a project in worklist table*/
   },
 
-  distributePoints: function(callback) {
+  distributePoints: function (callback) {
     //when project status = "assigned"
     let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects_Approved 
                       WHERE proj_status = 'Assigned'`;
     let request = new dbconnect.sql.Request(dbconnect.pool);
     request
       .query(queryString)
-      .then(data => {
+      .then((data) => {
         if (data.recordset.length > 0) {
           console.log(data.recordset.length + " assigned project(s) found");
           let projectRecord = data.recordset;
@@ -344,7 +344,7 @@ Project.prototype = {
              WHERE projId = ${id}`;
             request
               .query(subqueryString)
-              .then(data => {
+              .then((data) => {
                 if (data.recordset.length > 0) {
                   let worklistRecord = data.recordset;
                   let rewards = worklistRecord[0].reward_points;
@@ -361,7 +361,7 @@ Project.prototype = {
                     WHERE userId = '${user}'`;
                     request
                       .query(innerQuery)
-                      .then(data => {
+                      .then((data) => {
                         worklistRecord[i].user_reward = point;
                         count++;
                         if (count == numWorkers) {
@@ -369,7 +369,7 @@ Project.prototype = {
                             "points distributed to " + count + " workers"
                           );
                           //3 .Set Project status as completed after reward is distributed
-                          this.projectCompleted(id, completed => {
+                          this.projectCompleted(id, (completed) => {
                             if (completed) {
                               callback(id);
                             } else {
@@ -382,17 +382,17 @@ Project.prototype = {
                           });
                         }
                       })
-                      .catch(err => console.log(err));
+                      .catch((err) => console.log(err));
                   }
                 }
               })
-              .catch(err => console.log(err));
+              .catch((err) => console.log(err));
           }
         } else {
           callback(null);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(err);
       });
     //assign(update) the rewards point of each to equal shares of the total reward the project carries
@@ -401,8 +401,8 @@ Project.prototype = {
   },
 
   //Sets Project as completed
-  projectCompleted: function(projid, callback) {
-    this.findProject(projid, id => {
+  projectCompleted: function (projid, callback) {
+    this.findProject(projid, (id) => {
       if (id) {
         let request = new dbconnect.sql.Request(dbconnect.pool);
         let queryString = `UPDATE cyobDB.dbo.Tbl_Projects_Approved
@@ -416,7 +416,7 @@ Project.prototype = {
 
         request
           .query(queryString)
-          .then(data => {
+          .then((data) => {
             if (data.rowsAffected > 0) {
               console.log(projid + " Project has been flagged as Completed");
               callback(true);
@@ -424,12 +424,12 @@ Project.prototype = {
             }
             callback(null);
           })
-          .catch(err => console.log(err));
+          .catch((err) => console.log(err));
       }
     });
   },
 
-  getUserProjects: function(userid, callback) {
+  getUserProjects: function (userid, callback) {
     let request = new dbconnect.sql.Request(dbconnect.pool);
     let queryString = `SELECT t1.projId, t2.proj_title, t1.proj_status, t1.reward_points, t1.userId 
       FROM cyobDB.dbo.Tbl_Worklist AS t1
@@ -440,18 +440,18 @@ Project.prototype = {
       AND t1.proj_status <> 'Completed'`;
     request
       .query(queryString)
-      .then(data => {
+      .then((data) => {
         if (data.recordset) {
           callback(data);
           return;
         }
         callback(null);
       })
-      .catch(err => console.log(err));
+      .catch((err) => console.log(err));
   },
 
-  dropWorker: function(projid, userid, callback) {
-    this.getProject(projid, record => {
+  dropWorker: function (projid, userid, callback) {
+    this.getProject(projid, (record) => {
       if (record) {
         if (record.current_workers > 0 && record.proj_status !== "Completed") {
           let request = new dbconnect.sql.Request(dbconnect.pool);
@@ -460,7 +460,7 @@ Project.prototype = {
           AND userId = '${userid}'`;
           request
             .query(queryString)
-            .then(data => {
+            .then((data) => {
               if (data.rowsAffected == 1) {
                 /* Get/update project status from/in projects table */
                 /* Decrement current workers */
@@ -470,7 +470,7 @@ Project.prototype = {
 
                 request
                   .query(subQuery)
-                  .then(data => {
+                  .then((data) => {
                     if (data.rowsAffected == 1) {
                       console.log(
                         userid + " successfully dropped from " + projid
@@ -479,17 +479,17 @@ Project.prototype = {
                       return;
                     }
                   })
-                  .catch(err => console.log(err));
+                  .catch((err) => console.log(err));
               }
             })
-            .catch(err => console.log(err));
+            .catch((err) => console.log(err));
         } else {
           console.log("User has already been removed from the list");
           callback(null);
         }
       }
     });
-  }
+  },
 };
 
 module.exports = Project;

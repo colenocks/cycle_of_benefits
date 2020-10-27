@@ -6,22 +6,22 @@ dotenv.config();
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 exports.uploads = (file, folder) =>
-  new Promise(resolve => {
+  new Promise((resolve) => {
     cloudinary.uploader.upload(
       file,
-      result => {
+      (result) => {
         resolve({
           url: result.url,
-          id: result.public_id
+          id: result.public_id,
         });
       },
       {
         resource_type: "auto",
-        folder
+        folder,
       }
     );
   });
@@ -39,7 +39,6 @@ exports.checkFileType = (file, cb) => {
 
   if (isAllowedExt && isAllowedMimeType) {
     return cb(null, true); // no errors
-  } else {
-    cb("Error: File type not allowed!");
   }
+  cb("Error: File type not allowed!", false);
 };

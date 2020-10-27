@@ -1,4 +1,4 @@
-const dbconnect = require("./connection");
+const dbconnect = require("../persistence/connection");
 const bcrypt = require("bcryptjs");
 const sql = require("mssql");
 
@@ -7,7 +7,7 @@ function User() {}
 
 User.prototype = {
   // Find the user data by id or username.
-  find: function(userid, callback) {
+  find: function (userid, callback) {
     // if the userid variable is defined
     if (userid) {
       // Sql query
@@ -15,7 +15,7 @@ User.prototype = {
       let request = new dbconnect.sql.Request(dbconnect.pool);
       request
         .query(queryString)
-        .then(data => {
+        .then((data) => {
           if (data.recordset.length > 0) {
             callback(data.recordset[0].userId); //return the first result
             console.log("Find: This user exists");
@@ -23,15 +23,15 @@ User.prototype = {
             callback(null);
           }
         })
-        .catch(err => {
+        .catch((err) => {
           console.log("Find Fetch Error: " + err);
         });
     }
   },
 
-  createUser: function(userobj, callback) {
+  createUser: function (userobj, callback) {
     let request = new dbconnect.sql.Request(dbconnect.pool);
-    this.find(userobj.username, id => {
+    this.find(userobj.username, (id) => {
       if (id) {
         console.log("Found User: " + id);
         callback(null);
@@ -45,7 +45,7 @@ User.prototype = {
       //make request
       request
         .query(queryString)
-        .then(rows => {
+        .then((rows) => {
           if (rows.rowsAffected == 1) {
             //make new request
             callback(rows.rowsAffected);
@@ -54,23 +54,23 @@ User.prototype = {
           }
           // dbconnect.pool.close();
         })
-        .catch(err => {
+        .catch((err) => {
           console.log("Create Error: " + err);
         });
     });
     /*  }); */
   },
 
-  createProfile: function(userobj, callback) {
+  createProfile: function (userobj, callback) {
     // 1. save user and password in users table
-    this.createUser(userobj, response => {
+    this.createUser(userobj, (response) => {
       if (response) {
         let queryString = `INSERT INTO cyobDB.dbo.Tbl_Profiles (userId, first_name, last_name, email_address) VALUES ('${userobj.username}', '${userobj.firstname}', '${userobj.lastname}', '${userobj.email}')`;
 
         let request = new dbconnect.sql.Request(dbconnect.pool);
         request
           .query(queryString)
-          .then(rows => {
+          .then((rows) => {
             if (rows.rowsAffected == 1) {
               // return the record of current user
               callback(rows.rowsAffected);
@@ -79,19 +79,19 @@ User.prototype = {
               callback(null);
             }
           })
-          .catch(err => {
+          .catch((err) => {
             console.log("Save Profile Error: " + err);
           });
       }
     });
   },
 
-  login: function(submittedUsername, submittedPassword, callback) {
+  login: function (submittedUsername, submittedPassword, callback) {
     let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Users WHERE userId = '${submittedUsername}' `;
     let request = new dbconnect.sql.Request(dbconnect.pool);
     request
       .query(queryString)
-      .then(data => {
+      .then((data) => {
         if (data.recordset.length > 0) {
           let userRecord = data.recordset[0];
           let validPassword = bcrypt.compareSync(
@@ -109,18 +109,18 @@ User.prototype = {
           callback(null);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.log("Login Error: " + err);
       });
   },
 
-  getProfile: function(userid, callback) {
+  getProfile: function (userid, callback) {
     if (userid) {
       let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Profiles WHERE userId = '${userid}' `;
       let request = new dbconnect.sql.Request(dbconnect.pool);
       request
         .query(queryString)
-        .then(data => {
+        .then((data) => {
           let userRecord = data.recordset[0];
           if (userRecord) {
             callback(userRecord);
@@ -128,7 +128,7 @@ User.prototype = {
             callback(null);
           }
         })
-        .catch(err => {
+        .catch((err) => {
           console.log("get Profile Error: " + err);
         });
     } else {
@@ -137,9 +137,9 @@ User.prototype = {
     }
   },
 
-  updateProfile: function(userid, profile, callback) {
+  updateProfile: function (userid, profile, callback) {
     if (userid) {
-      this.find(userid, id => {
+      this.find(userid, (id) => {
         if (id) {
           let queryString = `UPDATE cyobDB.dbo.Tbl_Profiles
            SET first_name = '${profile.fname}', last_name = '${profile.lname}', date_of_birth = '${profile.dob}', email_address = '${profile.email}', home_address = '${profile.address}', mobile_number = '${profile.phone}', state_of_origin = '${profile.state}', nationalId = '${profile.nationalId}'
@@ -147,14 +147,14 @@ User.prototype = {
           let request = new dbconnect.sql.Request(dbconnect.pool);
           request
             .query(queryString)
-            .then(data => {
+            .then((data) => {
               if (data.rowsAffected == 1) {
                 callback(data.rowsAffected);
               } else {
                 callback(null);
               }
             })
-            .catch(err => {
+            .catch((err) => {
               console.log("get Profile Error: " + err);
             });
         } else {
@@ -167,8 +167,8 @@ User.prototype = {
     }
   },
 
-  useReward: function(userid, reward, callback) {
-    this.uploadRequest(userid, reward, id => {
+  useReward: function (userid, reward, callback) {
+    this.uploadRequest(userid, reward, (id) => {
       if (id) {
         //Update/Use points
         let request = new dbconnect.sql.Request(dbconnect.pool);
@@ -178,13 +178,13 @@ User.prototype = {
 
         request
           .query(subqueryString)
-          .then(data => {
+          .then((data) => {
             if (data.rowsAffected == 1) {
               callback(true);
               return;
             }
           })
-          .catch(err => {
+          .catch((err) => {
             "Reward User error: ", err;
           });
       } else {
@@ -193,13 +193,13 @@ User.prototype = {
     });
   },
 
-  uploadRequest: function(userid, rewardObj, callback) {
+  uploadRequest: function (userid, rewardObj, callback) {
     //1.check if user has reward attached to user
     let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Worklist WHERE userId = '${userid}'`;
     let request = new dbconnect.sql.Request(dbconnect.pool);
     request
       .query(queryString)
-      .then(data => {
+      .then((data) => {
         if (data.recordset) {
           let id = data.recordset[0].userId;
           //2.on successful, upload the request to database for admin to handle
@@ -208,21 +208,21 @@ User.prototype = {
                       ${rewardObj.used}, '${rewardObj.benefit}')`;
           request
             .query(queryString)
-            .then(data => {
+            .then((data) => {
               if (data.rowsAffected == 1) {
                 callback(id);
                 return;
               }
               callback(null);
             })
-            .catch(err => console.log("upload: " + err));
+            .catch((err) => console.log("upload: " + err));
         } else {
           console.log("This user has no rewards here");
           callback(null);
         }
       })
-      .catch(err => console.log(err));
-  }
+      .catch((err) => console.log(err));
+  },
 };
 
 module.exports = User;
