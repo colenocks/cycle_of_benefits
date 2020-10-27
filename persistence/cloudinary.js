@@ -1,4 +1,5 @@
 const cloudinary = require("cloudinary");
+const multer = require("multer");
 const dotenv = require("dotenv");
 
 dotenv.config();
@@ -9,7 +10,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-exports.uploads = (file, folder) =>
+exports.uploader = (file, folder) =>
   new Promise((resolve) => {
     cloudinary.uploader.upload(
       file,
@@ -26,7 +27,7 @@ exports.uploads = (file, folder) =>
     );
   });
 
-exports.checkFileType = (file, cb) => {
+const checkFileType = (file, cb) => {
   // Define the allowed extension
   let fileExts = ["png", "jpg", "jpeg", "gif"];
 
@@ -41,4 +42,42 @@ exports.checkFileType = (file, cb) => {
     return cb(null, true); // no errors
   }
   cb("Error: File type not allowed!", false);
+};
+
+//using the diskStorage option instead of dest to have full control uploaded images
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "dist/assets");
+  },
+  filename: function (req, file, cb) {
+    // the null as first argument means no error
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+
+exports.upload = multer({
+  storage,
+  limits: {
+    fileSize: parseInt(process.env.MULTER_FILE_SIZE, 10),
+  },
+  fileFilter: function (req, file, cb) {
+    checkFileType(file, cb);
+  },
+});
+
+//Image upload middleware
+exports.cloudLink = async (file) => {
+  try {
+    // Upload file to cloudinary
+    const uploadToCloudinary = async (path) => uploader(path, "cyob_images");
+    const { path } = file;
+    const url = await uploadToCloudinary(path);
+    fs.unlinkSync(path);
+    return url;
+  } catch (error) {
+    return {
+      status: "Request failed",
+      error,
+    };
+  }
 };

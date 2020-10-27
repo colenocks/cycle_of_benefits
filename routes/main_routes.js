@@ -5,31 +5,9 @@ const fs = require("fs");
 const User = require("../controllers/user");
 const Project = require("../controllers/project");
 const Control = require("../controllers/control");
-const multer = require("multer");
-const cloudinary = require("../persistence/cloudinary");
+const { upload, cloudLink } = require("../persistence/cloudinary");
 
 dotenv.config();
-
-//using the diskStorage option instead of dest to have full control uploaded images
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "dist/assets/projects");
-  },
-  filename: function (req, file, cb) {
-    // the null as first argument means no error
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: parseInt(process.env.MULTER_FILE_SIZE, 10),
-  },
-  fileFilter: function (req, file, cb) {
-    cloudinary.checkFileType(file, cb);
-  },
-});
 
 const router = express.Router();
 
@@ -312,24 +290,6 @@ router.post("/projectview", (req, res) => {
     }
   });
 });
-
-//Image upload middleware
-const cloudLink = async (file) => {
-  try {
-    // Upload file to cloudinary
-    const uploader = async (path) => cloudinary.uploads(path, "cyob_images");
-    const { path } = file;
-    const url = await uploader(path);
-    fs.unlinkSync(path);
-
-    return url;
-  } catch (error) {
-    return {
-      status: "Request failed",
-      error,
-    };
-  }
-};
 
 // Add Project
 router.post("/addproject", upload.single("image"), async (req, res, next) => {
