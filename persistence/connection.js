@@ -9,18 +9,19 @@ const dbConfig = {
   database: process.env.DB_NAME,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  connectionLimit: process.env.DB_MAX_CONNECTION
+  connectionLimit: process.env.DB_MAX_CONNECTION,
 };
 
 //connect to database
 let pool = new sql.ConnectionPool(dbConfig);
+
 pool
   .connect()
-  .then(connection => {
+  .then((connection) => {
     console.log("Connected to MSSQL Database!");
     return connection;
   })
-  .catch(err => {
+  .catch((err) => {
     console.log("Could not connect to database: " + err);
   });
 
