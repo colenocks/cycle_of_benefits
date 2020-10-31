@@ -1,30 +1,25 @@
-const util = require("util");
-const sql = require("mssql");
 const dotenv = require("dotenv");
-
 dotenv.config();
 
-const dbConfig = {
-  server: process.env.DB_SERVER,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  connectionLimit: process.env.DB_MAX_CONNECTION,
-};
+const MongoClient = require('mongodb').MongoClient;
+const URI = process.env.MONGODB_URI;
+const _db;
 
-//connect to database
-let pool = new sql.ConnectionPool(dbConfig);
-
-pool
-  .connect()
-  .then((connection) => {
-    console.log("Connected to MSSQL Database!");
-    return connection;
+exports.mongoConnect = (callback)=>{
+  MongoClient.connect(URI, {useNewUrlParser: true})
+  .then(data =>{
+    callback();
+    _db = data.db();
+    console.log('Connection to MongoDB successful');
   })
-  .catch((err) => {
-    console.log("Could not connect to database: " + err);
+  .catch(err=>{
+    console.log('Connection to MongoDB failed');
   });
+}
 
-pool.query = util.promisify(pool.query);
-
-module.exports = { pool, sql };
+exports.getDatabase = () =>{
+  if(_db){
+    return _db;
+  }
+  throw "No database found"
+}
