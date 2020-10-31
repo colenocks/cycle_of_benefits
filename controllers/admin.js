@@ -1,108 +1,128 @@
-const dbconnect = require("../persistence/connection");
+const express = require("express");
 
-//Create a User Interface
-function Control() {}
+const router = express.Router();
 
-Control.prototype = {
-  getAllRewardRequests: function (callback) {
-    let request = new dbconnect.sql.Request(dbconnect.pool);
-    let queryString = `SELECT * FROM cyobDB.dbo.Tbl_RewardsRequest`;
-    request
-      .query(queryString)
-      .then((data) => {
-        if (data.recordset.length > 0) {
-          callback(data);
-          return;
-        }
-        callback(null);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  },
+const Admin = require("../models/admin");
+const Project = require("../models/project");
+const User = require("../models/user");
 
-  getAllProjects: function (callback) {
-    let queryString = `SELECT t1.* FROM Tbl_Projects t1
-    WHERE t1.projId NOT IN (SELECT t2.projId FROM
-     Tbl_Projects_Approved t2)`;
-    let request = new dbconnect.sql.Request(dbconnect.pool);
-    request
-      .query(queryString)
-      .then((data) => {
-        if (data.recordset.length > 0) {
-          callback(data);
-          return;
-        }
-        callback(null);
-      })
-      .catch((err) => console.log(err));
-  },
+const admin = new Admin();
+const project = new Project();
+const user = new User();
 
-  approveProject: function (id, callback) {
-    let request = new dbconnect.sql.Request(dbconnect.pool);
-    let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects_Approved 
-               WHERE projId = ${id}`;
-    request
-      .query(queryString)
-      .then((data) => {
-        if (data.rowsAffected == 1) {
-          console.log("Project already added");
-          callback(null);
-        } else {
-          //Add into table
-          let innerQuery = `INSERT INTO cyobDB.dbo.Tbl_Projects_Approved
-        SELECT * FROM cyobDB.dbo.Tbl_Projects
-         WHERE projId = ${id}`;
-          request
-            .query(innerQuery)
-            .then((data) => {
-              if (data.rowsAffected == 1) {
-                callback(true);
-                return;
-              }
-              callback(null);
-            })
-            .catch((err) => console.log(err));
-        }
-      })
-      .catch((err) => console.log(err));
-  },
-
-  removeUser: function (userid, callback) {
-    let request = new dbconnect.sql.Request(dbconnect.pool);
-    // two queries
-    let queryStrings = `DELETE FROM cyobDB.dbo.Tbl_Profiles
-                      WHERE userId = '${userid}';
-                      
-                      DELETE FROM cyobDB.dbo.Tbl_Users
-                      WHERE userId = '${userid}'`;
-    request
-      .query(queryStrings)
-      .then((data) => {
-        if (data.rowsAffected > 1) {
-          callback(true);
-          return;
-        }
-        callback(null);
-      })
-      .catch((err) => console.log(err));
-  },
-
-  removeProject: function (projid, callback) {
-    let request = new dbconnect.sql.Request(dbconnect.pool);
-    let queryString = `DELETE FROM cyobDB.dbo.Tbl_Projects
-                      WHERE projId = ${projid}`;
-    request
-      .query(queryString)
-      .then((data) => {
-        if (data.rowsAffected > 1) {
-          callback(true);
-          return;
-        }
-        callback(null);
-      })
-      .catch((err) => console.log(err));
-  },
+exports.showUsers = (req, res) => {
+  console.log("Show users");
 };
 
-module.exports = Control;
+exports.getAllProjects = (req, res) => {
+  admin.getAllProjects((data) => {
+    if (data) {
+      res.json(data.recordset);
+      return;
+    }
+    res.json({ errMessage: "Could not retrieve project data" });
+  });
+};
+
+exports.approveProjects = (req, res) => {
+  console.log(req.body.projid);
+  const projid = req.body.projid;
+  admin.approveProject(projid, (approved) => {
+    if (approved) {
+      res.json({ message: "Project has been approved and uploaded" });
+      return;
+    }
+    res.json({
+      errMessage:
+        "Project may have already been uploaded, Check and Try again!",
+    });
+  });
+};
+
+exports.updateProjects = (req, res) => {
+  const proj = {
+    id: parseInt(req.body.id, 10),
+    type: req.body.type,
+    title: req.body.title,
+    details: req.body.details,
+    tools: req.body.tools,
+    address: req.body.address,
+    city: req.body.city,
+    duration: req.body.duration,
+    point: parseInt(req.body.point, 10),
+    maxworkers: parseInt(req.body.maxworkers, 10),
+  };
+  project.updateProject(proj, (updated) => {
+    if (updated) {
+      res.json({ message: proj.id + " has been successfully updated" });
+      return;
+    }
+    res.json({ errMessage: "Could not update project" });
+  });
+};
+
+exports.archiveProject = (req, res) => {
+  if (req.session.userid) {
+    admin.archiveProject(req.body.projid, (archived) => {
+      if (archived) {
+        res.json({ message: "Project archived" });
+        return;
+      }
+      res.json({
+        errMessage: "Project was not archived",
+      });
+    });
+  }
+};
+
+exports.showRedeemedRewards = (req, res) => {
+  admin.getAllRewardRequests((data) => {
+    if (data) {
+      res.json(data.recordset);
+      return;
+    }
+    res.json({
+      errMessage: "could not display rewards table",
+    });
+  });
+};
+
+exports.removeUser = (req, res) => {
+  user.find(req.body.userid, (id) => {
+    if (id) {
+      admin.removeUser(req.body.userid, (deleted) => {
+        if (deleted) {
+          res.json({ message: "User Deleted" });
+          return;
+        }
+        res.json({
+          errMessage: "User was not deleted",
+        });
+      });
+    } else {
+      res.json({
+        errMessage: "This user does not exist",
+      });
+    }
+  });
+};
+
+exports.removeProject = (req, res) => {
+  project.findProject(req.body.projid, (id) => {
+    if (id) {
+      admin.removeProject(req.body.projid, (removed) => {
+        if (removed) {
+          res.json({ message: "Project removed" });
+          return;
+        }
+        res.json({
+          errMessage: "Error with removing project",
+        });
+      });
+    } else {
+      res.json({
+        errMessage: "This project does not exist",
+      });
+    }
+  });
+};
