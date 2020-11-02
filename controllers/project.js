@@ -59,6 +59,7 @@ exports.getAllProjects = (req, res) => {
       return;
     }
     res.json({ errMessage: "Could not retrieve project data" });
+    console.log("Could not retrieve project data");
   });
 };
 

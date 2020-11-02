@@ -1,21 +1,20 @@
-const dbconnect = require("../persistence/connection");
-const sql = require("mssql");
+const { getDatabase } = require("../persistence/connection");
+const mongodb = require("mongodb");
+const ObjectID = new mongodb.ObjectID();
+
+const db = getDatabase();
 
 //Project Interface
 function Project() {}
 
 Project.prototype = {
-  findProject: (projid, callback) => {
+  findApprovedProject: (projid, callback) => {
     if (projid) {
-      let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects_Approved
-                        WHERE projId = ${projid}`;
-      let request = new dbconnect.sql.Request(dbconnect.pool);
-      request
-        .query(queryString)
+      db.collection("active_projects")
+        .find({ _id: ObjectID(projid) })
         .then((data) => {
-          if (data.recordset.length > 0) {
-            let projRecord = data.recordset[0];
-            callback(projRecord.projId);
+          if (data) {
+            callback(data._id);
             return;
           }
           console.log("Project does not exist");
@@ -29,15 +28,11 @@ Project.prototype = {
 
   findProposedProject: (projid, callback) => {
     if (projid) {
-      let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects
-                        WHERE projId = ${projid}`;
-      let request = new dbconnect.sql.Request(dbconnect.pool);
-      request
-        .query(queryString)
+      db.collection("projects")
+        .find({ _id: new ObjectID(projid) })
         .then((data) => {
-          if (data.recordset.length > 0) {
-            let projRecord = data.recordset[0];
-            callback(projRecord.projId);
+          if (data) {
+            callback(data._id);
             return;
           }
           console.log("Proposed Project does not exist");
@@ -50,175 +45,190 @@ Project.prototype = {
   },
 
   addProject: function (proj, callback) {
-    let queryString = `INSERT INTO cyobDB.dbo.Tbl_Projects (proj_type, proj_title, proj_details, proj_photo, proj_address, proj_city, proj_tools, max_no_workers, estimated_duration, posted_by) 
-    VALUES ('${proj.type}','${proj.title}', '${proj.details}', '${proj.image}', '${proj.address}' , '${proj.city}', '${proj.tools}', ${proj.maxworkers}, '${proj.duration}','${proj.postedby}')`;
+    const projectRecord = {
+      type: proj.type,
+      title: proj.title,
+      details: proj.details,
+      image_url: proj.image,
+      address: proj.address,
+      city: proj.city,
+      tools: proj.tools,
+      max_workers: proj.maxworkers,
+      estimated_duration: proj.duration,
+      posted_url: proj.postedby,
+    };
 
-    //make new request
-    let request = new dbconnect.sql.Request(dbconnect.pool);
-    request
-      .query(queryString)
+    db.collection("projects")
+      .insertOne({ projectRecord })
       .then((data) => {
-        if (data.rowsAffected == 1) {
-          // return the record of project
+        if (data.insertedCount == 1) {
           callback(proj);
         } else {
           callback(null);
         }
-        // dbconnect.pool.close();
       })
       .catch((err) => {
-        console.log("AddProject- Error running query: " + err);
+        console.log("Add Project- Error running query: " + err);
       });
   },
 
-  updateProject: function (projObj, callback) {
-    this.findProject(projObj.id, (Id) => {
-      if (Id) {
-        let request = new dbconnect.sql.Request(dbconnect.pool);
-        let queryString = `UPDATE cyobDB.dbo.Tbl_Projects_Approved 
-        SET proj_type ='${projObj.type}', proj_title ='${projObj.title}', proj_details ='${projObj.details}', proj_address ='${projObj.address}', proj_city ='${projObj.city}', proj_tools ='${projObj.tools}', max_no_workers =${projObj.maxworkers}, estimated_duration ='${projObj.duration}', reward_points =${projObj.point}
-        WHERE projId = ${Id}`;
+  updateProject: function (proj, callback) {
+    const projectRecord = {
+      type: proj.type,
+      title: proj.title,
+      details: proj.details,
+      image_url: proj.image,
+      address: proj.address,
+      city: proj.city,
+      tools: proj.tools,
+      max_workers: proj.maxworkers,
+      estimated_duration: proj.duration,
+      reward_points: proj.point,
+    };
 
-        request
-          .query(queryString)
+    this.findApprovedProject(proj._id, (id) => {
+      if (id) {
+        db.collection("active_projects")
+          .updateOne({ _id: id }, { $set: projectRecord })
           .then((data) => {
-            if (data.rowsAffected == 1) {
+            if (data.result.ok == 1) {
               callback(true);
               return;
             }
-            callback(null);
+            //find project in other table
+            this.findProposedProject(proj._id, (id) => {
+              if (id) {
+                db.collection("projects")
+                  .updateOne({ _id: id }, { $set: projectRecord })
+                  .then((data) => {
+                    if (data.result.ok == 1) {
+                      callback(true);
+                      return;
+                    }
+                  });
+              }
+            });
           })
           .catch((err) => {
             console.log(err);
           });
-      } else {
-        //find project in other table
-        this.findProposedProject(projObj.id, (Id) => {
-          if (Id) {
-            let request = new dbconnect.sql.Request(dbconnect.pool);
-            let queryString = `UPDATE cyobDB.dbo.Tbl_Projects 
-            SET proj_type ='${projObj.type}', proj_title ='${projObj.title}', proj_details ='${projObj.details}', proj_address ='${projObj.address}', proj_city ='${projObj.city}', proj_tools ='${projObj.tools}', max_no_workers =${projObj.maxworkers}, estimated_duration ='${projObj.duration}', reward_points =${projObj.point}
-            WHERE projId = ${Id}`;
-
-            request
-              .query(queryString)
-              .then((data) => {
-                if (data.rowsAffected == 1) {
-                  callback(true);
-                  return;
-                }
-                callback(null);
-              })
-              .catch((err) => {
-                console.log(err);
-              });
-          }
-        });
       }
     });
   },
 
   getProject: function (projectId, callback) {
-    let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects_Approved WHERE projId = ${projectId}`;
-    let request = new dbconnect.sql.Request(dbconnect.pool);
-    request
-      .query(queryString)
+    db.collection("active_projects")
+      .findOne({ _id: ObjectID(projectId) })
       .then((data) => {
         if (data) {
-          let projectRecord = data.recordset[0];
-          callback(projectRecord);
+          callback(data);
         } else {
           callback(null);
         }
       })
       .catch((err) => {
-        console.log("GetProject- Error running query: " + err);
+        console.log("Get project- Error running query: " + err);
       });
   },
 
   getProposedProject: function (projectId, callback) {
-    let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects WHERE projId = ${projectId}`;
-    let request = new dbconnect.sql.Request(dbconnect.pool);
-    request
-      .query(queryString)
+    db.collection("projects")
+      .findOne({ _id: ObjectID(projectId) })
       .then((data) => {
-        let projectRecord = data.recordset[0];
-        if (projectRecord) {
-          callback(projectRecord);
+        if (data) {
+          callback(data);
         } else {
           callback(null);
         }
       })
       .catch((err) => {
-        console.log("GetProject- Error running query: " + err);
+        console.log("Get Proposed Project- Error running query: " + err);
       });
   },
 
   allProjects: function (callback) {
-    let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects_Approved`;
-    let request = new dbconnect.sql.Request(dbconnect.pool);
-    request
-      .query(queryString)
+    const db = getDatabase();
+    db.collection("active_projects")
+      .find({})
       .then((data) => {
-        if (data.recordset.length > 0) {
+        if (data) {
           /* Check and update status columns */
-          let projectRecord = data.recordset;
           //1. Set project status to Assigned except for Completed status
-          for (let i = 0; i < projectRecord.length; i++) {
-            if (
-              projectRecord[i].current_workers ==
-              projectRecord[i].max_no_workers
-            ) {
-              let subqueryString = `UPDATE cyobDB.dbo.Tbl_Projects_Approved
-               SET proj_status = 'Assigned'
-               WHERE projId = ${projectRecord[i].projId}
-               AND proj_status <> 'Completed';
-               
-               UPDATE cyobDB.dbo.Tbl_Worklist
-               SET proj_status = 'Assigned'
-               WHERE projId = ${projectRecord[i].projId}
-               AND proj_status <> 'Completed'`;
-              request
-                .query(subqueryString)
+          const projectRecord = data;
+          db.collection("active_projects")
+            .updateMany(
+              {
+                _id: ObjectID(projectRecord._id),
+                status: { $ne: "Completed" },
+                $expr: { $eq: ["$current_workers", "$max_workers"] },
+              },
+              { $set: { status: "Assigned" } }
+            )
+            .then((data) => {
+              let recordsAffected = data.result.nModified;
+              if (recordsAffected > 1) {
+                console.log(
+                  recordsAffected +
+                    " record(s) updated status to Assigned in active_projects"
+                );
+              }
+              db.collection("worklist")
+                .updateMany(
+                  {
+                    _id: ObjectID(projectRecord._id),
+                    status: { $ne: "Completed" },
+                  },
+                  { $set: { status: "Assigned" } }
+                )
                 .then((data) => {
-                  if (data.rowsAffected == 1) {
+                  let recordsAffected = data.result.nModified;
+                  if (recordsAffected > 1) {
                     console.log(
-                      data.rowsAffected + " row(s) updated status to Assigned"
+                      recordsAffected +
+                        " record(s) updated status to Assigned in worklist"
                     );
                   }
-                })
-                .catch((err) => {
-                  console.log("allprojects- subquery error: " + err);
                 });
-            } else {
-              let subqueryString2 = `UPDATE cyobDB.dbo.Tbl_Projects_Approved
-               SET proj_status = 'Open'
-               WHERE projId = ${projectRecord[i].projId};
-               
-               UPDATE cyobDB.dbo.Tbl_Worklist
-               SET proj_status = 'Open'
-               WHERE projId = ${projectRecord[i].projId}`;
-              request
-                .query(subqueryString2)
+            })
+            .then(() => {
+              db.collection("active_projects")
+                .updateMany(
+                  {
+                    _id: ObjectID(projId),
+                    $expr: { $lt: ["$current_workers", "$max_workers"] },
+                  },
+                  { $set: { status: "Open" } }
+                )
                 .then((data) => {
                   if (data.rowsAffected == 1) {
                     console.log(
                       data.rowsAffected + " row(s) updated status to Open"
                     );
                   }
-                })
-                .catch((err) => {
-                  console.log("allprojects- subquery2 error: " + err);
+                  db.collection("worklist")
+                    .updateMany(
+                      { _id: ObjectID(projId) },
+                      { $set: { status: "Open" } }
+                    )
+                    .then((data) => {
+                      if (data.rowsAffected == 1) {
+                        console.log(
+                          data.rowsAffected + " row(s) updated status to Open"
+                        );
+                      }
+                    });
                 });
-            }
-          }
-          callback(data);
-          return;
+              callback(data);
+              return;
+            })
+            .catch((err) => {
+              console.log("allprojects- update subqueries error: " + err);
+            });
         }
         callback(null);
       })
       .catch((err) => {
-        console.log("allprojects- Error running query:" + err);
+        console.log("all projects- Error running query:" + err);
       });
   },
 
@@ -226,30 +236,39 @@ Project.prototype = {
     //check worklist
     this.checkWorklistForDuplicates(project.projId, userid, (noduplicate) => {
       if (noduplicate) {
-        if (project.proj_status === "Completed") {
-          callback("complete");
-        } else if (project.current_workers < project.max_no_workers) {
-          let queryString = `INSERT INTO cyobDB.dbo.Tbl_Worklist (projId, proj_status, reward_points, userId)
-          SELECT t2.projId, t2.proj_status, t2.reward_points, t1.userId 
-          FROM Tbl_Profiles as t1
-          CROSS JOIN Tbl_Projects_Approved as t2
-          WHERE t1.userId = '${userid}' AND t2.projId = ${project.projId}`;
-          let request = new dbconnect.sql.Request(dbconnect.pool);
-          request
-            .query(queryString)
-            .then((data) => {
-              if (data.rowsAffected == 1) {
-                callback(true);
-                return;
-              }
-              console.log("could not insert into worklist");
-            })
-            .catch((err) => {
-              console.log("enlistWorker- Error running query: " + err);
-            });
-        } else {
-          callback(null);
-        }
+        const worklistRecord = db.collection("profiles").aggregrate({
+          $lookup: {
+            from: "active_projects",
+            let: { user: "$userId" }, //set user variable for worklist userid field
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ["$$user", userid] },
+                      { $eq: ["$_id", project.projId] },
+                    ],
+                  },
+                },
+              },
+              {
+                $project: { $$user: 1, reward_points: 1, status: 1, title: 1 },
+              }, //_id field is included automatically
+            ],
+          },
+        });
+        db.collection("worklist")
+          .insertOne(worklistRecord)
+          .then((data) => {
+            if (data.rowsAffected == 1) {
+              callback(true);
+              return;
+            }
+            console.log("could not insert into worklist");
+          })
+          .catch((err) => {
+            console.log("enlistWorker- Error running query: " + err);
+          });
       } else {
         callback(null);
       }
@@ -257,40 +276,36 @@ Project.prototype = {
   },
 
   updateCurrentWorker: function (project, callback) {
-    let request = new dbconnect.sql.Request(dbconnect.pool);
-    if (project.current_workers < project.max_no_workers) {
-      let queryString = `UPDATE cyobDB.dbo.Tbl_Projects_Approved
-               SET current_workers = Coalesce(current_workers , 0) + 1
-               WHERE projId = ${project.projId}`;
-      request
-        .query(queryString)
-        .then((data) => {
-          if (data.rowsAffected == 1) {
-            callback(data.rowsAffected);
-            return;
-          }
-        })
-        .catch((err) => {
-          //query failed
-          console.log("Update query error" + err);
-        });
-    } else {
-      //Project Assigned
-      callback(null);
-    }
+    db.collection("active_projects")
+      .updateOne(
+        {
+          _id: ObjectID(project._id),
+          $expr: { $lt: [project.current_workers, project.max_no_workers] },
+        },
+        { $set: { current_workers: current_workers + 1 } }
+      )
+      .then((data) => {
+        if (data.result.ok == 1) {
+          callback(true);
+          return;
+        }
+        //Project Already Assigned
+        callback(null);
+      })
+      .catch((err) => {
+        //query failed
+        console.log("Update query error" + err);
+      });
   },
 
   checkWorklistForDuplicates: function (projid, userid, callback) {
-    this.findProject(projid, (id) => {
+    this.findApprovedProject(projid, (id) => {
       if (id) {
-        let request = new dbconnect.sql.Request(dbconnect.pool);
-        let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Worklist
-                        WHERE projId = ${id} AND userId = '${userid}'`;
-        request
-          .query(queryString)
+        db.collection("worklist")
+          .find({ projectId: id, userId: ObjectID(userid) })
           .then((data) => {
             // if no duplicate is found
-            if (data.rowsAffected == 0) {
+            if (data) {
               callback(true);
               return;
             }
@@ -305,51 +320,45 @@ Project.prototype = {
   },
 
   distributePoints: function (callback) {
-    //when project status = "assigned"
-    let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects_Approved 
-                      WHERE proj_status = 'Assigned'`;
-    let request = new dbconnect.sql.Request(dbconnect.pool);
-    request
-      .query(queryString)
+    db.collection("active_projects")
+      .find({ status: "Assigned" })
       .then((data) => {
-        if (data.recordset.length > 0) {
-          console.log(data.recordset.length + " assigned project(s) found");
-          let projectRecord = data.recordset;
+        if (data) {
+          console.log(data.length + " assigned project(s) found");
+          let projectRecord = data;
           for (let i = 0; i < projectRecord.length; i++) {
             let id = projectRecord[i].projId;
             //1. get all users in worklist table for the completed project
-            let subqueryString = `SELECT * FROM cyobDB.dbo.Tbl_Worklist
-             WHERE projId = ${id}`;
-            request
-              .query(subqueryString)
+            db.collection("worklist")
+              .find({ projectId: id })
               .then((data) => {
-                if (data.recordset.length > 0) {
-                  let worklistRecord = data.recordset;
+                if (data) {
+                  let worklistRecord = data;
                   let rewards = worklistRecord[0].reward_points;
                   let numWorkers = worklistRecord.length;
-                  let point = Math.floor(rewards / numWorkers);
+                  let userPoint = Math.floor(rewards / numWorkers);
 
                   let count = 0;
                   //2. Distribute reward points to associated users
                   for (let i = 0; i < numWorkers; i++) {
                     let user = worklistRecord[i].userId;
                     //set user_reward value
-                    let innerQuery = `UPDATE cyobDB.dbo.Tbl_Profiles 
-                    SET user_reward_points = Coalesce(user_reward_points, 0) + ${point} 
-                    WHERE userId = '${user}'`;
-                    request
-                      .query(innerQuery)
+                    db.collection("profiles")
+                      .updateOne(
+                        { userId: user },
+                        { $set: { points: points + userPoint } }
+                      )
                       .then((data) => {
-                        worklistRecord[i].user_reward = point;
+                        // worklistRecord[i].user_reward = userPoint;
                         count++;
                         if (count == numWorkers) {
                           console.log(
-                            "points distributed to " + count + " workers"
+                            "points distributed to all " + count + " workers"
                           );
                           //3 .Set Project status as completed after reward is distributed
-                          this.projectCompleted(id, (completed) => {
+                          this.projectCompleted(result, (completed) => {
                             if (completed) {
-                              callback(id);
+                              callback(result);
                             } else {
                               console.log(
                                 "There was an error with updating " +
@@ -359,12 +368,10 @@ Project.prototype = {
                             }
                           });
                         }
-                      })
-                      .catch((err) => console.log(err));
+                      });
                   }
                 }
-              })
-              .catch((err) => console.log(err));
+              });
           }
         } else {
           callback(null);
@@ -380,27 +387,32 @@ Project.prototype = {
 
   //Sets Project as completed
   projectCompleted: function (projid, callback) {
-    this.findProject(projid, (id) => {
+    this.findApprovedProject(projid, (id) => {
       if (id) {
-        let request = new dbconnect.sql.Request(dbconnect.pool);
-        let queryString = `UPDATE cyobDB.dbo.Tbl_Projects_Approved
-        SET proj_status = 'Completed',
-        reward_points = 0
-        WHERE projId = ${projid};
-        
-        UPDATE cyobDB.dbo.Tbl_Worklist
-        SET proj_status = 'Completed'
-        WHERE projId = ${projid}`;
-
-        request
-          .query(queryString)
+        db.collection("active_projects")
+          .updateOne(
+            { _id: id },
+            { $set: { status: "Completed", reward_points: 0 } }
+          )
           .then((data) => {
-            if (data.rowsAffected > 0) {
-              console.log(projid + " Project has been flagged as Completed");
-              callback(true);
-              return;
+            if (data.result.nModified > 0) {
+              db.collection("worklist")
+                .updateMany(
+                  { projectId: id },
+                  { $set: { status: "Completed", reward_points: 0 } }
+                )
+                .then((data) => {
+                  if (data.result.nModified > 0) {
+                    console.log(
+                      projid + " Project has been flagged as Completed"
+                    );
+                    callback(true);
+                    return;
+                  }
+                });
+            } else {
+              callback(null);
             }
-            callback(null);
           })
           .catch((err) => console.log(err));
       }
@@ -408,16 +420,21 @@ Project.prototype = {
   },
 
   getUserProjects: function (userid, callback) {
-    let request = new dbconnect.sql.Request(dbconnect.pool);
-    let queryString = `SELECT t1.projId, t2.proj_title, t1.proj_status, t1.reward_points, t1.userId 
-      FROM cyobDB.dbo.Tbl_Worklist AS t1
-      INNER JOIN 
-      (SELECT projId, proj_title FROM cyobDB.dbo.Tbl_Projects_Approved) AS t2
-      ON t1.projId = t2.projId
-      WHERE t1.userId = '${userid}'
-      AND t1.proj_status <> 'Completed'`;
-    request
-      .query(queryString)
+    db.collection("worklist")
+      .aggregrate([
+        {
+          $match: {
+            $expr: { $eq: ["$userId", userid], $ne: ["$status", "Completed"] },
+          },
+        },
+        {
+          $lookup: {
+            from: "active_projects",
+            localField: "projectId",
+            foreignField: "_id",
+          },
+        },
+      ])
       .then((data) => {
         if (data.recordset) {
           callback(data);
@@ -431,40 +448,37 @@ Project.prototype = {
   dropWorker: function (projid, userid, callback) {
     this.getProject(projid, (record) => {
       if (record) {
-        if (record.current_workers > 0 && record.proj_status !== "Completed") {
-          let request = new dbconnect.sql.Request(dbconnect.pool);
-          let queryString = `DELETE FROM cyobDB.dbo.Tbl_Worklist
-          WHERE projId = ${record.projId}
-          AND userId = '${userid}'`;
-          request
-            .query(queryString)
-            .then((data) => {
-              if (data.rowsAffected == 1) {
-                /* Get/update project status from/in projects table */
-                /* Decrement current workers */
-                let subQuery = `UPDATE cyobDB.dbo.Tbl_Projects_Approved
-              SET current_workers = current_workers - 1
-              WHERE projId = ${record.projId}`;
-
-                request
-                  .query(subQuery)
-                  .then((data) => {
-                    if (data.rowsAffected == 1) {
-                      console.log(
-                        userid + " successfully dropped from " + projid
-                      );
-                      callback(true);
-                      return;
-                    }
-                  })
-                  .catch((err) => console.log(err));
-              }
-            })
-            .catch((err) => console.log(err));
-        } else {
-          console.log("User has already been removed from the list");
-          callback(null);
-        }
+        db.collection("worklist")
+          .deleteOne(
+            { projectId: record._id, userId: ObjectID(userid) },
+            {
+              $gt: [record.current_workers, 0],
+              $ne: [record.proj_status, "Completed"],
+            }
+          )
+          .then((data) => {
+            if (data.result.ok == 1) {
+              /* Decrement current workers */
+              db.collection("active_projects")
+                .updateOne(
+                  { _id: record._id },
+                  { $set: { current_workers: current_workers - 1 } }
+                )
+                .then((data) => {
+                  if (data.result.ok == 1) {
+                    console.log(
+                      userid + " successfully dropped from " + projid
+                    );
+                    callback(true);
+                    return;
+                  }
+                });
+            } else {
+              console.log("User has already been removed from the list");
+              callback(null);
+            }
+          })
+          .catch((err) => console.log(err));
       }
     });
   },

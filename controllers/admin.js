@@ -108,9 +108,9 @@ exports.removeUser = (req, res) => {
 };
 
 exports.removeProject = (req, res) => {
-  project.findProject(req.body.projid, (id) => {
+  project.findApprovedProject(req.body.projid, (id) => {
     if (id) {
-      admin.removeProject(req.body.projid, (removed) => {
+      admin.removeProject(id, (removed) => {
         if (removed) {
           res.json({ message: "Project removed" });
           return;

@@ -1,16 +1,18 @@
-const dbconnect = require("../persistence/connection");
+const { getDatabase } = require("../persistence/connection");
+const db = getDatabase();
+
+const mongodb = require("mongodb");
+const ObjectID = new mongodb.ObjectID();
 
 //Create a User Interface
-function Control() {}
+function Admin() {}
 
-Control.prototype = {
+Admin.prototype = {
   getAllRewardRequests: function (callback) {
-    let request = new dbconnect.sql.Request(dbconnect.pool);
-    let queryString = `SELECT * FROM cyobDB.dbo.Tbl_RewardsRequest`;
-    request
-      .query(queryString)
+    db.collection("reward_requests")
+      .find({})
       .then((data) => {
-        if (data.recordset.length > 0) {
+        if (data) {
           callback(data);
           return;
         }
@@ -22,14 +24,14 @@ Control.prototype = {
   },
 
   getAllProjects: function (callback) {
-    let queryString = `SELECT t1.* FROM Tbl_Projects t1
-    WHERE t1.projId NOT IN (SELECT t2.projId FROM
-     Tbl_Projects_Approved t2)`;
-    let request = new dbconnect.sql.Request(dbconnect.pool);
-    request
-      .query(queryString)
+    db.collection("projects")
+      .aggregrate([
+        { $unionWith: { coll: "active_projects" } },
+        { $group: { _id: "$_id" } },
+      ])
       .then((data) => {
-        if (data.recordset.length > 0) {
+        if (data) {
+          console.log(data);
           callback(data);
           return;
         }
@@ -39,63 +41,57 @@ Control.prototype = {
   },
 
   approveProject: function (id, callback) {
-    let request = new dbconnect.sql.Request(dbconnect.pool);
-    let queryString = `SELECT * FROM cyobDB.dbo.Tbl_Projects_Approved 
-               WHERE projId = ${id}`;
-    request
-      .query(queryString)
+    db.collection("active_projects")
+      .findOne({ _id: ObjectID(id) })
       .then((data) => {
-        if (data.rowsAffected == 1) {
-          console.log("Project already added");
+        if (data) {
+          console.log("This project has already been approved");
           callback(null);
-        } else {
-          //Add into table
-          let innerQuery = `INSERT INTO cyobDB.dbo.Tbl_Projects_Approved
-        SELECT * FROM cyobDB.dbo.Tbl_Projects
-         WHERE projId = ${id}`;
-          request
-            .query(innerQuery)
-            .then((data) => {
-              if (data.rowsAffected == 1) {
-                callback(true);
-                return;
-              }
-              callback(null);
-            })
-            .catch((err) => console.log(err));
+          return;
         }
+        db.collection("projects")
+          .findOne({ _id: ObjectID(id) })
+          .then((data) => {
+            if (data) {
+              db.collection("active_projects")
+                .insertOne(data)
+                .then((data) => {
+                  if (data.insertedCount == 1) {
+                    callback(data);
+                    return;
+                  }
+                  callback(null);
+                });
+            }
+          });
       })
       .catch((err) => console.log(err));
   },
 
   removeUser: function (userid, callback) {
-    let request = new dbconnect.sql.Request(dbconnect.pool);
-    // two queries
-    let queryStrings = `DELETE FROM cyobDB.dbo.Tbl_Profiles
-                      WHERE userId = '${userid}';
-                      
-                      DELETE FROM cyobDB.dbo.Tbl_Users
-                      WHERE userId = '${userid}'`;
-    request
-      .query(queryStrings)
+    db.collection("profiles")
+      .deleteOne({ _id: ObjectID(userid) })
       .then((data) => {
-        if (data.rowsAffected > 1) {
-          callback(true);
-          return;
+        if (data.result.ok === 1) {
+          db.collection("users")
+            .deleteOne({ _id: userid })
+            .then((data) => {
+              if (data.result.ok === 1) {
+                callback(true);
+                return;
+              }
+              callback(null);
+            });
         }
-        callback(null);
       })
       .catch((err) => console.log(err));
   },
 
   removeProject: function (projid, callback) {
-    let request = new dbconnect.sql.Request(dbconnect.pool);
-    let queryString = `DELETE FROM cyobDB.dbo.Tbl_Projects
-                      WHERE projId = ${projid}`;
-    request
-      .query(queryString)
+    db.collection("projects")
+      .deleteOne({ _id: ObjectID(projid) })
       .then((data) => {
-        if (data.rowsAffected > 1) {
+        if (data.result.ok === 1) {
           callback(true);
           return;
         }
@@ -105,4 +101,4 @@ Control.prototype = {
   },
 };
 
-module.exports = Control;
+module.exports = Admin;
