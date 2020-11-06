@@ -64,7 +64,10 @@ app.use((err, req, res, next) => {
 });
 
 //connect to server only when connection to the database is established
-mongoConnect(() => {
+mongoConnect((err, client) => {
+  if (err) {
+    console.log("Connection to DB unsuccessful");
+  }
   app.listen(port, () =>
     console.log(`Listening at ${hostname} on port:${port}`)
   );

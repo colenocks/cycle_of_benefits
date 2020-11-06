@@ -1,12 +1,9 @@
 const dotenv = require("dotenv");
 const { getDatabase } = require("../persistence/connection");
-
-dotenv.config();
 const bcrypt = require("bcryptjs");
 const mongodb = require("mongodb");
-const ObjectId = new mongodb.ObjectID();
 
-const db = getDatabase();
+dotenv.config();
 
 //Create a User Interface
 function User() {}
@@ -14,12 +11,14 @@ function User() {}
 User.prototype = {
   findUserId: function (userid, callback) {
     if (userid) {
+      console.log("userid: " + userid);
+      const db = getDatabase();
       db.collection("users")
-        .findOne({ _id: ObjectId(userid) })
+        .findOne({ _id: userid })
         .then((document) => {
-          if (document.length > 0) {
+          if (document) {
             callback(document._id);
-            console.log("findUserId: user found");
+            console.log("*findUserId*: user found");
           } else {
             callback(null);
           }
@@ -40,13 +39,20 @@ User.prototype = {
 
       const hashedPassword = bcrypt.hashSync(userobj.password, 10);
       const newUser = { username: userobj.username, password: hashedPassword };
-
+      const db = getDatabase();
       db.collection("users")
         .insertOne(newUser)
         .then((data) => {
-          if (data.insertedOne == 1) {
-            callback(true);
-            return;
+          if (data.insertedCount == 1) {
+            //created user profile
+            this.createProfile(userobj, (done) => {
+              if (done) {
+                callback(true);
+                return;
+              } else {
+                console.log("User Profile was not created: " + err);
+              }
+            });
           }
           callback(null);
         })
@@ -57,34 +63,29 @@ User.prototype = {
   },
 
   createProfile: function (userobj, callback) {
-    //save username and password in users collection
-    this.createUser(userobj, (response) => {
-      if (response) {
-        const newUserProfile = {
-          username: userobj.username,
-          firstname: userobj.firstname,
-          lastname: userobj.lastname,
-          email: userobj.email,
-        };
-        db.collection("profiles")
-          .insertOne(newUserProfile)
-          .then((data) => {
-            if (data.insertedOne == 1) {
-              // return the record of current user
-              console.log(data);
-              callback(data);
-              return;
-            }
-            callback(null);
-          })
-          .catch((err) => {
-            console.log("Save Profile Error: " + err);
-          });
-      }
-    });
+    const newUserProfile = {
+      username: userobj.username,
+      firstname: userobj.firstname,
+      lastname: userobj.lastname,
+      email: userobj.email,
+    };
+    const db = getDatabase();
+    db.collection("profiles")
+      .insertOne(newUserProfile)
+      .then((data) => {
+        if (data.insertedCount == 1) {
+          callback(data);
+          return;
+        }
+        callback(null);
+      })
+      .catch((err) => {
+        console.log("Save Profile Error: " + err);
+      });
   },
 
   login: function (username, password, callback) {
+    const db = getDatabase();
     db.collection("users")
       .findOne({ username })
       .then((userRecord) => {
@@ -109,8 +110,9 @@ User.prototype = {
 
   getProfile: function (userid, callback) {
     if (userid) {
+      const db = getDatabase();
       db.collection("profiles")
-        .find({ _id: ObjectId(userid) })
+        .find({ _id: userid })
         .then((userRecord) => {
           if (userRecord) {
             callback(userRecord);
@@ -141,9 +143,9 @@ User.prototype = {
             state: profile.state,
             nationalId: profile.nationalId,
           };
-
+          const db = getDatabase();
           db.collection("profiles")
-            .updateOne({ userId: ObjectId(id) }, { $set: userProfile })
+            .updateOne({ userId: id }, { $set: userProfile })
             .then((data) => {
               if (data) {
                 callback(true);
@@ -169,9 +171,10 @@ User.prototype = {
     this.uploadRequest(userid, reward, (id) => {
       if (id) {
         //Update/Use points
+        const db = getDatabase();
         db.collection("profiles")
           .updateOne(
-            { userId: ObjectId(userid) },
+            { userId: userid },
             { $set: { points: points - reward.used } }
           )
           .then((data) => {
@@ -191,8 +194,9 @@ User.prototype = {
 
   uploadRequest: function (userid, rewardObj, callback) {
     //check if user has reward attached to user
+    const db = getDatabase();
     db.collection("worklists")
-      .find({ userId: ObjectId(userid) })
+      .find({ userId: userid })
       .then((data) => {
         if (data) {
           const id = data.userId;

@@ -40,9 +40,9 @@ exports.postSignup = (req, res) => {
     lastname: req.body.lastname,
     email: req.body.email,
   };
-  user.createProfile(userObj, (data) => {
+  user.createUser(userObj, (data) => {
     if (data) {
-      console.log(data + " user created");
+      console.log("new user created successfully");
       res.json({
         status: "Registeration Successful",
         redirect_path: "/login",
