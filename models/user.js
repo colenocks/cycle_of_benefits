@@ -5,19 +5,23 @@ const mongodb = require("mongodb");
 
 dotenv.config();
 
+const admin_username = process.env.ADMIN_USER;
+const admin_password = process.env.ADMIN_PASSWORD;
+
 //Create a User Interface
 function User() {}
 
 User.prototype = {
+  //returns user id and username
   findUserId: function (userid, callback) {
     if (userid) {
-      console.log("userid: " + userid);
       const db = getDatabase();
       db.collection("users")
-        .findOne({ _id: userid })
-        .then((document) => {
-          if (document) {
-            callback(document._id);
+        .findOne({ username: userid })
+        .then((user) => {
+          if (user) {
+            //return the user _id and username
+            callback(user._id, user.username);
             console.log("*findUserId*: user found");
           } else {
             callback(null);
@@ -30,7 +34,7 @@ User.prototype = {
   },
 
   createUser: function (userobj, callback) {
-    this.findUserId(userobj.username, (_id) => {
+    this.findUserId(userobj.username, (_id, username) => {
       if (_id) {
         console.log("Found User: " + _id);
         callback(null);
@@ -44,15 +48,8 @@ User.prototype = {
         .insertOne(newUser)
         .then((data) => {
           if (data.insertedCount == 1) {
-            //created user profile
-            this.createProfile(userobj, (done) => {
-              if (done) {
-                callback(true);
-                return;
-              } else {
-                console.log("User Profile was not created: " + err);
-              }
-            });
+            callback(data.insertedId);
+            return;
           }
           callback(null);
         })
@@ -63,25 +60,30 @@ User.prototype = {
   },
 
   createProfile: function (userobj, callback) {
-    const newUserProfile = {
-      username: userobj.username,
-      firstname: userobj.firstname,
-      lastname: userobj.lastname,
-      email: userobj.email,
-    };
-    const db = getDatabase();
-    db.collection("profiles")
-      .insertOne(newUserProfile)
-      .then((data) => {
-        if (data.insertedCount == 1) {
-          callback(data);
-          return;
-        }
-        callback(null);
-      })
-      .catch((err) => {
-        console.log("Save Profile Error: " + err);
-      });
+    this.createUser(userobj, (id) => {
+      if (id) {
+        const newUserProfile = {
+          username: userobj.username,
+          firstname: userobj.firstname,
+          lastname: userobj.lastname,
+          email: userobj.email,
+          userId: id,
+        };
+        const db = getDatabase();
+        db.collection("profiles")
+          .insertOne(newUserProfile)
+          .then((data) => {
+            if (data.insertedCount == 1) {
+              callback(data.insertedId);
+              return;
+            }
+            callback(null);
+          })
+          .catch((err) => {
+            console.log("Save Profile Error: " + err);
+          });
+      }
+    });
   },
 
   login: function (username, password, callback) {
@@ -110,9 +112,10 @@ User.prototype = {
 
   getProfile: function (userid, callback) {
     if (userid) {
+      console.log("getprofile: ");
       const db = getDatabase();
       db.collection("profiles")
-        .find({ _id: userid })
+        .findOne({ username: userid })
         .then((userRecord) => {
           if (userRecord) {
             callback(userRecord);
@@ -131,14 +134,14 @@ User.prototype = {
 
   updateProfile: function (userid, profile, callback) {
     if (userid) {
-      this.findUserId(userid, (id) => {
+      this.findUserId(userid, (id, username) => {
         if (id) {
           const userProfile = {
             firstname: profile.fname,
             lastname: profile.lname,
             dob: profile.dob,
             email: profile.email,
-            home_address: profile.address,
+            address: profile.address,
             phone: profile.phone,
             state: profile.state,
             nationalId: profile.nationalId,

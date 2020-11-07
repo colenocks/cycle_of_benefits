@@ -12,10 +12,10 @@ exports.getLogin = (req, res) => {
 exports.postLogin = (req, res) => {
   const { username, password } = req.body;
   if (username && password) {
-    user.login(username, password, (id) => {
-      if (id) {
-        //on login, set a session variable
-        req.session.userid = id;
+    user.login(username, password, (user) => {
+      if (user) {
+        //on login, set user session
+        req.session.userid = user;
         res.json({
           redirect_path: "/profile",
         });
@@ -40,17 +40,17 @@ exports.postSignup = (req, res) => {
     lastname: req.body.lastname,
     email: req.body.email,
   };
-  user.createUser(userObj, (data) => {
-    if (data) {
+  user.createProfile(userObj, (done) => {
+    if (done) {
       console.log("new user created successfully");
       res.json({
         status: "Registeration Successful",
         redirect_path: "/login",
       });
-    } else {
-      console.log("Error: Unable to create user");
-      res.json({ message: "Sorry! This User already exists" });
+      return;
     }
+    console.log("Error: Unable to create user");
+    res.json({ message: "Sorry! This User already exists" });
   });
 };
 

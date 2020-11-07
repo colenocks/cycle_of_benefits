@@ -1,29 +1,33 @@
+const dotenv = require("dotenv");
+dotenv.config();
 const User = require("../models/user");
 const user = new User();
 
+const admin_username = process.env.ADMIN_USER;
+
 exports.getUserProfile = (req, res) => {
   if (req.session.userid) {
-    if (req.session.userid === "admin") {
+    if (req.session.userid === admin_username) {
       res.render("admincontrol");
     } else {
       //get userdata and render profile
       user.getProfile(req.session.userid, (userprofile) => {
         if (userprofile) {
           res.render("profile", {
-            username: userprofile.userId || "",
-            firstname: userprofile.first_name || "",
-            lastname: userprofile.last_name || "",
-            email: userprofile.email_address || "",
-            age: userprofile.date_of_birth || "",
-            address: userprofile.home_address || "",
-            phone: userprofile.mobile_number || "",
+            username: userprofile.username || "",
+            firstname: userprofile.firstname || "",
+            lastname: userprofile.lastname || "",
+            email: userprofile.email || "",
+            age: userprofile.dob || "",
+            address: userprofile.address || "",
+            phone: userprofile.phone || "",
             nationalId: userprofile.nationalId || "",
-            state: userprofile.state_of_origin || "",
-            points: userprofile.user_reward_points || "0",
+            state: userprofile.state || "",
+            points: userprofile.points || "0",
           });
           return;
         }
-        console.log("profile route Error: Could not find user profile");
+        console.log("*getuserprofile* Error: Could not find user profile");
       });
     }
   } else {
