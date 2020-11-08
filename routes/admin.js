@@ -3,9 +3,9 @@ const router = express.Router();
 
 const {
   getAllProjects,
-  approveProjects,
+  approveProject,
   showUsers,
-  updateProjects,
+  updateProject,
   archiveProject,
   showRedeemedRewards,
   removeUser,
@@ -16,9 +16,9 @@ router.get("/showusers", showUsers);
 
 router.get("/getallprojects", getAllProjects);
 
-router.post("/approveproject", approveProjects);
+router.post("/approveproject", approveProject);
 
-router.put("/updateproject", updateProjects);
+router.put("/updateproject", updateProject);
 
 router.delete("/archiveproject", archiveProject);
 

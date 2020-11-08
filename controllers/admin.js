@@ -17,15 +17,14 @@ exports.showUsers = (req, res) => {
 exports.getAllProjects = (req, res) => {
   admin.getAllProjects((data) => {
     if (data) {
-      res.json(data.recordset);
+      res.json(data);
       return;
     }
     res.json({ errMessage: "Could not retrieve project data" });
   });
 };
 
-exports.approveProjects = (req, res) => {
-  console.log(req.body.projid);
+exports.approveProject = (req, res) => {
   const projid = req.body.projid;
   admin.approveProject(projid, (approved) => {
     if (approved) {
@@ -39,22 +38,24 @@ exports.approveProjects = (req, res) => {
   });
 };
 
-exports.updateProjects = (req, res) => {
+exports.updateProject = (req, res) => {
   const proj = {
-    id: parseInt(req.body.id, 10),
+    _id: req.body.id,
     type: req.body.type,
     title: req.body.title,
     details: req.body.details,
+    status: req.body.status,
     tools: req.body.tools,
     address: req.body.address,
     city: req.body.city,
     duration: req.body.duration,
     point: parseInt(req.body.point, 10),
+    currentworkers: parseInt(req.body.currentworkers, 10),
     maxworkers: parseInt(req.body.maxworkers, 10),
   };
   project.updateProject(proj, (updated) => {
     if (updated) {
-      res.json({ message: proj.id + " has been successfully updated" });
+      res.json({ message: proj._id + " has been successfully updated" });
       return;
     }
     res.json({ errMessage: "Could not update project" });
@@ -78,7 +79,7 @@ exports.archiveProject = (req, res) => {
 exports.showRedeemedRewards = (req, res) => {
   admin.getAllRewardRequests((data) => {
     if (data) {
-      res.json(data.recordset);
+      res.json(data);
       return;
     }
     res.json({

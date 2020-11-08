@@ -1,9 +1,9 @@
 import * as functions from "./functions.js";
 
-function UserSession() {}
+function FetchHandler() {}
 
 /*Fetch Methods*/
-UserSession.prototype = {
+FetchHandler.prototype = {
   /* Path: {
     path: null,
     set path_(url) {
@@ -14,7 +14,7 @@ UserSession.prototype = {
     }
   }, */
 
-  loginUser: function(form, callback) {
+  loginUser: function (form, callback) {
     let url = form.loginForm.getAttribute("action")
       ? "/login"
       : "/cannotgetposturl";
@@ -25,7 +25,7 @@ UserSession.prototype = {
       //retrieve user data
       const user = {
         username: form.username.value,
-        password: form.password.value
+        password: form.password.value,
       };
       const fetchOptions = {
         method: "POST",
@@ -34,16 +34,16 @@ UserSession.prototype = {
             "application/x-www-form-urlencoded",
             "application/json",
             "text/plain",
-            "*/*"
+            "*/*",
           ],
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(user)
+        body: JSON.stringify(user),
       };
 
       functions
         .fetchData(url, fetchOptions)
-        .then(data => {
+        .then((data) => {
           if (data.errMessage) {
             console.log("Error: " + data.errMessage);
             functions.displayAlert(
@@ -56,11 +56,11 @@ UserSession.prototype = {
           }
           callback(null);
         })
-        .catch(error => console.error("HTTP- Error: ", "\n" + error));
+        .catch((error) => console.error("HTTP- Error: ", "\n" + error));
     }
   },
 
-  signupUser: function(form) {
+  signupUser: function (form) {
     if (form) {
       if (
         !functions.validateSignupForm(form.formName) ||
@@ -81,7 +81,7 @@ UserSession.prototype = {
           password: form.password.value,
           firstname: form.fname.value,
           lastname: form.lname.value,
-          email: form.email.value
+          email: form.email.value,
         };
         const fetchOptions = {
           method: "POST",
@@ -90,15 +90,15 @@ UserSession.prototype = {
               "application/x-www-form-urlencoded",
               "application/json",
               "text/plain",
-              "*/*"
+              "*/*",
             ],
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(userobj)
+          body: JSON.stringify(userobj),
         };
         functions
           .fetchData(url, fetchOptions)
-          .then(data => {
+          .then((data) => {
             // console.log(data);
             if (!data.redirect_path) {
               functions.displayAlert(
@@ -120,14 +120,41 @@ UserSession.prototype = {
               }
             }
           })
-          .catch(err => {
+          .catch((err) => {
             console.log("fetch failed: " + err);
           });
       }
     }
   },
 
-  addProject: function(form) {
+  getProjects: function (callback) {
+    functions
+      .fetchData("/allprojects", {
+        method: "GET",
+        headers: {
+          Accept: [
+            "application/x-www-form-urlencoded",
+            "application/json",
+            "text/plain",
+            "*/*",
+          ],
+          "Content-Type": "application/json",
+        },
+      })
+      .then((data) => {
+        if (data) {
+          callback(data);
+        } else {
+          callback(null);
+          functions.displayAlert(data.errMessage, "error");
+        }
+      })
+      .catch((err) => {
+        console.log("All projects Fetch Error:  " + err);
+      });
+  },
+
+  addProject: function (form) {
     // validation
     if (!functions.validateSignupForm(form.formName)) {
       functions.displayAlert("Fill all required fields", "error");
@@ -142,19 +169,19 @@ UserSession.prototype = {
         address: form.projectAddress.value,
         city: form.projectCity.value,
         duration: form.projectDuration.value,
-        maxworkers: form.projectWorkers.value
+        maxworkers: form.projectWorkers.value,
       };
       const formdata = new FormData(form.projectform);
       // formdata.append("img", FileList[0]);
       formdata.append("max", newProject.maxworkers);
       const options = {
         method: "POST",
-        body: formdata
+        body: formdata,
       };
 
       functions
         .fetchData(url, options)
-        .then(data => {
+        .then((data) => {
           if (data.message) {
             functions.displayAlert(data.message, "success");
             functions.clearFormFields(form.formName);
@@ -162,16 +189,16 @@ UserSession.prototype = {
             functions.displayAlert(data.errMessage, "error");
           }
         })
-        .catch(error => {
+        .catch((error) => {
           console.log("add project Fetch error: " + error);
         });
     }
   },
 
-  approveProject: function(id) {
+  approveProject: function (id) {
     let url = "/approveproject";
-    const approve = {
-      projid: id.textContent
+    const projId = {
+      projid: id.textContent,
     };
     const options = {
       method: "POST",
@@ -180,28 +207,28 @@ UserSession.prototype = {
           "application/x-www-form-urlencoded",
           "application/json",
           "text/plain",
-          "*/*"
+          "*/*",
         ],
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(approve)
+      body: JSON.stringify(projId),
     };
 
     functions
       .fetchData(url, options)
-      .then(data => {
+      .then((data) => {
         if (data.message) {
           functions.displayAlert(data.message, "success");
         } else {
           functions.displayAlert(data.errMessage, "error");
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.log("add project Fetch error: " + error);
       });
   },
 
-  updateProject: function(form, callback) {
+  updateProject: function (form, callback) {
     // validation
     let url = "/updateproject";
     const project = {
@@ -213,9 +240,10 @@ UserSession.prototype = {
       address: form.address.value,
       city: form.city.value,
       status: form.status.value,
+      currentworkers: form.currentworkers.value,
       maxworkers: form.maxworkers.value,
       duration: form.duration.value,
-      point: form.point.value
+      point: form.point.value,
     };
     const options = {
       method: "PUT",
@@ -224,32 +252,32 @@ UserSession.prototype = {
           "application/x-www-form-urlencoded",
           "application/json",
           "text/plain",
-          "*/*"
+          "*/*",
         ],
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(project)
+      body: JSON.stringify(project),
     };
 
     functions
       .fetchData(url, options)
-      .then(data => {
+      .then((data) => {
         if (data.message) {
           callback(data.message);
           return;
         }
         functions.displayAlert(data.errMessage, "error");
       })
-      .catch(error => {
+      .catch((error) => {
         console.log("post project Fetch error: " + error);
       });
   },
 
-  viewProject: function(projectId, callback) {
+  viewProject: function (projectId, callback) {
     //fetch project data
     const project = {
       id: projectId.textContent /* ,
-      postedby: postedBy.textContent */
+      postedby: postedBy.textContent */,
     };
     const fetchOptions = {
       method: "POST",
@@ -258,30 +286,31 @@ UserSession.prototype = {
           "application/x-www-form-urlencoded",
           "application/json",
           "text/plain",
-          "*/*"
+          "*/*",
         ],
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(project)
+      body: JSON.stringify(project),
     };
 
     let url = "/projectview";
     functions
       .fetchData(url, fetchOptions)
-      .then(data => {
-        if (!data.redirect_path) {
+      .then((data) => {
+        if (data.redirect_path) {
+          console.log("fetch viewproject: " + data.redirect_path);
+          callback(data.redirect_path);
+        } else {
           functions.displayAlert(data.errMessage, "info");
           callback(null);
-        } else {
-          callback(data.redirect_path);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.log("project fetch error: " + err);
       });
   },
 
-  updateProfile: function(form, callback) {
+  updateProfile: function (form, callback) {
     let url = "/updateuser";
     const profile = {
       username: form.username.value,
@@ -292,7 +321,7 @@ UserSession.prototype = {
       address: form.address.value,
       phone: form.phone.value,
       state: form.state.value,
-      nationalId: form.nationalId.value
+      nationalId: form.nationalId.value,
     };
     const options = {
       method: "PUT",
@@ -301,16 +330,16 @@ UserSession.prototype = {
           "application/x-www-form-urlencoded",
           "application/json",
           "text/plain",
-          "*/*"
+          "*/*",
         ],
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(profile)
+      body: JSON.stringify(profile),
     };
 
     functions
       .fetchData(url, options)
-      .then(data => {
+      .then((data) => {
         if (data.message) {
           console.log(data.message);
           callback(data.message);
@@ -318,20 +347,20 @@ UserSession.prototype = {
           callback(null);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.log("Update Profile: " + err);
       });
   },
 
-  clearPath: function() {
+  clearPath: function () {
     //clear path
     this.Path.path_ = null;
   },
 
-  enlistWorker: function(form, callback) {
+  enlistWorker: function (form, callback) {
     //fetch project data
     const project = {
-      projid: form.id.textContent
+      projid: form.id.textContent,
     };
     const fetchOptions = {
       method: "POST",
@@ -340,17 +369,17 @@ UserSession.prototype = {
           "application/x-www-form-urlencoded",
           "application/json",
           "text/plain",
-          "*/*"
+          "*/*",
         ],
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(project)
+      body: JSON.stringify(project),
     };
 
     let url = "/enlist";
     functions
       .fetchData(url, fetchOptions)
-      .then(data => {
+      .then((data) => {
         if (!data.message) {
           functions.displayAlert(data.errMessage, "error");
           callback(null);
@@ -358,14 +387,14 @@ UserSession.prototype = {
           callback(data.message);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.log("enlist fetch error: " + err);
       });
   },
 
-  incrementWorkers: function(form, callback) {
+  incrementWorkers: function (form, callback) {
     const project = {
-      projid: form.id.textContent
+      projid: form.id.textContent,
     };
     const fetchOptions = {
       method: "PUT",
@@ -374,17 +403,17 @@ UserSession.prototype = {
           "application/x-www-form-urlencoded",
           "application/json",
           "text/plain",
-          "*/*"
+          "*/*",
         ],
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(project)
+      body: JSON.stringify(project),
     };
 
     let url = "/currentworkers";
     functions
       .fetchData(url, fetchOptions)
-      .then(data => {
+      .then((data) => {
         if (data.errMessage) {
           functions.displayAlert(data.errMessage, "error");
           callback(null);
@@ -392,16 +421,16 @@ UserSession.prototype = {
           callback(data.message);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.log("increment fetch error: " + err);
       });
   },
 
-  redeemReward: function(form, callback) {
+  redeemReward: function (form, callback) {
     const reward = {
       used: form.used.value,
       total: form.total.textContent,
-      benefit: form.benefit.value
+      benefit: form.benefit.value,
     };
     const fetchOptions = {
       method: "PUT",
@@ -410,16 +439,16 @@ UserSession.prototype = {
           "application/x-www-form-urlencoded",
           "application/json",
           "text/plain",
-          "*/*"
+          "*/*",
         ],
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(reward)
+      body: JSON.stringify(reward),
     };
     let url = "/redeemreward";
     functions
       .fetchData(url, fetchOptions)
-      .then(data => {
+      .then((data) => {
         if (data.errMessage) {
           functions.displayAlert(data.errMessage, "error");
           callback(null);
@@ -428,12 +457,12 @@ UserSession.prototype = {
           // reset used value to empty
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.log("redeem reward error: " + err);
       });
   },
 
-  loadPoints: function(callback) {
+  loadPoints: function (callback) {
     let url = "/loadpoints";
     functions
       .fetchData(url, {
@@ -443,25 +472,25 @@ UserSession.prototype = {
             "application/x-www-form-urlencoded",
             "application/json",
             "text/plain",
-            "*/*"
+            "*/*",
           ],
-          "Content-Type": "application/json"
-        }
+          "Content-Type": "application/json",
+        },
       })
-      .then(data => {
+      .then((data) => {
         if (data) {
           callback(data);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.log("Load Points Fetch err: ", err);
       });
   },
 
-  withdrawFromProject: function(projectId, callback) {
+  withdrawFromProject: function (projectId, callback) {
     let url = "/dropworker";
     let project = {
-      projid: projectId.textContent
+      projid: projectId.textContent,
     };
     functions
       .fetchData(url, {
@@ -471,21 +500,21 @@ UserSession.prototype = {
             "application/x-www-form-urlencoded",
             "application/json",
             "text/plain",
-            "*/*"
+            "*/*",
           ],
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(project)
+        body: JSON.stringify(project),
       })
-      .then(response => {
+      .then((response) => {
         if (response) callback(response);
       })
-      .catch(err => {
+      .catch((err) => {
         console.log("withdraw project Fetch err: ", err);
       });
   },
 
-  viewMyProjects: function(callback) {
+  viewMyProjects: function (callback) {
     let url = "/getuserproject";
     functions
       .fetchData(url, {
@@ -495,20 +524,20 @@ UserSession.prototype = {
             "application/x-www-form-urlencoded",
             "application/json",
             "text/plain",
-            "*/*"
+            "*/*",
           ],
-          "Content-Type": "application/json"
-        }
+          "Content-Type": "application/json",
+        },
       })
-      .then(data => {
+      .then((data) => {
         if (data) {
           callback(data);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.log("view projects Fetch err: ", err);
       });
-  }
+  },
 };
 
-export { UserSession };
+export { FetchHandler };

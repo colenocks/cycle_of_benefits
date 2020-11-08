@@ -14,7 +14,7 @@ const {
   loadPoints,
 } = require("../controllers/project");
 
-router.get("/project:id", getProject);
+router.get("/project/:id", getProject);
 
 router.get("/allprojects", getAllProjects);
 

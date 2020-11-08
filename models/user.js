@@ -112,7 +112,6 @@ User.prototype = {
 
   getProfile: function (userid, callback) {
     if (userid) {
-      console.log("getprofile: ");
       const db = getDatabase();
       db.collection("profiles")
         .findOne({ username: userid })

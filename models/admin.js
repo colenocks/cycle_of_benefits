@@ -1,14 +1,13 @@
 const { getDatabase } = require("../persistence/connection");
-const db = getDatabase();
 
 const mongodb = require("mongodb");
-const ObjectID = new mongodb.ObjectID();
 
 //Create a User Interface
 function Admin() {}
 
 Admin.prototype = {
   getAllRewardRequests: function (callback) {
+    const db = getDatabase();
     db.collection("reward_requests")
       .find({})
       .then((data) => {
@@ -24,14 +23,21 @@ Admin.prototype = {
   },
 
   getAllProjects: function (callback) {
+    const db = getDatabase();
     db.collection("projects")
-      .aggregrate([
-        { $unionWith: { coll: "active_projects" } },
-        { $group: { _id: "$_id" } },
-      ])
+      .find({})
+      // .aggregrate([
+      //   {
+      //     $lookup: {
+      //       from: "active_projects",
+      //       localField: "_id",
+      //       foreignField: "_id",
+      //     },
+      //   },
+      // ])
+      .next()
       .then((data) => {
         if (data) {
-          console.log(data);
           callback(data);
           return;
         }
@@ -41,8 +47,9 @@ Admin.prototype = {
   },
 
   approveProject: function (id, callback) {
+    const db = getDatabase();
     db.collection("active_projects")
-      .findOne({ _id: ObjectID(id) })
+      .findOne({ _id: new mongodb.ObjectID(id) })
       .then((data) => {
         if (data) {
           console.log("This project has already been approved");
@@ -50,7 +57,7 @@ Admin.prototype = {
           return;
         }
         db.collection("projects")
-          .findOne({ _id: ObjectID(id) })
+          .findOne({ _id: new mongodb.ObjectID(id) })
           .then((data) => {
             if (data) {
               db.collection("active_projects")
@@ -69,8 +76,9 @@ Admin.prototype = {
   },
 
   removeUser: function (userid, callback) {
+    const db = getDatabase();
     db.collection("profiles")
-      .deleteOne({ _id: ObjectID(userid) })
+      .deleteOne({ _id: new mongodb.ObjectID(userid) })
       .then((data) => {
         if (data.result.ok === 1) {
           db.collection("users")
@@ -88,8 +96,9 @@ Admin.prototype = {
   },
 
   removeProject: function (projid, callback) {
+    const db = getDatabase();
     db.collection("projects")
-      .deleteOne({ _id: ObjectID(projid) })
+      .deleteOne({ _id: new mongodb.ObjectID(projid) })
       .then((data) => {
         if (data.result.ok === 1) {
           callback(true);

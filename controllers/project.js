@@ -1,61 +1,62 @@
+const dotenv = require("dotenv");
+dotenv.config();
 const { cloudLink } = require("../persistence/cloudinary");
 
 const Project = require("../models/project");
+const Admin = require("../models/admin");
 const project = new Project();
+const admin = new Admin();
+
+const DB_ADMIN = process.env.ADMIN_USER;
 
 exports.getProject = (req, res) => {
   const proj_id = req.params.id;
-  project.getProject(proj_id, (data) => {
-    if (data) {
-      res.render("viewproject", {
-        id: data.projId || "",
-        type: data.proj_type || "other",
-        title: data.proj_title || "",
-        details: data.proj_details || "",
-        address: data.proj_address || "",
-        city: data.proj_city || "",
-        status: data.proj_status || "",
-        worth: data.reward_points || 0,
-        tools: data.proj_tools || "",
-        current: data.current_workers || 0,
-        maxworkers: data.max_no_workers || 1,
-        postedby: data.posted_by || "",
-        duration: data.estimated_duration || "unknown",
-        image: data.proj_photo || "",
-      });
-    } else if (req.session.userid == "admin") {
-      project.getProposedProject(proj_id, (data) => {
-        if (data) {
-          res.render("viewproject", {
-            id: data.projId || "",
-            type: data.proj_type || "other",
-            title: data.proj_title || "",
-            details: data.proj_details || "",
-            address: data.proj_address || "",
-            city: data.proj_city || "",
-            status: data.proj_status || "",
-            worth: data.reward_points || 0,
-            tools: data.proj_tools || "",
-            current: data.current_workers || 0,
-            maxworkers: data.max_no_workers || 1,
-            postedby: data.posted_by || "",
-            duration: data.estimated_duration || "unknown",
-            image: data.proj_photo || "",
-          });
-        }
-      });
-      return;
-    } else {
-      console.log("Project exists in Database but...");
-      res.redirect("/projects");
-    }
-  });
+  if (proj_id) {
+    project.getProject(proj_id, (data) => {
+      if (data) {
+        res.render("viewproject", {
+          id: data._id ? data._id : "",
+          type: data.type ? data.type : "other",
+          title: data.title ? data.title : "",
+          details: data.details ? data.details : "",
+          address: data.address ? data.address : "",
+          city: data.city ? data.city : "",
+          status: data.status ? data.status : "",
+          worth: data.reward_points ? data.reward_points : 0,
+          tools: data.tools ? data.tools : "",
+          current: data.current_workers ? data.current_workers : 0,
+          maxworkers: data.max_workers ? data.max_workers : 1,
+          postedby: data.posted_by ? data.posted_by : "",
+          duration: data.estimated_duration
+            ? data.estimated_duration
+            : "unknown",
+          image: data.image_url ? data.image_url : "",
+        });
+      } else {
+        console.log("Cannot display project...");
+        res.redirect("/projects");
+      }
+    });
+  } else {
+    res.redirect("/projects");
+  }
 };
 
 exports.getAllProjects = (req, res) => {
+  if (req.session.userid === DB_ADMIN) {
+    admin.getAllProjects((data) => {
+      if (data) {
+        res.json(data);
+        return;
+      }
+      res.json({ errMessage: "Could not retrieve project data" });
+      console.log("Could not retrieve project data");
+    });
+    return;
+  }
   project.allProjects((data) => {
     if (data) {
-      res.json(data.recordset);
+      res.json(data);
       return;
     }
     res.json({ errMessage: "Could not retrieve project data" });
@@ -67,7 +68,7 @@ exports.getUserProjects = (req, res) => {
   if (req.session.userid) {
     project.getUserProjects(req.session.userid, (data) => {
       if (data) {
-        res.json(data.recordset);
+        res.json(data);
       } else {
         res.json({ errMessage: "You have not enlisted for any projects" });
       }
@@ -186,27 +187,27 @@ exports.addProject = async (req, res) => {
 };
 
 exports.viewProject = (req, res) => {
-  project.findProject(req.body.id, (projid) => {
-    if (projid) {
-      res.json({
-        redirect_path: "/project" + projid,
-      });
-      return;
-    } else if (req.session.userid == "admin") {
-      //Admin: Check other table
-      project.findProposedProject(req.body.id, (id) => {
-        if (id) {
-          console.log("found proposed proj");
-          res.json({
-            redirect_path: "/project" + id,
-          });
-        }
-      });
-      return;
-    } else {
-      res.json({ errMessage: "Cannot find project" });
-    }
-  });
+  if (req.session.userid == DB_ADMIN) {
+    project.findProposedProject(req.body.id, (id) => {
+      if (id) {
+        res.json({
+          redirect_path: `/project/${id}`,
+        });
+      }
+    });
+  } else {
+    project.findApprovedProject(req.body.id, (projid) => {
+      if (projid) {
+        res.json({
+          redirect_path: `/project/${id}`,
+        });
+      } else {
+        res.json({
+          errMessage: "Cannot find project",
+        });
+      }
+    });
+  }
 };
 
 exports.loadPoints = (req, res) => {

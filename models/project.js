@@ -1,8 +1,5 @@
 const { getDatabase } = require("../persistence/connection");
 const mongodb = require("mongodb");
-const ObjectID = new mongodb.ObjectID();
-
-const db = getDatabase();
 
 //Project Interface
 function Project() {}
@@ -10,8 +7,9 @@ function Project() {}
 Project.prototype = {
   findApprovedProject: (projid, callback) => {
     if (projid) {
+      const db = getDatabase();
       db.collection("active_projects")
-        .find({ _id: ObjectID(projid) })
+        .findOne({ _id: new mongodb.ObjectID(projid) })
         .then((data) => {
           if (data) {
             callback(data._id);
@@ -28,8 +26,9 @@ Project.prototype = {
 
   findProposedProject: (projid, callback) => {
     if (projid) {
+      const db = getDatabase();
       db.collection("projects")
-        .find({ _id: new ObjectID(projid) })
+        .findOne({ _id: new mongodb.ObjectID(projid) })
         .then((data) => {
           if (data) {
             callback(data._id);
@@ -55,11 +54,12 @@ Project.prototype = {
       tools: proj.tools,
       max_workers: proj.maxworkers,
       estimated_duration: proj.duration,
-      posted_url: proj.postedby,
+      posted_by: proj.postedby,
     };
 
+    const db = getDatabase();
     db.collection("projects")
-      .insertOne({ projectRecord })
+      .insertOne(projectRecord)
       .then((data) => {
         if (data.insertedCount == 1) {
           callback(proj);
@@ -77,10 +77,12 @@ Project.prototype = {
       type: proj.type,
       title: proj.title,
       details: proj.details,
+      status: proj.status,
       image_url: proj.image,
       address: proj.address,
       city: proj.city,
       tools: proj.tools,
+      current_workers: proj.currentworkers,
       max_workers: proj.maxworkers,
       estimated_duration: proj.duration,
       reward_points: proj.point,
@@ -88,79 +90,134 @@ Project.prototype = {
 
     this.findApprovedProject(proj._id, (id) => {
       if (id) {
+        const db = getDatabase();
         db.collection("active_projects")
           .updateOne({ _id: id }, { $set: projectRecord })
           .then((data) => {
-            if (data.result.ok == 1) {
+            if (data.nModified.ok == 1) {
               callback(true);
               return;
             }
-            //find project in other table
-            this.findProposedProject(proj._id, (id) => {
-              if (id) {
-                db.collection("projects")
-                  .updateOne({ _id: id }, { $set: projectRecord })
-                  .then((data) => {
-                    if (data.result.ok == 1) {
-                      callback(true);
-                      return;
-                    }
-                  });
-              }
-            });
           })
           .catch((err) => {
             console.log(err);
           });
+      } else {
+        //find project in other table
+        this.findProposedProject(proj._id, (id) => {
+          if (id) {
+            const db = getDatabase();
+            db.collection("projects")
+              .updateOne({ _id: id }, { $set: projectRecord })
+              .then((data) => {
+                if (data.result.ok == 1) {
+                  callback(true);
+                  return;
+                }
+              })
+              .catch((err) => {
+                console.log(err);
+              });
+          } else {
+            callback(null);
+            return;
+          }
+        });
       }
     });
   },
 
   getProject: function (projectId, callback) {
-    db.collection("active_projects")
-      .findOne({ _id: ObjectID(projectId) })
-      .then((data) => {
-        if (data) {
-          callback(data);
-        } else {
-          callback(null);
-        }
-      })
-      .catch((err) => {
-        console.log("Get project- Error running query: " + err);
-      });
+    // console.log("getProject: " + projectId);
+    if (projectId) {
+      const db = getDatabase();
+      db.collection("active_projects")
+        .findOne({ _id: new mongodb.ObjectID(projectId) })
+        .then((data) => {
+          if (data) {
+            callback(data);
+          } else {
+            callback(null);
+          }
+        })
+        .catch((err) => {
+          console.log("Get project- Error running query: " + err);
+        });
+    }
   },
 
   getProposedProject: function (projectId, callback) {
-    db.collection("projects")
-      .findOne({ _id: ObjectID(projectId) })
-      .then((data) => {
-        if (data) {
-          callback(data);
-        } else {
-          callback(null);
-        }
-      })
-      .catch((err) => {
-        console.log("Get Proposed Project- Error running query: " + err);
-      });
+    if (projectId) {
+      const db = getDatabase();
+      db.collection("projects")
+        .findOne({ _id: new mongodb.ObjectID(projectId) })
+        .then((data) => {
+          if (data) {
+            callback(data);
+          } else {
+            callback(null);
+          }
+        })
+        .catch((err) => {
+          console.log("Get Proposed Project- Error running query: " + err);
+        });
+    }
   },
 
   allProjects: function (callback) {
     const db = getDatabase();
     db.collection("active_projects")
-      .find({})
+      .find()
+      .next()
       .then((data) => {
         if (data) {
-          /* Check and update status columns */
-          //1. Set project status to Assigned except for Completed status
           const projectRecord = data;
-          db.collection("active_projects")
+          //Check and update status columns
+          this.setProjectAssigned(projectRecord, (assigned) => {
+            if (assigned) {
+              console.log("Assigned: project status was updated");
+            }
+            this.setProjectOpen(projectRecord, (set) => {
+              if (set) {
+                console.log("Open: project status was updated");
+              }
+              //return all projects
+              callback(projectRecord);
+            });
+          });
+        } else {
+          callback(null);
+        }
+      })
+      .catch((err) => {
+        console.log("all projects- Error running query:" + err);
+      });
+  },
+
+  setProjectAssigned: function (project, callback) {
+    const db = getDatabase();
+    db.collection("active_projects")
+      .updateMany(
+        {
+          _id: project._id,
+          status: { $ne: "Completed" },
+          $expr: { $eq: ["$current_workers", "$max_workers"] },
+        },
+        { $set: { status: "Assigned" } }
+      )
+      .then((data) => {
+        let recordsAffected = data.result.nModified;
+        if (recordsAffected > 1) {
+          console.log(
+            recordsAffected +
+              " record(s) updated status to Assigned in active_projects"
+          );
+          //update worklist
+          db.collection("worklist")
             .updateMany(
               {
-                _id: ObjectID(projectRecord._id),
+                _id: project._id,
                 status: { $ne: "Completed" },
-                $expr: { $eq: ["$current_workers", "$max_workers"] },
               },
               { $set: { status: "Assigned" } }
             )
@@ -169,66 +226,57 @@ Project.prototype = {
               if (recordsAffected > 1) {
                 console.log(
                   recordsAffected +
-                    " record(s) updated status to Assigned in active_projects"
+                    " record(s) updated status to Assigned in worklist"
                 );
+                callback(data);
+              } else {
+                console.log("Assigned: no worklist statuses updated");
+                callback(null);
               }
-              db.collection("worklist")
-                .updateMany(
-                  {
-                    _id: ObjectID(projectRecord._id),
-                    status: { $ne: "Completed" },
-                  },
-                  { $set: { status: "Assigned" } }
-                )
-                .then((data) => {
-                  let recordsAffected = data.result.nModified;
-                  if (recordsAffected > 1) {
-                    console.log(
-                      recordsAffected +
-                        " record(s) updated status to Assigned in worklist"
-                    );
-                  }
-                });
-            })
-            .then(() => {
-              db.collection("active_projects")
-                .updateMany(
-                  {
-                    _id: ObjectID(projId),
-                    $expr: { $lt: ["$current_workers", "$max_workers"] },
-                  },
-                  { $set: { status: "Open" } }
-                )
-                .then((data) => {
-                  if (data.rowsAffected == 1) {
-                    console.log(
-                      data.rowsAffected + " row(s) updated status to Open"
-                    );
-                  }
-                  db.collection("worklist")
-                    .updateMany(
-                      { _id: ObjectID(projId) },
-                      { $set: { status: "Open" } }
-                    )
-                    .then((data) => {
-                      if (data.rowsAffected == 1) {
-                        console.log(
-                          data.rowsAffected + " row(s) updated status to Open"
-                        );
-                      }
-                    });
-                });
-              callback(data);
-              return;
-            })
-            .catch((err) => {
-              console.log("allprojects- update subqueries error: " + err);
             });
+        } else {
+          console.log("Assigned: no statuses updated");
+          callback(null);
         }
-        callback(null);
       })
       .catch((err) => {
-        console.log("all projects- Error running query:" + err);
+        console.log("unable to set  project status to Assigned: " + err);
+      });
+  },
+
+  setProjectOpen: function (project, callback) {
+    const db = getDatabase();
+    db.collection("active_projects")
+      .updateMany(
+        {
+          _id: project._id,
+          $expr: { $lt: ["$current_workers", "$max_workers"] },
+        },
+        { $set: { status: "Open" } }
+      )
+      .then((data) => {
+        if (data.result.nModified > 0) {
+          console.log(data.rowsAffected + " row(s) updated status to Open");
+          db.collection("worklist")
+            .updateMany({ _id: project._id }, { $set: { status: "Open" } })
+            .then((data) => {
+              if (data.result.nModified > 0) {
+                console.log(
+                  data.rowsAffected + " row(s) updated status to Open"
+                );
+                callback(data);
+              } else {
+                console.log("Open: no worklist statuses updated");
+                callback(null);
+              }
+            });
+        } else {
+          console.log("Open: no statuses updated");
+          callback(null);
+        }
+      })
+      .catch((err) => {
+        console.log("unable to set project status to Open" + err);
       });
   },
 
@@ -236,6 +284,7 @@ Project.prototype = {
     //check worklist
     this.checkWorklistForDuplicates(project.projId, userid, (noduplicate) => {
       if (noduplicate) {
+        const db = getDatabase();
         const worklistRecord = db.collection("profiles").aggregrate({
           $lookup: {
             from: "active_projects",
@@ -260,7 +309,7 @@ Project.prototype = {
         db.collection("worklist")
           .insertOne(worklistRecord)
           .then((data) => {
-            if (data.rowsAffected == 1) {
+            if (data.result.insertedCount == 1) {
               callback(true);
               return;
             }
@@ -276,10 +325,11 @@ Project.prototype = {
   },
 
   updateCurrentWorker: function (project, callback) {
+    const db = getDatabase();
     db.collection("active_projects")
       .updateOne(
         {
-          _id: ObjectID(project._id),
+          _id: project._id,
           $expr: { $lt: [project.current_workers, project.max_no_workers] },
         },
         { $set: { current_workers: current_workers + 1 } }
@@ -301,8 +351,9 @@ Project.prototype = {
   checkWorklistForDuplicates: function (projid, userid, callback) {
     this.findApprovedProject(projid, (id) => {
       if (id) {
+        const db = getDatabase();
         db.collection("worklist")
-          .find({ projectId: id, userId: ObjectID(userid) })
+          .find({ projectId: id, userId: userid })
           .then((data) => {
             // if no duplicate is found
             if (data) {
@@ -320,6 +371,7 @@ Project.prototype = {
   },
 
   distributePoints: function (callback) {
+    const db = getDatabase();
     db.collection("active_projects")
       .find({ status: "Assigned" })
       .then((data) => {
@@ -389,6 +441,7 @@ Project.prototype = {
   projectCompleted: function (projid, callback) {
     this.findApprovedProject(projid, (id) => {
       if (id) {
+        const db = getDatabase();
         db.collection("active_projects")
           .updateOne(
             { _id: id },
@@ -420,13 +473,9 @@ Project.prototype = {
   },
 
   getUserProjects: function (userid, callback) {
+    const db = getDatabase();
     db.collection("worklist")
       .aggregrate([
-        {
-          $match: {
-            $expr: { $eq: ["$userId", userid], $ne: ["$status", "Completed"] },
-          },
-        },
         {
           $lookup: {
             from: "active_projects",
@@ -435,6 +484,7 @@ Project.prototype = {
           },
         },
       ])
+      .next()
       .then((data) => {
         if (data.recordset) {
           callback(data);
@@ -448,9 +498,10 @@ Project.prototype = {
   dropWorker: function (projid, userid, callback) {
     this.getProject(projid, (record) => {
       if (record) {
+        const db = getDatabase();
         db.collection("worklist")
           .deleteOne(
-            { projectId: record._id, userId: ObjectID(userid) },
+            { projectId: record._id, userId: userid },
             {
               $gt: [record.current_workers, 0],
               $ne: [record.proj_status, "Completed"],

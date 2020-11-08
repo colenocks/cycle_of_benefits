@@ -1,7 +1,7 @@
 import * as functions from "./functions.js";
-import * as myfetch from "./fetch.js";
+import { FetchHandler } from "./fetch.js";
 
-const usersession = new myfetch.UserSession();
+const fetchhandler = new FetchHandler();
 
 /* Inputs */
 let user_id = document.getElementById("user_id");
@@ -21,7 +21,7 @@ let RemoveProjectBtn = document.getElementById("RemoveProject");
 /* Methods */
 const showAllusers = () => {};
 
-const archiveProject = id => {
+const archiveProject = (id) => {
   functions.displayAlert("Coming soon", "info");
   // let url = "/archiveproject";
   // const proj = {
@@ -62,15 +62,15 @@ const showAllRedeemedRewards = () => {
         "application/x-www-form-urlencoded",
         "application/json",
         "text/plain",
-        "*/*"
+        "*/*",
       ],
-      "Content-Type": "application/json"
-    }
+      "Content-Type": "application/json",
+    },
   };
 
   functions
     .fetchData(url, options)
-    .then(data => {
+    .then((data) => {
       if (data.errMessage) {
         functions.displayAlert(data.errMessage, "error");
       } else {
@@ -80,13 +80,13 @@ const showAllRedeemedRewards = () => {
         );
       }
     })
-    .catch(err => console.log(err));
+    .catch((err) => console.log(err));
 };
 
-const RemoveUser = id => {
+const RemoveUser = (id) => {
   let url = "/removeuser";
   const user = {
-    userid: id.value
+    userid: id.value,
   };
   let options = {
     method: "DELETE",
@@ -95,28 +95,28 @@ const RemoveUser = id => {
         "application/x-www-form-urlencoded",
         "application/json",
         "text/plain",
-        "*/*"
+        "*/*",
       ],
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify(user)
+    body: JSON.stringify(user),
   };
   functions
     .fetchData(url, options)
-    .then(data => {
+    .then((data) => {
       if (data.errMessage) {
         functions.displayAlert(data.errMessage, "error");
       } else {
         functions.displayAlert(data.message, "success");
       }
     })
-    .catch(err => console.log(err));
+    .catch((err) => console.log(err));
 };
 
-const RemoveProject = id => {
+const RemoveProject = (id) => {
   let url = "/removeproject";
   const project = {
-    projid: id.value
+    projid: id.value,
   };
   let options = {
     method: "DELETE",
@@ -125,23 +125,23 @@ const RemoveProject = id => {
         "application/x-www-form-urlencoded",
         "application/json",
         "text/plain",
-        "*/*"
+        "*/*",
       ],
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify(project)
+    body: JSON.stringify(project),
   };
 
   functions
     .fetchData(url, options)
-    .then(data => {
+    .then((data) => {
       if (data.errMessage) {
         functions.displayAlert(data.errMessage, "error");
       } else {
         functions.displayAlert(data.message, "success");
       }
     })
-    .catch(err => console.log(err));
+    .catch((err) => console.log(err));
 };
 
 showAllProjectsBtn.onclick = () => {
@@ -151,8 +151,8 @@ showAllProjectsBtn.onclick = () => {
     let projectId = document.querySelectorAll(".project-id");
 
     for (let i = 0; i < projectRow.length; i++) {
-      projectBtn[i].onclick = function() {
-        usersession.viewProject(projectId[i], projectidUrl => {
+      projectBtn[i].onclick = function () {
+        fetchhandler.viewProject(projectId[i], (projectidUrl) => {
           if (projectidUrl) {
             location.assign(location.origin + projectidUrl);
           }
@@ -169,15 +169,15 @@ showAllProjectsBtn.onclick = () => {
         "application/x-www-form-urlencoded",
         "application/json",
         "text/plain",
-        "*/*"
+        "*/*",
       ],
-      "Content-Type": "application/json"
-    }
+      "Content-Type": "application/json",
+    },
   };
 
   functions
     .fetchData(url, options)
-    .then(data => {
+    .then((data) => {
       if (data.errMessage) {
         functions.displayAlert(data.errMessage, "error");
       } else {
@@ -187,13 +187,15 @@ showAllProjectsBtn.onclick = () => {
         proposed.appendChild(document.createTextNode("User Proposed Projects"));
         projectRow.appendChild(proposed);
         projectRow.appendChild(hr);
-        data.forEach(record => {
-          functions.appendProjects(record);
-        });
+        //loop through object or array
+        /* data.map(project=>{
+          functions.appendProjects(project);
+        }) */
+        functions.appendProjects(data);
         viewProject();
       }
     })
-    .catch(err => console.log(err));
+    .catch((err) => console.log("getallProjects: ", err));
 };
 
 showAllRedeemedRewardsBtn.onclick = showAllRedeemedRewards;

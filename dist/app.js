@@ -1,7 +1,7 @@
 import * as functions from "./js/functions.js";
-import * as myfetch from "./js/fetch.js";
+import { FetchHandler } from "./js/fetch.js";
 
-const usersession = new myfetch.UserSession();
+const fetchHandler = new FetchHandler();
 
 /* Menu Button Toggle functionality */
 if (document.querySelector(".menu-btn")) {
@@ -14,7 +14,7 @@ if (document.querySelector(".signin-div")) {
   //fetch user session to display styles
   functions
     .fetchData("/usersession")
-    .then(data => {
+    .then((data) => {
       if (data.session) {
         //display styles
         let userLink = document.querySelector(".signin-link");
@@ -30,7 +30,7 @@ if (document.querySelector(".signin-div")) {
         functions.enableSlideMenu(userIcon);
         functions.appendProfileToMobileMenu();
 
-        if (data.session == "admin") {
+        if (data.session == "cyobadmin") {
           /* Admin views */
           if (document.querySelector("#viewproject")) {
             const form = {
@@ -43,75 +43,57 @@ if (document.querySelector(".signin-div")) {
               address: document.getElementById("view_address"),
               city: document.getElementById("view_city"),
               status: document.getElementById("view_status"),
+              currentworkers: document.getElementById("view_current_workers"),
               maxworkers: document.getElementById("view_no_of_workers"),
               duration: document.getElementById("view_duration"),
-              point: document.getElementById("view_worth")
+              point: document.getElementById("view_worth"),
             };
 
             let editProject = document.getElementById("editProject");
-            let interest = document.getElementById("interest");
+            let enlist = document.getElementById("interest");
+            let addBtn = document.getElementById("addproject-btn");
+            let editBtn = document.getElementById("editproject-btn");
+            let updateProjectBtn = document.getElementById(
+              "update-project-btn"
+            );
 
-            //   Create edit button
-            let editBtn = document.createElement("button");
-            editBtn.classList.add("my-btn", "left-btn");
-            let text = document.createTextNode("EDIT");
-            editBtn.appendChild(text);
-            editBtn.style.margin = "0 auto";
-
-            //create update button
-            let updateProject = document.createElement("input");
-            updateProject.setAttribute("value", "UPDATE PROJECT");
-            updateProject.setAttribute("id", "updateProject");
-            updateProject.classList.add("my-btn", "left-btn");
             console.log("Welcome Admin");
 
-            //Create Add Button
-            let AddBtn = document.createElement("button");
-            AddBtn.classList.add("my-btn", "left-btn");
-            let addtext = document.createTextNode("ADD");
-            AddBtn.appendChild(addtext);
-            AddBtn.style.margin = "0 10px";
-            AddBtn.style.color = "blue";
-
-            //   Append edit and add buttons
-            editProject.appendChild(editBtn);
-            editProject.appendChild(AddBtn);
-
-            //switch enlist button to edit project
-            formbutton.removeChild(interest);
-            formbutton.appendChild(updateProject);
+            //disable/remove enlist button
+            enlist.style.display = "none";
+            editProject.style.display = "block";
 
             let fields = Array.from(
               form.formName.querySelectorAll("input[type=text]")
             );
 
-            updateProject.setAttribute("disabled", true);
+            updateProjectBtn.style.display = "block";
+            updateProjectBtn.setAttribute("disabled", true);
             let editToggle = false;
 
             //edit click listener function
-            editBtn.onclick = function(e) {
+            editBtn.onclick = function (e) {
               e.preventDefault();
               if (!editToggle) {
                 for (let i = 0; i < fields.length; i++) {
                   fields[i].classList.add("edit-profile");
                   fields[i].removeAttribute("disabled");
                 }
-                updateProject.removeAttribute("disabled");
+                updateProjectBtn.removeAttribute("disabled");
                 editToggle = true;
               } else {
                 for (let i = 0; i < fields.length; i++) {
                   fields[i].classList.remove("edit-profile");
                   fields[i].setAttribute("disabled", true);
                 }
-                updateProject.setAttribute("disabled", true);
+                updateProjectBtn.setAttribute("disabled", true);
                 editToggle = false;
               }
             };
 
-            // let updateProject = document.getElementById("updateProject");
-            updateProject.onclick = function(e) {
+            updateProjectBtn.onclick = function (e) {
               e.preventDefault();
-              usersession.updateProject(form, response => {
+              fetchHandler.updateProject(form, (response) => {
                 if (response) {
                   functions.displayAlert(response, "success");
                   editToggle = false;
@@ -119,10 +101,10 @@ if (document.querySelector(".signin-div")) {
               });
             };
 
-            AddBtn.onclick = function(e) {
+            addBtn.onclick = function (e) {
               e.preventDefault();
               let id = document.getElementById("view_id");
-              usersession.approveProject(id);
+              fetchHandler.approveProject(id);
             };
           }
         }
@@ -130,7 +112,7 @@ if (document.querySelector(".signin-div")) {
         // functions.displayAlert(data.errMessage, "info");
       }
     })
-    .catch(err => {
+    .catch((err) => {
       console.log("error fetching user session: " + err);
     });
 }
@@ -141,12 +123,12 @@ if (document.getElementById("loginform")) {
     loginForm: document.getElementById("loginform"),
     username: document.getElementById("username"),
     password: document.getElementById("password"),
-    formName: document.forms.namedItem("loginform")
+    formName: document.forms.namedItem("loginform"),
   };
 
-  form.loginForm.addEventListener("submit", e => {
+  form.loginForm.addEventListener("submit", (e) => {
     e.preventDefault(); //ignores the default submit behaviour through action
-    usersession.loginUser(form, function(profileUrl) {
+    fetchHandler.loginUser(form, function (profileUrl) {
       if (profileUrl) {
         functions.displayAlert("Login Successful!", "success");
         location.replace(location.origin + profileUrl);
@@ -165,12 +147,12 @@ if (document.getElementById("form")) {
     email: document.getElementById("reg_email"),
     password: document.getElementById("reg_password"),
     password_match: document.getElementById("reg_conf_password"),
-    formName: document.forms.namedItem("form")
+    formName: document.forms.namedItem("form"),
   };
 
-  document.getElementById("form").addEventListener("submit", e => {
+  document.getElementById("form").addEventListener("submit", (e) => {
     e.preventDefault();
-    usersession.signupUser(form);
+    fetchHandler.signupUser(form);
   });
 }
 
@@ -225,7 +207,7 @@ if (document.querySelector(".profile")) {
   };
 
   //Save changes
-  profileForm.addEventListener("submit", e => {
+  profileForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const form = {
       username: document.getElementById("edit_username"),
@@ -236,9 +218,9 @@ if (document.querySelector(".profile")) {
       address: document.getElementById("edit_address"),
       phone: document.getElementById("edit_phone"),
       state: document.getElementById("edit_state"),
-      nationalId: document.getElementById("edit_national_id")
+      nationalId: document.getElementById("edit_national_id"),
     };
-    usersession.updateProfile(form, response => {
+    fetchHandler.updateProfile(form, (response) => {
       if (!response) {
         functions.displayAlert("Could not update profile", "error");
       } else {
@@ -264,10 +246,10 @@ if (document.querySelector(".boxes")) {
   let info = document.querySelector(".information");
 
   //stacked divs display function
-  navLinks.forEach(link => {
-    link.onclick = function(e) {
+  navLinks.forEach((link) => {
+    link.onclick = function (e) {
       e.preventDefault();
-      navLinks.forEach(otherlinks => {
+      navLinks.forEach((otherlinks) => {
         otherlinks.classList.remove("active");
       });
       link.classList.add("active");
@@ -310,8 +292,8 @@ if (document.querySelector(".projects")) {
     let projectId = document.querySelectorAll(".project-id");
 
     for (let i = 0; i < projectRow.length; i++) {
-      projectBtn[i].onclick = function() {
-        usersession.viewProject(projectId[i], projectidUrl => {
+      projectBtn[i].onclick = function () {
+        fetchHandler.viewProject(projectId[i], (projectidUrl) => {
           if (projectidUrl) {
             location.assign(location.origin + projectidUrl);
           }
@@ -319,34 +301,17 @@ if (document.querySelector(".projects")) {
       };
     }
   }
-
-  // fetch data
-  functions
-    .fetchData("/allprojects", {
-      method: "GET",
-      headers: {
-        Accept: [
-          "application/x-www-form-urlencoded",
-          "application/json",
-          "text/plain",
-          "*/*"
-        ],
-        "Content-Type": "application/json"
-      }
-    })
-    .then(data => {
-      if (data) {
-        for (let i = 0; i < data.length; i++) {
-          functions.appendProjects(data[i]);
-        }
-        viewProject();
-      } else {
-        functions.displayAlert(data.errMessage, "error");
-      }
-    })
-    .catch(err => {
-      console.log("All projects Fetch Error:  " + err);
-    });
+  fetchHandler.getProjects((projects) => {
+    if (projects) {
+      // for (const item in projects) {
+      //   functions.appendProjects(item);
+      // }
+      functions.appendProjects(projects);
+      viewProject();
+    } else {
+      console.log("App js: No project data");
+    }
+  });
 }
 
 /* Add project */
@@ -361,28 +326,28 @@ if (document.querySelector("#post_project")) {
     projectCity: document.getElementById("proj_city"),
     projectDuration: document.getElementById("proj_duration"),
     projectWorkers: document.getElementById("proj_max_workers"),
-    formName: document.forms.namedItem("post_project")
+    formName: document.forms.namedItem("post_project"),
   };
 
-  form.projectform.addEventListener("submit", e => {
+  form.projectform.addEventListener("submit", (e) => {
     e.preventDefault();
-    usersession.addProject(form);
+    fetchHandler.addProject(form);
   });
 }
 
 /* Update Project current workers */
 if (document.querySelector("#project")) {
-  // let submitInterest = document.getElementById("interest");
+  // let submitenlist = document.getElementById("enlist");
   const form = {
     projectform: document.getElementById("project-form"),
-    id: document.getElementById("view_id")
+    id: document.getElementById("view_id"),
   };
 
-  form.projectform.onsubmit = function(e) {
+  form.projectform.onsubmit = function (e) {
     e.preventDefault();
-    usersession.enlistWorker(form, result => {
+    fetchHandler.enlistWorker(form, (result) => {
       if (result) {
-        usersession.incrementWorkers(form, incremented => {
+        fetchHandler.incrementWorkers(form, (incremented) => {
           if (incremented) {
             functions.displayAlert(result, "success");
           }
@@ -398,8 +363,8 @@ if (document.querySelector(".rewards")) {
   // Triggers the assignReward method
   if (document.querySelector(".reward-load")) {
     let reload = document.getElementById("reload");
-    reload.onclick = function() {
-      usersession.loadPoints(res => {
+    reload.onclick = function () {
+      fetchHandler.loadPoints((res) => {
         if (res.message) {
           functions.displayAlert(res.message, "success");
         } else if (res.errMessage) {
@@ -414,10 +379,10 @@ if (document.querySelector(".rewards")) {
       rewardForm: document.getElementById("rewardform"),
       total: document.getElementById("totalpoints"),
       used: document.getElementById("usedpoints"),
-      benefit: document.getElementById("benefittype")
+      benefit: document.getElementById("benefittype"),
     };
 
-    form.rewardForm.addEventListener("submit", e => {
+    form.rewardForm.addEventListener("submit", (e) => {
       e.preventDefault();
       // ensure used value is always less or equal to total value
       console.log(form.total.textContent + ": used-" + form.used.value);
@@ -432,7 +397,7 @@ if (document.querySelector(".rewards")) {
       } else if (form.used.value === "" || form.used.value == 0) {
         functions.displayAlert("Select number of points to redeem", "error");
       } else {
-        usersession.redeemReward(form, message => {
+        fetchHandler.redeemReward(form, (message) => {
           if (message) {
             functions.displayAlert(message, "success");
             form.used.value = "";
@@ -445,7 +410,7 @@ if (document.querySelector(".rewards")) {
 
 /* View my Enlisted projects */
 if (document.querySelector(".messages")) {
-  const myEnlistedProjects = function(recordset) {
+  const myEnlistedProjects = function (recordset) {
     let list = document.querySelector(".myprojects");
     let myproject_ = document.createElement("li");
     myproject_.classList.add("myproject_");
@@ -479,14 +444,14 @@ if (document.querySelector(".messages")) {
   };
 
   /* Cancel/De-enlist from project */
-  const cancelProject = function() {
+  const cancelProject = function () {
     let projectRow = document.querySelectorAll(".myproject_");
     let projectBtn = document.querySelectorAll(".myproject-button > input");
     let projectId = document.querySelectorAll(".myproject-id");
     for (let i = 0; i < projectRow.length; i++) {
-      projectBtn[i].onclick = function() {
+      projectBtn[i].onclick = function () {
         if (confirm("Are you sure you want to cancel out?")) {
-          usersession.withdrawFromProject(projectId[i], data => {
+          fetchHandler.withdrawFromProject(projectId[i], (data) => {
             if (data.message) {
               functions.displayAlert(data.message, "success");
             } else {
@@ -498,7 +463,7 @@ if (document.querySelector(".messages")) {
     }
   };
 
-  usersession.viewMyProjects(data => {
+  fetchHandler.viewMyProjects((data) => {
     if (!data.errMessage) {
       for (let i = 0; i < data.length; i++) {
         myEnlistedProjects(data[i]);
