@@ -285,29 +285,12 @@ if (document.querySelector(".boxes")) {
 
 /* Load all projects */
 if (document.querySelector(".projects")) {
-  /* view Project page */
-  function viewProject() {
-    let projectRow = document.querySelectorAll(".project_");
-    let projectBtn = document.querySelectorAll(".project-button > input");
-    let projectId = document.querySelectorAll(".project-id");
-
-    for (let i = 0; i < projectRow.length; i++) {
-      projectBtn[i].onclick = function () {
-        fetchHandler.viewProject(projectId[i], (projectidUrl) => {
-          if (projectidUrl) {
-            location.assign(location.origin + projectidUrl);
-          }
-        });
-      };
-    }
-  }
   fetchHandler.getProjects((projects) => {
     if (projects) {
-      // for (const item in projects) {
-      //   functions.appendProjects(item);
-      // }
-      functions.appendProjects(projects);
-      viewProject();
+      projects.map((item) => {
+        functions.appendProjects(item);
+        functions.viewProject(fetchHandler);
+      });
     } else {
       console.log("App js: No project data");
     }
@@ -336,7 +319,7 @@ if (document.querySelector("#post_project")) {
 }
 
 /* Update Project current workers */
-if (document.querySelector("#project")) {
+if (document.querySelector("#viewproject")) {
   // let submitenlist = document.getElementById("enlist");
   const form = {
     projectform: document.getElementById("project-form"),
@@ -347,11 +330,7 @@ if (document.querySelector("#project")) {
     e.preventDefault();
     fetchHandler.enlistWorker(form, (result) => {
       if (result) {
-        fetchHandler.incrementWorkers(form, (incremented) => {
-          if (incremented) {
-            functions.displayAlert(result, "success");
-          }
-        });
+        functions.displayAlert(result, "success");
       }
     });
   };
@@ -431,9 +410,9 @@ if (document.querySelector(".messages")) {
     input.style.background = "red";
     proj_button.appendChild(input);
 
-    proj_id.appendChild(document.createTextNode(recordset.projId));
-    proj_title.appendChild(document.createTextNode(recordset.proj_title));
-    proj_status.appendChild(document.createTextNode(recordset.proj_status));
+    proj_id.appendChild(document.createTextNode(recordset.projectId));
+    proj_title.appendChild(document.createTextNode(recordset.title));
+    proj_status.appendChild(document.createTextNode(recordset.status));
 
     myproject_.appendChild(proj_id);
     myproject_.appendChild(proj_title);
@@ -452,6 +431,7 @@ if (document.querySelector(".messages")) {
       projectBtn[i].onclick = function () {
         if (confirm("Are you sure you want to cancel out?")) {
           fetchHandler.withdrawFromProject(projectId[i], (data) => {
+            console.log(data);
             if (data.message) {
               functions.displayAlert(data.message, "success");
             } else {
@@ -465,12 +445,11 @@ if (document.querySelector(".messages")) {
 
   fetchHandler.viewMyProjects((data) => {
     if (!data.errMessage) {
-      for (let i = 0; i < data.length; i++) {
-        myEnlistedProjects(data[i]);
-      }
-      cancelProject();
+      data.map((project) => {
+        myEnlistedProjects(project);
+        cancelProject();
+      });
     } else {
-      console.log("Oga, nothing show");
       functions.displayAlert(data.errMessage, "error");
     }
   });

@@ -1,5 +1,6 @@
 const { getDatabase } = require("../persistence/connection");
 const mongodb = require("mongodb");
+const DB_ADMIN = process.env.ADMIN_USER;
 
 //Project Interface
 function Project() {}
@@ -19,7 +20,7 @@ Project.prototype = {
           callback(null);
         })
         .catch((err) => {
-          console.log("FindError- Error running query: " + err);
+          console.log("Approved-FindError- Error running query: " + err);
         });
     }
   },
@@ -94,7 +95,7 @@ Project.prototype = {
         db.collection("active_projects")
           .updateOne({ _id: id }, { $set: projectRecord })
           .then((data) => {
-            if (data.nModified.ok == 1) {
+            if (data.nModified == 1) {
               callback(true);
               return;
             }
@@ -127,22 +128,36 @@ Project.prototype = {
     });
   },
 
-  getProject: function (projectId, callback) {
-    // console.log("getProject: " + projectId);
+  getProject: function (projectId, callback, accessLevel = null) {
     if (projectId) {
       const db = getDatabase();
-      db.collection("active_projects")
-        .findOne({ _id: new mongodb.ObjectID(projectId) })
-        .then((data) => {
-          if (data) {
-            callback(data);
-          } else {
-            callback(null);
-          }
-        })
-        .catch((err) => {
-          console.log("Get project- Error running query: " + err);
-        });
+      if (accessLevel === DB_ADMIN) {
+        db.collection("projects")
+          .findOne({ _id: new mongodb.ObjectID(projectId) })
+          .then((data) => {
+            if (data) {
+              callback(data);
+            } else {
+              callback(null);
+            }
+          })
+          .catch((err) => {
+            console.log("Get project- Error running query: " + err);
+          });
+      } else {
+        db.collection("active_projects")
+          .findOne({ _id: new mongodb.ObjectID(projectId) })
+          .then((data) => {
+            if (data) {
+              callback(data);
+            } else {
+              callback(null);
+            }
+          })
+          .catch((err) => {
+            console.log("Get project- Error running query: " + err);
+          });
+      }
     }
   },
 
@@ -168,184 +183,287 @@ Project.prototype = {
     const db = getDatabase();
     db.collection("active_projects")
       .find()
-      .next()
+      .toArray()
       .then((data) => {
         if (data) {
-          const projectRecord = data;
+          const projectRecords = data;
           //Check and update status columns
-          this.setProjectAssigned(projectRecord, (assigned) => {
-            if (assigned) {
-              console.log("Assigned: project status was updated");
-            }
-            this.setProjectOpen(projectRecord, (set) => {
-              if (set) {
-                console.log("Open: project status was updated");
-              }
-              //return all projects
-              callback(projectRecord);
-            });
+          this.updateProjectAssigned(db);
+          this.updateProjectOpen(db);
+          //return all projects
+          callback(projectRecords);
+        } else {
+          callback(null);
+        }
+      })
+      .catch((err) => {
+        console.log(`all projects- Error running query: ${err}`);
+      });
+  },
+
+  updateProjectOpen: function (db) {
+    const filter = {
+      $expr: { $lt: ["$current_workers", "$max_workers"] },
+    };
+    const updateData = { $set: { status: "Open" } };
+    db.collection("active_projects")
+      .updateMany(filter, updateData)
+      .then(({ result }) => {
+        const { nModified } = result;
+        if (nModified > 0) {
+          this.updateWorklistOpen(db).then(() => {
+            console.log(`Open: ${nModified} status(es) updated`);
           });
         } else {
-          callback(null);
+          console.log(`Open: no status updated`);
         }
       })
       .catch((err) => {
-        console.log("all projects- Error running query:" + err);
+        console.log(`Unable to update project status to Open- ${err}`);
       });
   },
 
-  setProjectAssigned: function (project, callback) {
-    const db = getDatabase();
-    db.collection("active_projects")
-      .updateMany(
-        {
-          _id: project._id,
-          status: { $ne: "Completed" },
-          $expr: { $eq: ["$current_workers", "$max_workers"] },
-        },
-        { $set: { status: "Assigned" } }
-      )
-      .then((data) => {
-        let recordsAffected = data.result.nModified;
-        if (recordsAffected > 1) {
+  updateWorklistOpen: async function (db) {
+    const filter = { $expr: { $lt: ["$current_workers", "$max_workers"] } };
+    const updateData = { $set: { status: "Open" } };
+    db.collection("worklist")
+      .updateMany(filter, updateData)
+      .then(({ result }) => {
+        const { nModified } = result;
+        if (nModified > 0) {
           console.log(
-            recordsAffected +
-              " record(s) updated status to Assigned in active_projects"
+            nModified + " worklist document(s) updated status to Open"
           );
-          //update worklist
-          db.collection("worklist")
-            .updateMany(
-              {
-                _id: project._id,
-                status: { $ne: "Completed" },
-              },
-              { $set: { status: "Assigned" } }
-            )
-            .then((data) => {
-              let recordsAffected = data.result.nModified;
-              if (recordsAffected > 1) {
-                console.log(
-                  recordsAffected +
-                    " record(s) updated status to Assigned in worklist"
-                );
-                callback(data);
-              } else {
-                console.log("Assigned: no worklist statuses updated");
-                callback(null);
-              }
-            });
+        } else {
+          console.log("Open: no worklist statuses updated");
+        }
+      })
+      .catch((err) => {
+        console.log(`unable to update worklist status to Open: ${err}`);
+      });
+  },
+
+  updateWorklistAssigned: (db) => {
+    const filter = {
+      status: { $ne: "Completed" },
+      $expr: { $eq: ["$current_workers", "$max_workers"] },
+    };
+    const updateData = { $set: { status: "Assigned" } };
+    db.collection("worklist")
+      .updateMany(filter, updateData)
+      .then(({ result }) => {
+        const { nModified } = result;
+        if (nModified > 0) {
+          console.log(
+            `${nModified} worklist document(s) updated status to Assigned`
+          );
+        } else {
+          console.log("Open: no worklist statuses updated");
+        }
+      })
+      .catch((err) => {
+        console.log(`unable to update worklist status to Assigned: ${err}`);
+      });
+  },
+
+  updateProjectAssigned: function (db) {
+    const filter = {
+      status: { $ne: "Completed" },
+      $expr: { $eq: ["$current_workers", "$max_workers"] },
+    };
+    const updateData = { $set: { status: "Assigned" } };
+    db.collection("active_projects")
+      .updateMany(filter, updateData)
+      .then(({ result }) => {
+        let { nModified } = result;
+        if (nModified > 0) {
+          this.updateWorklistAssigned(db);
+          console.log(`${nModified} document(s) updated status to Assigned`);
         } else {
           console.log("Assigned: no statuses updated");
-          callback(null);
         }
       })
       .catch((err) => {
-        console.log("unable to set  project status to Assigned: " + err);
+        console.log(`unable to update project status to Assigned: ${err}`);
       });
   },
 
-  setProjectOpen: function (project, callback) {
+  updateProjectComplete: function (projid, callback) {
     const db = getDatabase();
-    db.collection("active_projects")
-      .updateMany(
-        {
-          _id: project._id,
-          $expr: { $lt: ["$current_workers", "$max_workers"] },
-        },
-        { $set: { status: "Open" } }
-      )
+
+    this.findApprovedProject(projid, (id) => {
+      if (id) {
+        const filter = { _id: id };
+        const updateData = { $set: { status: "Completed", reward_points: 0 } };
+        db.collection("active_projects")
+          .updateOne(filter, updateData)
+          .then(({ result }) => {
+            const { nModified } = result;
+            if (nModified > 0) {
+              console.log(
+                `${nModified}
+                  " Project(s) have been flagged as Completed`
+              );
+              this.deleteWorklistProject(id, db, (deleted) => {
+                if (deleted) callback(nModified);
+              });
+            } else {
+              console.log(
+                "error updating " + id + " status to completed, update manually"
+              );
+              callback(null);
+            }
+          })
+          .catch((err) => console.log(err));
+      }
+    });
+  },
+
+  deleteWorklistProject: function (id, db, callback) {
+    db.collection("worklist")
+      .deleteOne({ projectId: id })
       .then((data) => {
-        if (data.result.nModified > 0) {
-          console.log(data.rowsAffected + " row(s) updated status to Open");
-          db.collection("worklist")
-            .updateMany({ _id: project._id }, { $set: { status: "Open" } })
-            .then((data) => {
-              if (data.result.nModified > 0) {
-                console.log(
-                  data.rowsAffected + " row(s) updated status to Open"
-                );
-                callback(data);
-              } else {
-                console.log("Open: no worklist statuses updated");
-                callback(null);
-              }
-            });
-        } else {
-          console.log("Open: no statuses updated");
-          callback(null);
+        if (data.result.ok == 1) {
+          console.log(
+            data.result.n + " project has been deleted from worklist"
+          );
+          callback(data.result);
+          return;
         }
+        callback(null);
       })
       .catch((err) => {
-        console.log("unable to set project status to Open" + err);
+        console.log(`unable to delete worklist document: ${err}`);
       });
   },
 
   enlistWorker: function (project, userid, callback) {
     //check worklist
-    this.checkWorklistForDuplicates(project.projId, userid, (noduplicate) => {
-      if (noduplicate) {
-        const db = getDatabase();
-        const worklistRecord = db.collection("profiles").aggregrate({
-          $lookup: {
-            from: "active_projects",
-            let: { user: "$userId" }, //set user variable for worklist userid field
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $and: [
-                      { $eq: ["$$user", userid] },
-                      { $eq: ["$_id", project.projId] },
-                    ],
-                  },
-                },
-              },
-              {
-                $project: { $$user: 1, reward_points: 1, status: 1, title: 1 },
-              }, //_id field is included automatically
-            ],
-          },
+    this.checkWorklistForDuplicates(project._id, userid, (duplicate) => {
+      // console.log("duplicate? ", duplicate);
+      if (!duplicate) {
+        const worklist = {
+          userId: userid,
+          projectId: project._id,
+          title: project.title,
+          status: project.status,
+          reward_points: project.reward_points,
+        };
+        //increment project current workers
+        this.incrementCurrentWorker(project._id, (incremented) => {
+          if (incremented) {
+            //insert into worklist collection
+            const db = getDatabase();
+            db.collection("worklist")
+              .insertOne(worklist)
+              .then((data) => {
+                if (data.insertedCount == 1) {
+                  callback("added");
+                  return;
+                } else {
+                  console.log("could not insert into worklist ");
+                  callback(null);
+                }
+              })
+              .catch((err) => {
+                console.log("enlistWorker- Error running query: " + err);
+              });
+          }
         });
-        db.collection("worklist")
-          .insertOne(worklistRecord)
-          .then((data) => {
-            if (data.result.insertedCount == 1) {
-              callback(true);
-              return;
-            }
-            console.log("could not insert into worklist");
-          })
-          .catch((err) => {
-            console.log("enlistWorker- Error running query: " + err);
-          });
+        // } else {
+        //   callback("complete");
       } else {
+        console.log("Duplicate found");
         callback(null);
       }
     });
   },
 
-  updateCurrentWorker: function (project, callback) {
-    const db = getDatabase();
-    db.collection("active_projects")
-      .updateOne(
-        {
-          _id: project._id,
-          $expr: { $lt: [project.current_workers, project.max_no_workers] },
-        },
-        { $set: { current_workers: current_workers + 1 } }
-      )
-      .then((data) => {
-        if (data.result.ok == 1) {
-          callback(true);
-          return;
-        }
-        //Project Already Assigned
+  dropWorker: function (projid, userid, callback) {
+    this.decrementCurrentWorker(projid, (decremented) => {
+      if (decremented) {
+        //remove from worklist collection
+        const db = getDatabase();
+        db.collection("worklist")
+          .deleteOne({
+            projectId: projid,
+            userId: userid,
+          })
+          .then((data) => {
+            if (data.deletedCount == 1) {
+              console.log(userid + " successfully dropped from " + projid);
+              callback(true);
+              return;
+            } else {
+              console.log("User has already been removed from the list");
+              callback(null);
+            }
+          })
+          .catch((err) => console.log(err));
+      } else {
+        console.log("No worker has enlisted yet!");
         callback(null);
-      })
-      .catch((err) => {
-        //query failed
-        console.log("Update query error" + err);
-      });
+      }
+    });
+  },
+
+  incrementCurrentWorker: function (projid, callback) {
+    this.getProject(projid, (project) => {
+      if (project) {
+        const db = getDatabase();
+        db.collection("active_projects")
+          .updateOne(
+            {
+              _id: project._id,
+              status: { $eq: "Open" },
+              $expr: { $lt: ["$current_workers", "$max_workers"] },
+            },
+            { $inc: { current_workers: 1 } }
+          )
+          .then((data) => {
+            if (data.result.nModified > 0) {
+              callback(true);
+              return;
+            }
+            //Project Already Assigned
+            callback(null);
+          })
+          .catch((err) => {
+            console.log("increment query error" + err);
+          });
+      }
+    });
+  },
+
+  decrementCurrentWorker: function (projid, callback) {
+    this.getProject(projid, (project) => {
+      if (project) {
+        const db = getDatabase();
+        db.collection("active_projects")
+          .updateOne(
+            {
+              _id: project._id,
+              $and: [
+                { current_workers: { $gt: 0 } },
+                { status: { $ne: "Completed" } },
+              ],
+            },
+            { $inc: { current_workers: -1 } }
+          )
+          .then((data) => {
+            if (data.result.nModified > 0) {
+              console.log("decremented");
+              callback(true);
+              return;
+            } else {
+              callback(null);
+            }
+          })
+          .catch((err) => {
+            console.log("decrement query error" + err);
+          });
+      }
+    });
   },
 
   checkWorklistForDuplicates: function (projid, userid, callback) {
@@ -353,11 +471,11 @@ Project.prototype = {
       if (id) {
         const db = getDatabase();
         db.collection("worklist")
-          .find({ projectId: id, userId: userid })
+          .findOne({ projectId: id, userId: userid })
           .then((data) => {
-            // if no duplicate is found
+            // if duplicate is found
             if (data) {
-              callback(true);
+              callback(data);
               return;
             }
             callback(null);
@@ -367,171 +485,74 @@ Project.prototype = {
           });
       }
     });
-    /* check for duplicate user for a project in worklist table*/
   },
 
-  distributePoints: function (callback) {
+  distributePoints: async function (callback) {
     const db = getDatabase();
-    db.collection("active_projects")
+    //get all workers from assigned projects
+    db.collection("worklist")
       .find({ status: "Assigned" })
-      .then((data) => {
-        if (data) {
-          console.log(data.length + " assigned project(s) found");
-          let projectRecord = data;
-          for (let i = 0; i < projectRecord.length; i++) {
-            let id = projectRecord[i].projId;
-            //1. get all users in worklist table for the completed project
-            db.collection("worklist")
-              .find({ projectId: id })
-              .then((data) => {
-                if (data) {
-                  let worklistRecord = data;
-                  let rewards = worklistRecord[0].reward_points;
-                  let numWorkers = worklistRecord.length;
-                  let userPoint = Math.floor(rewards / numWorkers);
+      .toArray()
+      .then((assignedProjects) => {
+        if (assignedProjects) {
+          const numOfWorkers = assignedProjects.length;
+          //Distribute points to associated users
+          assignedProjects.forEach((project, index) => {
+            const points = project.reward_points;
+            const usersEarnedPoints = Math.floor(points / numOfWorkers);
 
-                  let count = 0;
-                  //2. Distribute reward points to associated users
-                  for (let i = 0; i < numWorkers; i++) {
-                    let user = worklistRecord[i].userId;
-                    //set user_reward value
-                    db.collection("profiles")
-                      .updateOne(
-                        { userId: user },
-                        { $set: { points: points + userPoint } }
-                      )
-                      .then((data) => {
-                        // worklistRecord[i].user_reward = userPoint;
-                        count++;
-                        if (count == numWorkers) {
-                          console.log(
-                            "points distributed to all " + count + " workers"
-                          );
-                          //3 .Set Project status as completed after reward is distributed
-                          this.projectCompleted(result, (completed) => {
-                            if (completed) {
-                              callback(result);
-                            } else {
-                              console.log(
-                                "There was an error with updating " +
-                                  id +
-                                  " status to completed, update manually"
-                              );
-                            }
-                          });
-                        }
-                      });
-                  }
+            const user = project.userId;
+            db.collection("profiles").updateOne(
+              { username: user },
+              { $inc: { points: usersEarnedPoints } }
+            );
+
+            if (index + 1 === numOfWorkers) {
+              console.log(
+                `${usersEarnedPoints} points distributed to ${numOfWorkers} workers`
+              );
+              //Set Project status completed after reward is distributed
+              this.updateProjectComplete(project.projectId, (completed) => {
+                if (completed) {
+                  callback(true);
                 }
               });
-          }
+            }
+          });
         } else {
+          console.log("distrubuteModel: No projects have been assigned");
           callback(null);
         }
       })
       .catch((err) => {
-        console.log(err);
+        console.log("Distribute points error:", err);
       });
-    //assign(update) the rewards point of each to equal shares of the total reward the project carries
-    //add the reward points to each of the user's total rewards in the reward table
-    //delete all record with the project id
   },
 
-  //Sets Project as completed
-  projectCompleted: function (projid, callback) {
-    this.findApprovedProject(projid, (id) => {
-      if (id) {
-        const db = getDatabase();
-        db.collection("active_projects")
-          .updateOne(
-            { _id: id },
-            { $set: { status: "Completed", reward_points: 0 } }
-          )
-          .then((data) => {
-            if (data.result.nModified > 0) {
-              db.collection("worklist")
-                .updateMany(
-                  { projectId: id },
-                  { $set: { status: "Completed", reward_points: 0 } }
-                )
-                .then((data) => {
-                  if (data.result.nModified > 0) {
-                    console.log(
-                      projid + " Project has been flagged as Completed"
-                    );
-                    callback(true);
-                    return;
-                  }
-                });
-            } else {
-              callback(null);
-            }
-          })
-          .catch((err) => console.log(err));
-      }
-    });
-  },
-
-  getUserProjects: function (userid, callback) {
+  getUserProjects: async function (userid, callback) {
     const db = getDatabase();
-    db.collection("worklist")
-      .aggregrate([
-        {
-          $lookup: {
-            from: "active_projects",
-            localField: "projectId",
-            foreignField: "_id",
+    try {
+      const data = await db
+        .collection("worklist")
+        .aggregate([
+          {
+            $lookup: {
+              from: "active_projects",
+              localField: "projectId",
+              foreignField: "_id",
+              as: "user_projects",
+            },
           },
-        },
-      ])
-      .next()
-      .then((data) => {
-        if (data.recordset) {
-          callback(data);
-          return;
-        }
+        ])
+        .toArray();
+      if (data) {
+        callback(data);
+      } else {
         callback(null);
-      })
-      .catch((err) => console.log(err));
-  },
-
-  dropWorker: function (projid, userid, callback) {
-    this.getProject(projid, (record) => {
-      if (record) {
-        const db = getDatabase();
-        db.collection("worklist")
-          .deleteOne(
-            { projectId: record._id, userId: userid },
-            {
-              $gt: [record.current_workers, 0],
-              $ne: [record.proj_status, "Completed"],
-            }
-          )
-          .then((data) => {
-            if (data.result.ok == 1) {
-              /* Decrement current workers */
-              db.collection("active_projects")
-                .updateOne(
-                  { _id: record._id },
-                  { $set: { current_workers: current_workers - 1 } }
-                )
-                .then((data) => {
-                  if (data.result.ok == 1) {
-                    console.log(
-                      userid + " successfully dropped from " + projid
-                    );
-                    callback(true);
-                    return;
-                  }
-                });
-            } else {
-              console.log("User has already been removed from the list");
-              callback(null);
-            }
-          })
-          .catch((err) => console.log(err));
       }
-    });
+    } catch (err) {
+      console.log("getuser: ", err);
+    }
   },
 };
 

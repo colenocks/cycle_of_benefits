@@ -26,18 +26,9 @@ Admin.prototype = {
     const db = getDatabase();
     db.collection("projects")
       .find({})
-      // .aggregrate([
-      //   {
-      //     $lookup: {
-      //       from: "active_projects",
-      //       localField: "_id",
-      //       foreignField: "_id",
-      //     },
-      //   },
-      // ])
-      .next()
+      .toArray()
       .then((data) => {
-        if (data) {
+        if (data.length > 0) {
           callback(data);
           return;
         }
@@ -46,31 +37,15 @@ Admin.prototype = {
       .catch((err) => console.log(err));
   },
 
-  approveProject: function (id, callback) {
-    const db = getDatabase();
+  approveProject: function (project, callback) {
     db.collection("active_projects")
-      .findOne({ _id: new mongodb.ObjectID(id) })
+      .insertOne(project)
       .then((data) => {
-        if (data) {
-          console.log("This project has already been approved");
-          callback(null);
+        if (data.insertedCount == 1) {
+          callback(data);
           return;
         }
-        db.collection("projects")
-          .findOne({ _id: new mongodb.ObjectID(id) })
-          .then((data) => {
-            if (data) {
-              db.collection("active_projects")
-                .insertOne(data)
-                .then((data) => {
-                  if (data.insertedCount == 1) {
-                    callback(data);
-                    return;
-                  }
-                  callback(null);
-                });
-            }
-          });
+        callback(null);
       })
       .catch((err) => console.log(err));
   },

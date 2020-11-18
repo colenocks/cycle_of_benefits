@@ -8,7 +8,6 @@ const {
   getUserProjects,
   enlistWorker,
   dropWorker,
-  updateCurrentWorkers,
   addProject,
   viewProject,
   loadPoints,
@@ -16,15 +15,13 @@ const {
 
 router.get("/project/:id", getProject);
 
-router.get("/allprojects", getAllProjects);
+router.get("/getprojects", getAllProjects);
 
 router.get("/getuserproject", getUserProjects);
 
 router.post("/enlist", enlistWorker);
 
 router.delete("/dropworker", dropWorker);
-
-router.put("/currentworkers", updateCurrentWorkers);
 
 router.post("/addproject", upload.single("image"), addProject);
 

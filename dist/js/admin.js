@@ -1,7 +1,7 @@
 import * as functions from "./functions.js";
 import { FetchHandler } from "./fetch.js";
 
-const fetchhandler = new FetchHandler();
+const fetchHandler = new FetchHandler();
 
 /* Inputs */
 let user_id = document.getElementById("user_id");
@@ -145,22 +145,6 @@ const RemoveProject = (id) => {
 };
 
 showAllProjectsBtn.onclick = () => {
-  function viewProject() {
-    let projectRow = document.querySelectorAll(".project_");
-    let projectBtn = document.querySelectorAll(".project-button > input");
-    let projectId = document.querySelectorAll(".project-id");
-
-    for (let i = 0; i < projectRow.length; i++) {
-      projectBtn[i].onclick = function () {
-        fetchhandler.viewProject(projectId[i], (projectidUrl) => {
-          if (projectidUrl) {
-            location.assign(location.origin + projectidUrl);
-          }
-        });
-      };
-    }
-  }
-
   let url = "/getallprojects";
   let options = {
     method: "GET",
@@ -188,11 +172,10 @@ showAllProjectsBtn.onclick = () => {
         projectRow.appendChild(proposed);
         projectRow.appendChild(hr);
         //loop through object or array
-        /* data.map(project=>{
+        data.map((project) => {
           functions.appendProjects(project);
-        }) */
-        functions.appendProjects(data);
-        viewProject();
+          functions.viewProject(fetchHandler);
+        });
       }
     })
     .catch((err) => console.log("getallProjects: ", err));

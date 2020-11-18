@@ -2,6 +2,7 @@ const cloudinary = require("cloudinary");
 const multer = require("multer");
 const dotenv = require("dotenv");
 const fs = require("fs");
+const path = require("path");
 
 dotenv.config();
 
@@ -11,11 +12,23 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-exports.uploader = (file, folder) =>
+//using the diskStorage option instead of dest to have full control uploaded images
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "dist/assets");
+  },
+  filename: function (req, file, cb) {
+    // the null as first argument means no error
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+
+const uploader = (file, folder) =>
   new Promise((resolve) => {
     cloudinary.uploader.upload(
       file,
       (result) => {
+        console.log("uploader: ", result);
         resolve({
           url: result.url,
           id: result.public_id,
@@ -45,17 +58,6 @@ const checkFileType = (file, cb) => {
   cb("Error: File type not allowed!", false);
 };
 
-//using the diskStorage option instead of dest to have full control uploaded images
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "dist/assets");
-  },
-  filename: function (req, file, cb) {
-    // the null as first argument means no error
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-
 exports.upload = multer({
   storage,
   limits: {
@@ -71,14 +73,18 @@ exports.cloudLink = async (file) => {
   try {
     // Upload file to cloudinary
     const uploadToCloudinary = async (path) => uploader(path, "cyob_images");
-    const { path } = file;
-    const url = await uploadToCloudinary(path);
-    fs.unlinkSync(path);
-    return url;
+
+    const result = await uploadToCloudinary(file.path);
+    return result;
   } catch (error) {
     return {
       status: "Request failed",
       error,
     };
+  } finally {
+    const file_path = path.join(__dirname, "..", file.path);
+    fs.unlink(file_path, () => {
+      console.log(file_path, " file path deleted");
+    });
   }
 };

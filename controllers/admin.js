@@ -26,15 +26,24 @@ exports.getAllProjects = (req, res) => {
 
 exports.approveProject = (req, res) => {
   const projid = req.body.projid;
-  admin.approveProject(projid, (approved) => {
-    if (approved) {
-      res.json({ message: "Project has been approved and uploaded" });
-      return;
+  //check if project is approved already
+  project.findApprovedProject(projid, (id) => {
+    if (!id) {
+      project.getProposedProject(id, (project) => {
+        if (project) {
+          admin.approveProject(project, (approved) => {
+            if (approved) {
+              res.json({ message: "Project has been approved and uploaded" });
+              return;
+            }
+            res.json({
+              errMessage:
+                "Project may have already been uploaded, Check and Try again!",
+            });
+          });
+        }
+      });
     }
-    res.json({
-      errMessage:
-        "Project may have already been uploaded, Check and Try again!",
-    });
   });
 };
 
@@ -89,7 +98,7 @@ exports.showRedeemedRewards = (req, res) => {
 };
 
 exports.removeUser = (req, res) => {
-  user.find(req.body.userid, (id) => {
+  user.findUser(req.body.userid, (id) => {
     if (id) {
       admin.removeUser(req.body.userid, (deleted) => {
         if (deleted) {

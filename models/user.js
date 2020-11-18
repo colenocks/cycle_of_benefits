@@ -13,7 +13,7 @@ function User() {}
 
 User.prototype = {
   //returns user id and username
-  findUserId: function (userid, callback) {
+  findUser: function (userid, callback) {
     if (userid) {
       const db = getDatabase();
       db.collection("users")
@@ -22,19 +22,18 @@ User.prototype = {
           if (user) {
             //return the user _id and username
             callback(user._id, user.username);
-            console.log("*findUserId*: user found");
           } else {
             callback(null);
           }
         })
         .catch((err) => {
-          console.log("findUserId Error: " + err);
+          console.log("findUser Error: " + err);
         });
     }
   },
 
   createUser: function (userobj, callback) {
-    this.findUserId(userobj.username, (_id, username) => {
+    this.findUser(userobj.username, (_id, username) => {
       if (_id) {
         console.log("Found User: " + _id);
         callback(null);
@@ -133,7 +132,7 @@ User.prototype = {
 
   updateProfile: function (userid, profile, callback) {
     if (userid) {
-      this.findUserId(userid, (id, username) => {
+      this.findUser(userid, (id, username) => {
         if (id) {
           const userProfile = {
             firstname: profile.fname,
@@ -149,8 +148,8 @@ User.prototype = {
           db.collection("profiles")
             .updateOne({ userId: id }, { $set: userProfile })
             .then((data) => {
-              if (data) {
-                callback(true);
+              if (data.result.nModified == 1) {
+                callback(data.result.nModified);
                 return;
               }
               callback(null);
@@ -159,7 +158,7 @@ User.prototype = {
               console.log(err);
             });
         } else {
-          console.log("get Profile Error: " + err);
+          console.log("find Profile Error: " + err);
           callback(null);
         }
       });
@@ -172,15 +171,12 @@ User.prototype = {
   useReward: function (userid, reward, callback) {
     this.uploadRequest(userid, reward, (id) => {
       if (id) {
-        //Update/Use points
+        //Update user points
         const db = getDatabase();
         db.collection("profiles")
-          .updateOne(
-            { userId: userid },
-            { $set: { points: points - reward.used } }
-          )
+          .updateOne({ userId: userid }, { $inc: { points: -reward.used } })
           .then((data) => {
-            if (data) {
+            if (data.result.nModified >= 1) {
               callback(true);
               return;
             }
@@ -195,34 +191,23 @@ User.prototype = {
   },
 
   uploadRequest: function (userid, rewardObj, callback) {
-    //check if user has reward attached to user
+    //check if user has reward points attached in worklist
     const db = getDatabase();
-    db.collection("worklists")
-      .find({ userId: userid })
+    const requestedReward = {
+      userId: userid,
+      points_used: rewardObj.used,
+      reward_type: rewardObj.benefit,
+    };
+    db.collection("reward_requests")
+      .insertOne(requestedReward)
       .then((data) => {
-        if (data) {
-          const id = data.userId;
-          const requestedReward = {
-            userId: id,
-            projId: data.projId,
-            used_points: rewardObj.used,
-            reward: rewardObj.benefit,
-          };
-          db.collection("reward_requests")
-            .insertOne(requestedReward)
-            .then((data) => {
-              if (data) {
-                callback(id);
-                return;
-              }
-              callback(null);
-            })
-            .catch((err) => console.log("upload: " + err));
-        } else {
-          callback(null);
+        if (data.result.insertedCount >= 1) {
+          callback(userid);
+          return;
         }
+        callback(null);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => console.log("upload Request: " + err));
   },
 };
 

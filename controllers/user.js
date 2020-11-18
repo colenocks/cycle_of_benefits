@@ -47,14 +47,12 @@ exports.updateUserProfile = (req, res) => {
     state: req.body.state,
     nationalId: req.body.nationalId,
   };
-  user.updateProfile(profile.username, profile, (response) => {
-    if (response) {
-      console.log(response + "row(s) affected.");
+  user.updateProfile(profile.username, profile, (updated) => {
+    if (updated) {
       res.json({
         message: "Profile successfully updated",
       });
     } else {
-      console.log("Put: Could not update profile");
       res.json({ errMessage: "Could not update profile from server" });
     }
   });
@@ -71,11 +69,11 @@ exports.redeemReward = (req, res) => {
       if (rewardused) {
         res.json({
           message:
-            "You have successfully redeemed " +
-            reward.used +
-            " points in " +
+            "You have successfully purchased " +
             reward.benefit +
-            " benefits .\n Check your email on instructions on how to collect",
+            "benefits with " +
+            reward.used +
+            ". Check your email for instructions on how to redeem",
         });
       } else {
         res.json({

@@ -80,14 +80,14 @@ function appendProfileToMobileMenu() {
   // show icon when user is logged in successfully
   let menuItem = document.querySelectorAll(".menu-item");
   //grab and change the sign in list item to my profile
-  menuItem[3].setAttribute("href", "./profile");
+  menuItem[3].setAttribute("href", "/profile");
   menuItem[3].textContent = "My Profile";
 
   //append signout menu
   let menuList = document.querySelector(".menu-list");
   let signoutMenu = document.createElement("li");
   let signoutLink = document.createElement("a");
-  signoutLink.setAttribute("href", "./logout");
+  signoutLink.setAttribute("href", "/logout");
   signoutLink.classList.add("menu-item"); //add existing class
   signoutLink.textContent = "Sign Out";
 
@@ -231,6 +231,23 @@ function appendProjects(project) {
   // document.body.appendChild("pill");
 }
 
+function viewProject(fetchHandler) {
+  /* view Project page */
+  let projectRow = document.querySelectorAll(".project_");
+  let projectBtn = document.querySelectorAll(".project-button > input");
+  let projectId = document.querySelectorAll(".project-id");
+
+  for (let i = 0; i < projectRow.length; i++) {
+    projectBtn[i].onclick = function () {
+      fetchHandler.viewProject(projectId[i], (projectidUrl) => {
+        if (projectidUrl) {
+          location.assign(location.origin + projectidUrl);
+        }
+      });
+    };
+  }
+}
+
 async function fetchData(url, options) {
   const rawResponse = await fetch(url, options);
   const jsonData = await rawResponse.json();
@@ -248,4 +265,5 @@ export {
   validateSignupForm,
   fetchData,
   appendProjects,
+  viewProject,
 };

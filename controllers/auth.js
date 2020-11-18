@@ -73,5 +73,7 @@ exports.isLoggedIn = (req, res) => {
 exports.logout = (req, res) => {
   if (req.session.userid) {
     req.session.destroy(() => res.redirect("/"));
+  } else {
+    res.redirect("/login");
   }
 };

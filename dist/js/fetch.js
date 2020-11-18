@@ -129,7 +129,7 @@ FetchHandler.prototype = {
 
   getProjects: function (callback) {
     functions
-      .fetchData("/allprojects", {
+      .fetchData("/getprojects", {
         method: "GET",
         headers: {
           Accept: [
@@ -298,7 +298,6 @@ FetchHandler.prototype = {
       .fetchData(url, fetchOptions)
       .then((data) => {
         if (data.redirect_path) {
-          console.log("fetch viewproject: " + data.redirect_path);
           callback(data.redirect_path);
         } else {
           functions.displayAlert(data.errMessage, "info");
@@ -389,40 +388,6 @@ FetchHandler.prototype = {
       })
       .catch((err) => {
         console.log("enlist fetch error: " + err);
-      });
-  },
-
-  incrementWorkers: function (form, callback) {
-    const project = {
-      projid: form.id.textContent,
-    };
-    const fetchOptions = {
-      method: "PUT",
-      headers: {
-        Accept: [
-          "application/x-www-form-urlencoded",
-          "application/json",
-          "text/plain",
-          "*/*",
-        ],
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(project),
-    };
-
-    let url = "/currentworkers";
-    functions
-      .fetchData(url, fetchOptions)
-      .then((data) => {
-        if (data.errMessage) {
-          functions.displayAlert(data.errMessage, "error");
-          callback(null);
-        } else {
-          callback(data.message);
-        }
-      })
-      .catch((err) => {
-        console.log("increment fetch error: " + err);
       });
   },
 
@@ -535,7 +500,7 @@ FetchHandler.prototype = {
         }
       })
       .catch((err) => {
-        console.log("view projects Fetch err: ", err);
+        console.log("view my projects Fetch err: ", err);
       });
   },
 };
