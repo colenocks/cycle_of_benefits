@@ -28,6 +28,11 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
     />
     <!-- Google Fonts Api -->
+    <!--Import Google Icon Font-->
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
     <link
       href="https://fonts.googleapis.com/css?family=Karla&display=swap"
       rel="stylesheet"
@@ -41,16 +46,19 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <!-- Compiled and minified JavaScript -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        var elems = document.querySelectorAll(".carousel");
-        M.Carousel.init(elems, {
+        var elems = document.querySelectorAll(".sidenav");
+        window.M.Sidenav.init(elems);
+        var carouselElems = document.querySelectorAll(".carousel");
+        window.M.Carousel.init(carouselElems, {
           fullWidth: true,
           indicators: true,
         });
       });
     </script>
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
   </body>
 </html>

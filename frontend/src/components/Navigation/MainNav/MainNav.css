@@ -5,7 +5,7 @@
   height: 50px;
   font-size: 1.1em;
   color: #111;
-  background: #fff;
+  /* background: #fff; */
   box-shadow: 0 1px 2px #c9c9c9;
   display: flex;
   align-items: center;
@@ -17,34 +17,35 @@
   color: #3fb6a8;
 }
 
-.logo__div {
+#logo {
+  position: relative;
+  top: -13px;
+}
+
+/* .logo__div {
   position: relative;
   float: left;
   display: flex;
   align-items: center;
   padding-left: 20px;
   width: 85%;
-  /* border: 1px solid white; */
 }
 .logo__div a {
   float: left;
-  /* display: block; */
 }
 .logo__div p {
   float: left;
   cursor: pointer;
   padding-left: 10px;
   text-align: center;
-  /* text-transform: uppercase; */
   font-weight: 700;
   letter-spacing: 3px;
-}
+} */
 
 .nav__menu {
   min-width: 60%;
-  /* border: 1px solid #fff; */
-  /*  */
 }
+
 .nav__list {
   display: flex;
   align-items: center;
