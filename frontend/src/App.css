@@ -1,0 +1,83 @@
+* {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  box-sizing: border-box;
+  vertical-align: baseline;
+}
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+  display: block;
+}
+
+ol,
+ul {
+  list-style: none;
+  margin: 0px;
+  padding: 0px;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+a {
+  text-decoration: none;
+  color: #111;
+}
+
+body {
+  position: relative;
+  color: #000;
+  font-family: "Karla", sans-serif;
+  font-size: 16px;
+  background: #fff;
+}
+
+.main__container {
+  position: relative;
+  /* display: flex;
+  flex-direction: column; */
+  width: 100%;
+  min-height: 100vh;
+}
+
+.green-text {
+  color: #55a555;
+}
+hr {
+  display: block;
+  height: 1px;
+  border: 0;
+  border-top: 1px solid #555;
+  margin: 0.5em 0;
+  padding: 0;
+}
+
+.main__content {
+  border: 1px solid red;
+  position: relative;
+  min-height: 67vh;
+  margin: 0 3%;
+  padding-bottom: 3em; /* footer height, to make stick */
+}
+
+/* main content component */
+@media only screen and (max-width: 900px) {
+  /* Tablets and laptops*/
+  .main__content {
+    display: flex;
+    flex-direction: column;
+  }
+}

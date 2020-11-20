@@ -1,0 +1,33 @@
+.my__button {
+  margin: 1% 1%;
+  padding: 1% 2%;
+  text-transform: capitalize;
+  text-decoration: none;
+  font-size: 1rem;
+  background: transparent;
+  /* background: #86dfd4; */
+  opacity: 0.9;
+  border: 0.05rem solid #55a555;
+  border-color: #55a555;
+  color: #55a555;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease-in-out;
+}
+
+.my__button:focus {
+  outline: none;
+}
+
+.my__button:active {
+  transform: scale(0.95);
+  transition: transform 0.1s;
+}
+.my__button:hover {
+  background: #55a555;
+  color: #fff;
+  transition: all 0.5s ease-out;
+  /* opacity: 0.2; */
+  /* background-color: rgba(0, 138, 0, 0.2); */
+}

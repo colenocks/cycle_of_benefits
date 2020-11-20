@@ -1,0 +1,55 @@
+/* MENU BUTTON FOR SMALLER SCREENS */
+.menu__icon {
+  visibility: hidden;
+  z-index: 3;
+  margin-right: 20px;
+  cursor: pointer;
+  color: #fff;
+  transition: all 0.7s ease-out;
+}
+.menu__icon:hover {
+  transition: all 0.5s ease-out;
+  color: #55a555;
+}
+
+.close {
+  /* turns the icon 45 degs */
+  transition: transform 0.5s ease-out;
+  transform: rotate(0.5turn);
+  color: #55a555;
+}
+
+.show {
+  /* makes the div slide down; */
+  transition: margin-top 0.7s ease-out;
+  margin-top: 240px;
+}
+
+/* Menu Button Div*/
+.menu__header {
+  visibility: hidden;
+  position: absolute;
+  top: -190px;
+  left: 0;
+  background: #2b2b2b;
+  height: auto;
+  width: 100%;
+  transition: all 0.7s ease-out;
+  z-index: 1;
+  font-size: 1.1em;
+}
+.menu__list {
+  display: flex;
+  flex-direction: column;
+}
+.menu__item {
+  height: 35px;
+  padding: 1% 1%;
+  margin: auto;
+  align-items: center;
+  box-shadow: 0 1px 11px #2b2b2b;
+}
+.menu__item a:hover {
+  opacity: 0.8;
+  color: #55a555;
+}
