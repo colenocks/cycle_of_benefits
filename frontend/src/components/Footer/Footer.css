@@ -3,8 +3,8 @@
   padding: 15px;
   min-height: 15vh;
   width: 100%;
-  background: #fff;
-  color: #000;
+  font-size: 0.9em !important;
+  /* background: #fff; */
   font-size: 1em;
   /* grid */
   display: grid;
@@ -22,8 +22,9 @@
   text-align: left;
   padding-bottom: 1em;
 }
-.footer__link_item {
+.footer__link_item a {
   padding: 5px 0;
+  color: #fff;
 }
 
 .footer__link_item a:hover {
@@ -31,34 +32,40 @@
 }
 .main__footer p {
   grid-area: paragraph;
-  /* padding-bottom: 1em; */
+  align-self: flex-end;
+  padding-bottom: 1em;
+  color: #fff;
 }
 
 .footer__icon {
   grid-area: icon;
-  /* font-size: 0.8em; */
+  font-size: 0.8em;
   /* padding-bottom: 1em; */
 }
 
 .footer__icon a {
-  margin: 0 4px;
-  color: #86dfd4;
+  margin: 0 5px;
+  /* color: #fff; */
 }
 
 .footer__icon a:hover {
-  color: #55a555;
+  color: #55a555 !important;
   transition: all 0.5s ease-out;
 }
 
-.main__footer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  /* height: auto; */
+.border {
+  border: 1px solid red;
 }
 
 /* For mobile phones: */
 @media only screen and (max-width: 600px) {
+  .main__footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* height: auto; */
+  }
+
   .footer__list,
   .main__footer p,
   .main__footer .footer__icon {

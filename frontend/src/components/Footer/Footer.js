@@ -1,46 +1,55 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import "./Footer.css";
 
 const Footer = () => {
   const date = new Date();
   return (
-    <footer className='main__footer'>
+    <footer className='main__footer cyan darken-3'>
       <ul className='footer__link'>
+        <h5 className='white-text'>Links</h5>
         <li className='footer__link_item'>
-          <a href='/contact'>Contact Us</a>
+          <Link className='grey-text text-lighten-3' to='/contact'>
+            Contact Us
+          </Link>
         </li>
         <li className='footer__link_item'>
-          <a href='/about'>About</a>
+          <Link className='grey-text text-lighten-3' to='/about'>
+            About
+          </Link>
         </li>
         <li className='footer__link_item'>
-          <a className='green-text' href='#!'>
+          <Link className='grey-text text-lighten-3' to='/market-place'>
             Market Place
-          </a>
+          </Link>
         </li>
       </ul>
-      <p>
+      <p className='grey-text text-lighten-3'>
         All rights reserved | Created & Designed by Coleman &copy;{" "}
         {date.getFullYear()}
       </p>
       <div className='footer__icon'>
-        <a
-          href='https://www.github.com/colenocks'
+        <Link
+          className='grey-text text-lighten-3'
+          to='https://www.github.com/colenocks'
           target='_blank'
           rel='noreferrer'>
           <i className='fab fa-github fa-2x'></i>
-        </a>
-        <a
-          href='https://www.linkedin.com/In/coleman-enocks'
+        </Link>
+        <Link
+          className='grey-text text-lighten-3'
+          to='https://www.linkedin.com/In/coleman-enocks'
           target='_blank'
           rel='noreferrer'>
           <i className='fab fa-linkedin fa-2x'></i>
-        </a>
-        <a
-          href='https://www.twitter.com/encole9'
+        </Link>
+        <Link
+          className='grey-text text-lighten-3'
+          to='https://www.twitter.com/encole9'
           target='_blank'
           rel='noreferrer'>
           <i className='fab fa-twitter fa-2x'></i>
-        </a>
+        </Link>
       </div>
     </footer>
   );
