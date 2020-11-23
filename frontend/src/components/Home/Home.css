@@ -4,6 +4,7 @@
   width: 100%;
   height: 40%;
   margin-bottom: 2em;
+  margin: 3% 1%;
 }
 .home__title {
   width: 40%;
@@ -13,28 +14,87 @@
   justify-content: flex-start;
 }
 .home__carousel {
+  position: relative;
   width: 55%;
   display: flex;
-  align-items: stretch;
+  align-items: center;
   justify-content: flex-end;
 }
 .home__body {
   width: 90%;
   margin: 0 auto;
 }
-.home__button {
-  width: 90%;
+.home__card {
+  margin-bottom: 1em;
+  width: 100%;
   text-align: center;
   display: flex;
   align-items: center;
 }
 
-@media only screen and (max-width: 900px) {
+.home__card .card {
+  margin: 0 1%;
+  width: 30% !important;
+}
+
+.home__text {
+  text-align: center;
+}
+/* Modify materialize Style */
+.card-action a {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.carousel-item img {
+  display: block;
+  max-width: 100%;
+  height: 300px;
+  background-size: cover;
+}
+
+@media only screen and (min-width: 600px) and (max-width: 992px) {
   /* Tablets and laptops*/
   .home__heading {
     width: 100%;
   }
   .home__body {
     width: 100%;
+    justify-content: center;
+  }
+  .home__card {
+    width: 70%;
+    flex-direction: column;
+  }
+  .home__card .card {
+    width: 90% !important;
+    margin: 1em auto;
+    align-self: center;
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  .home__carousel {
+    display: none;
+  }
+  .home__heading {
+    text-align: center;
+    display: block;
+    margin-bottom: 1em;
+  }
+  .home__title {
+    display: block;
+    margin-bottom: 1em;
+    width: 95%;
+  }
+
+  .home__card {
+    flex-direction: column;
+    width: 100%;
+  }
+  .home__card button {
+    width: 60%;
   }
 }

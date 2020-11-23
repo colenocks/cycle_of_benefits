@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+// import { Link } from "react-router-dom";
 import "./MainNav.css";
 
 const MainNav = () => {
@@ -7,10 +7,10 @@ const MainNav = () => {
     "https://res.cloudinary.com/icardi/image/upload/v1577780709/cyobLogo_200x200_gy6opt.png";
   return (
     <React.Fragment>
-      <nav className='teal darken-3 z-depth-2'>
+      <nav className='cyan darken-3 z-depth-2'>
         <div className='container'>
           <div className='nav-wrapper'>
-            <Link to='/' className='brand-logo'>
+            <a href='/' className='brand-logo'>
               <img
                 id='logo'
                 src={image_url}
@@ -18,25 +18,25 @@ const MainNav = () => {
                 height='80px'
                 width='100px'
               />
-            </Link>
-            <Link to='#!' data-target='mobile-menu' className='sidenav-trigger'>
+            </a>
+            <a href='#!' data-target='mobile-menu' className='sidenav-trigger'>
               <i className='material-icons'>menu</i>
-            </Link>
+            </a>
             <ul id='nav-mobile' className='right hide-on-med-and-down'>
               <li>
-                <Link to='/'>Home</Link>
+                <a href='/'>Home</a>
               </li>
               <li>
-                <Link to='/projects'>Projects</Link>
+                <a href='/projects'>Projects</a>
               </li>
               <li>
-                <Link to='/about'>About</Link>
+                <a href='/about'>About</a>
               </li>
               <li>
-                <Link to='/login'>Login</Link>
+                <a href='/login'>Login</a>
               </li>
               <li>
-                <Link to='/register'>Sign Up</Link>
+                <a href='/register'>Sign Up</a>
               </li>
             </ul>
           </div>
@@ -45,29 +45,29 @@ const MainNav = () => {
 
       <ul className='sidenav' id='mobile-menu'>
         <li>
-          <Link className='sidenav-close' to='/'>
+          <a className='sidenav-close' href='/'>
             Home
-          </Link>
+          </a>
         </li>
         <li>
-          <Link className='sidenav-close' to='/projects'>
+          <a className='sidenav-close' href='/projects'>
             Projects
-          </Link>
+          </a>
         </li>
         <li>
-          <Link className='sidenav-close' to='/about'>
+          <a className='sidenav-close' href='/about'>
             About
-          </Link>
+          </a>
         </li>
         <li>
-          <Link className='sidenav-close' to='/login'>
+          <a className='sidenav-close' href='/login'>
             Login
-          </Link>
+          </a>
         </li>
         <li>
-          <Link className='sidenav-close' to='/register'>
+          <a className='sidenav-close' href='/register'>
             Sign Up
-          </Link>
+          </a>
         </li>
       </ul>
     </React.Fragment>

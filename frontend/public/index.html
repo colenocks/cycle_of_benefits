@@ -56,7 +56,7 @@
           indicators: true,
         });
 
-        setInterval(() => {
+        let carouselSlider = setInterval(() => {
           carouselElems.forEach((elem) => {
             window.M.Carousel.getInstance(elem).next();
           });
