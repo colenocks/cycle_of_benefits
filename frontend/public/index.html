@@ -51,10 +51,16 @@
         var elems = document.querySelectorAll(".sidenav");
         window.M.Sidenav.init(elems);
         var carouselElems = document.querySelectorAll(".carousel");
-        window.M.Carousel.init(carouselElems, {
+        let carouselInstance = window.M.Carousel.init(carouselElems, {
           fullWidth: true,
           indicators: true,
         });
+
+        setInterval(() => {
+          carouselElems.forEach((elem) => {
+            window.M.Carousel.getInstance(elem).next();
+          });
+        }, 3000);
       });
     </script>
 
