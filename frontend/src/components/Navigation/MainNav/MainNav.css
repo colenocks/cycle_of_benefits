@@ -22,6 +22,9 @@
   top: -13px;
 }
 
+.menu-icon {
+  cursor: pointer;
+}
 /* .logo__div {
   position: relative;
   float: left;
@@ -42,7 +45,7 @@
   letter-spacing: 3px;
 } */
 
-.nav__menu {
+/* .nav__menu {
   min-width: 60%;
 }
 
@@ -59,7 +62,6 @@
 }
 
 .signin {
-  /* border: 1px solid #fff; */
   min-width: 15%;
   float: right;
   padding-right: 5px;
@@ -69,7 +71,7 @@
 }
 .signin:hover {
   cursor: pointer;
-}
+} */
 
 @media only screen and (max-width: 900px) {
   /* Tablets and laptops*/

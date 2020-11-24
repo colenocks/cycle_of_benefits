@@ -1,10 +1,9 @@
 import React from "react";
 // import { Link } from "react-router-dom";
 import "./MainNav.css";
+import Logo from "../../../cyobLogo.png";
 
 const MainNav = () => {
-  const image_url =
-    "https://res.cloudinary.com/icardi/image/upload/v1577780709/cyobLogo_200x200_gy6opt.png";
   return (
     <React.Fragment>
       <nav className='cyan darken-3 z-depth-2'>
@@ -13,15 +12,17 @@ const MainNav = () => {
             <a href='/' className='brand-logo'>
               <img
                 id='logo'
-                src={image_url}
+                src={Logo}
                 alt='Logo'
                 height='80px'
                 width='100px'
               />
             </a>
-            <a href='#!' data-target='mobile-menu' className='sidenav-trigger'>
+            <div
+              data-target='mobile-menu'
+              className='sidenav-trigger menu-icon'>
               <i className='material-icons'>menu</i>
-            </a>
+            </div>
             <ul id='nav-mobile' className='right hide-on-med-and-down'>
               <li>
                 <a href='/'>Home</a>

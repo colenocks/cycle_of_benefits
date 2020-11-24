@@ -1,0 +1,56 @@
+.signup__form {
+  color: #000;
+  height: auto;
+  width: 80%;
+  margin: 3% auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2% 2%;
+  box-shadow: 0 1px 4px #e8e8e8;
+}
+.signup__header {
+  margin: 2% auto;
+  text-align: center;
+}
+
+.input__block {
+  width: 100%;
+  padding: 1% 2%;
+}
+
+.input__block label {
+  letter-spacing: 3px;
+}
+.form__button {
+  padding: 0 1%;
+}
+.form__button button {
+  letter-spacing: 2px;
+  border-radius: 0;
+  padding: 1% 2%;
+}
+
+.cancel-btn {
+  text-align: center;
+  border-radius: 5px;
+  padding: 1% 1%;
+  border-radius: 10px;
+  font-size: 1em;
+  font-weight: 600;
+  letter-spacing: 2px;
+  width: 20%;
+  margin-left: 20%;
+}
+
+.cancel-btn:hover {
+  text-decoration: underline;
+  color: #e8520c;
+  transition: all 0.2s ease-out;
+}
+
+.form__info p {
+  margin-bottom: 0.5em;
+  font-size: 0.9em;
+  text-align: center;
+}

@@ -56,11 +56,16 @@ body {
 .green-text {
   color: #55a555;
 }
+
+.teal-text {
+  color: #00838f;
+}
+
 hr {
   display: block;
   height: 1px;
   border: 0;
-  border-top: 1px solid #555;
+  border-top: 1px solid #e8e8e8;
   margin: 0.5em 0;
   padding: 0;
 }

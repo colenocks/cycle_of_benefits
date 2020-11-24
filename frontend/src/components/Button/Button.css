@@ -1,11 +1,12 @@
 .my__button {
   margin: 1% 1%;
-  padding: 2% 3%;
+  padding: 2% 2%;
   text-transform: capitalize;
   text-decoration: none;
   font-size: 1em;
   background: #00838f;
   /* opacity: 0.9; */
+  color: #fff;
   border-radius: 0.5rem;
   cursor: pointer;
   box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15);
@@ -27,7 +28,6 @@
 }
 .my__button:hover {
   background: #e8520c;
-  color: #fff !important;
   transition: all 0.2s ease-out;
   /* opacity: 0.2; */
   /* background-color: rgba(0, 138, 0, 0.2); */
