@@ -78,6 +78,24 @@ hr {
   padding-bottom: 3em; /* footer height, to make stick */
 }
 
+.cancel-btn {
+  text-align: center;
+  border-radius: 5px;
+  padding: 1% 1%;
+  border-radius: 10px;
+  font-size: 1em;
+  font-weight: 600;
+  letter-spacing: 2px;
+  width: 20%;
+  margin-left: 20%;
+}
+
+.cancel-btn:hover {
+  text-decoration: underline;
+  color: #e8520c;
+  transition: all 0.2s ease-out;
+}
+
 /* main content component */
 @media only screen and (max-width: 900px) {
   /* Tablets and laptops*/

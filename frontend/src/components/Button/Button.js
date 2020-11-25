@@ -10,8 +10,10 @@ const Button = (props) => {
       disabled={props.disabled === true ? props.disabled : false}>
       {props.link ? (
         <Link to={props.link}>{props.text ? props.text : props.icon}</Link>
-      ) : (
+      ) : props.text ? (
         props.text
+      ) : (
+        props.icon
       )}
     </button>
   );
