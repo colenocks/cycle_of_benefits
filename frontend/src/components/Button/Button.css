@@ -27,8 +27,18 @@
   transition: transform 0.1s;
 }
 .my__button:hover {
-  background: #e8520c;
+  background: #35b36a;
   transition: all 0.2s ease-out;
   /* opacity: 0.2; */
   /* background-color: rgba(0, 138, 0, 0.2); */
+}
+
+.disabled {
+  color: #000;
+  opacity: 0.8;
+  background-color: rgba(90, 90, 90, 0.2);
+  cursor: default;
+}
+.disabled:hover {
+  background: none;
 }

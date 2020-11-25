@@ -1,0 +1,80 @@
+.view__project {
+  display: flex;
+  flex-direction: row-reverse;
+  position: relative;
+  width: 90%;
+  margin: 5% auto;
+}
+.project__image {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  margin: 2%;
+  width: 50%;
+  padding: 2%;
+  height: min-content;
+  border: 1px solid #e8e8e8;
+  text-align: right;
+}
+.project__image img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+#project {
+  width: 50%;
+  border: 1px solid #e8e8e8;
+}
+#project-form {
+  display: flex;
+  flex-direction: column;
+  padding: 1% 2%;
+  color: #fff;
+  font-size: 1em;
+  /* box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15); */
+}
+.view__block label {
+  color: #3fb6a8;
+  font-size: 1em;
+  text-transform: uppercase;
+}
+.view__block {
+  margin: 1% 0;
+  width: 95%;
+}
+
+.view__block input[type="text"],
+.view__block input[type="email"],
+.view__block input[type="password"] {
+  height: auto;
+  /* font-size: 0.9em; */
+  font-weight: 200;
+  width: 100%;
+  /* display: block; */
+  padding: 0.5em;
+  transition: all 1s cubic-bezier(0.64, 0.09, 0.08, 1);
+  background: rgba(255, 255, 255, 0);
+  color: #000;
+  font-family: "Roboto", sans-serif;
+}
+
+#editProject {
+  display: none;
+}
+
+@media only screen and (max-width: 992px) {
+  .view__project {
+    flex-direction: column;
+    align-items: center;
+  }
+  .project__image {
+    display: flex;
+    width: 80%;
+    text-align: center;
+    margin: 1% auto;
+  }
+  #project {
+    width: 80%;
+  }
+}

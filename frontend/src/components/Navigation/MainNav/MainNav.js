@@ -18,11 +18,9 @@ const MainNav = () => {
                 width='100px'
               />
             </a>
-            <div
-              data-target='mobile-menu'
-              className='sidenav-trigger menu-icon'>
+            <a href='/' data-target='mobile-menu' className='sidenav-trigger'>
               <i className='material-icons'>menu</i>
-            </div>
+            </a>
             <ul id='nav-mobile' className='right hide-on-med-and-down'>
               <li>
                 <a href='/'>Home</a>
@@ -37,7 +35,7 @@ const MainNav = () => {
                 <a href='/login'>Login</a>
               </li>
               <li>
-                <a href='/register'>Sign Up</a>
+                <a href='/signup'>Sign Up</a>
               </li>
             </ul>
           </div>
@@ -66,7 +64,7 @@ const MainNav = () => {
           </a>
         </li>
         <li>
-          <a className='sidenav-close' href='/register'>
+          <a className='sidenav-close' href='/signup'>
             Sign Up
           </a>
         </li>

@@ -9,7 +9,7 @@ const Footer = () => {
       <ul className='footer__link'>
         <h5 className='white-text'>Links</h5>
         <li className='footer__link_item'>
-          <Link className='grey-text text-lighten-3' to='/contact'>
+          <Link className='grey-text text-lighten-3' to='/contact-us'>
             Contact Us
           </Link>
         </li>
