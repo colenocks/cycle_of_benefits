@@ -1,26 +1,24 @@
 import React from "react";
+import Button from "./../Button/Button";
+import "./Reward.css";
 
-const Reward = () => {
+const Reward = (props) => {
+  // const {user} = props;
+  const user = {};
   return (
-    <div>
-      <h1>My Rewards</h1>
+    <div className='rewards'>
+      <h3>My Rewards</h3>
       <section className='myrewards'>
-        <div className='reward-load form-button'>
-          <label htmlFor='reload'>Click to update your Points: </label>
-          <input
-            id='reload'
-            type='submit'
-            className='left-btn my-btn'
-            value='Get Points'
-          />
+        <div className='reward-load'>
+          <Button id='reload' type='submit' text='Update Points' />
         </div>
         <div className='reward-points'>
           <form action='/redeemreward' id='rewardform'>
             <div>
               <i className='fas fa-trophy fa-2x'></i>
               <p form='rewardform' htmlFor='total'>
-                Total Points:{" "}
-                <span id='totalpoints'>{"project.reward_points"}</span>
+                <label htmlFor=''>Total Points: </label>
+                <span id='totalpoints'>{user.reward_points}</span>
               </p>
             </div>
             <div>
@@ -29,7 +27,7 @@ const Reward = () => {
                 id='usedpoints'
                 type='number'
                 min='0'
-                max={"project.reward_points"}
+                max={user.reward_points}
               />
             </div>
             <div>
@@ -43,12 +41,12 @@ const Reward = () => {
                 <option value='transport'>Transportation Benefits</option>
               </select>
             </div>
-            <div className='form-button'>
-              <input
+            <div className='form__button'>
+              <Button
                 id='redeem'
                 type='submit'
                 className='left-btn my-btn'
-                value='Redeem Reward'
+                text='Redeem Reward'
               />
             </div>
           </form>

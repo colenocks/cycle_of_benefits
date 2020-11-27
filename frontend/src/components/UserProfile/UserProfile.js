@@ -6,11 +6,9 @@ const UserProfile = (props) => {
   //   const { project } = props;
   const project = {};
   return (
-    <div>
-      <div className='profile-heading'>
-        <h1>
-          <strong>My Profile</strong>
-        </h1>
+    <div className='profile'>
+      <div className='profile__heading'>
+        <h3>My Profile</h3>
         <Button id='edit-button' icon={<i className='fas fa-edit fa-2x'></i>} />
       </div>
       <form
@@ -18,20 +16,20 @@ const UserProfile = (props) => {
         encType='multipart/form-data'
         action='/updateuser'
         id='profile-form'>
-        <div className='input-block'>
+        <div className='input__block'>
           <label htmlFor='username'>Username: </label>
           <div>
             <input
               id='edit_username'
               type='text'
               name='username'
-              defaultValue={project.username}
+              defaultValue={project.username + "Coleman"}
               disabled
               readOnly
             />
           </div>
         </div>
-        <div className='input-block'>
+        <div className='input__block'>
           <label htmlFor='first_name'>First Name : </label>
           <div>
             <input
@@ -43,7 +41,7 @@ const UserProfile = (props) => {
             />
           </div>
         </div>
-        <div className='input-block'>
+        <div className='input__block'>
           <label htmlFor='last_name'>Last Name: </label>
           <div>
             <input
@@ -55,7 +53,7 @@ const UserProfile = (props) => {
             />
           </div>
         </div>
-        <div className='input-block'>
+        <div className='input__block'>
           <label htmlFor='email'>Email: </label>
           <div>
             <input
@@ -67,7 +65,7 @@ const UserProfile = (props) => {
             />
           </div>
         </div>
-        <div className='input-block'>
+        <div className='input__block'>
           <label htmlFor='dob'>DOB: </label>
           <div>
             <input
@@ -80,7 +78,7 @@ const UserProfile = (props) => {
             />
           </div>
         </div>
-        <div className='input-block'>
+        <div className='input__block'>
           <label htmlFor='address'>Address: </label>
           <div>
             <input
@@ -92,7 +90,7 @@ const UserProfile = (props) => {
             />
           </div>
         </div>
-        <div className='input-block'>
+        <div className='input__block'>
           <label htmlFor='phone'>Phone Number: </label>
           <div>
             <input
@@ -104,7 +102,7 @@ const UserProfile = (props) => {
             />
           </div>
         </div>
-        <div className='input-block'>
+        <div className='input__block'>
           <label htmlFor='state'>State of Origin: </label>
           <div>
             <input
@@ -116,7 +114,7 @@ const UserProfile = (props) => {
             />
           </div>
         </div>
-        <div className='input-block'>
+        <div className='input__block'>
           <label htmlFor='national_id'>National ID Number: </label>
           <div>
             <input

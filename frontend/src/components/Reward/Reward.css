@@ -1,0 +1,18 @@
+.rewards {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1% 4%;
+  width: 100%;
+  height: auto;
+}
+
+.myrewards {
+  display: flex;
+  flex-direction: column;
+  padding: 2% 1%;
+}
+
+#rewardform div {
+  margin: 3% auto;
+}

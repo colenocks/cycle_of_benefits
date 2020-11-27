@@ -1,0 +1,40 @@
+.user__profile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1% 4%;
+  width: 100%;
+  height: auto;
+}
+
+.profile__heading {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.5em;
+  text-align: center;
+  margin: 0 1%;
+}
+
+#profile-form {
+  padding: 1% 2%;
+  width: 100%;
+}
+/* #profile-form label {
+  font-size: 1em;
+  color: #3fb6a8;
+  letter-spacing: normal;
+} */
+#profile-form .input__block {
+  margin: 1% 0;
+}
+#profile-form input[type="text"],
+#profile-form input[type="email"],
+#profile-form input[type="date"],
+#profile-form textarea {
+  color: #000;
+  /* background: #494949; */
+  /* border-bottom: 1px solid #555; */
+  /* border: 1px solid #fff; */
+}
