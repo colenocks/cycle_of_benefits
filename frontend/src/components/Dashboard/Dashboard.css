@@ -1,18 +1,18 @@
-.boxes {
+.dashboard {
   /* border: 1px solid #fff; */
   position: relative;
   display: flex;
   width: 100%;
   padding: 0 2%;
 }
-.leftbox {
+.tab {
   /* border: 1px solid #fff; */
   width: 30%;
   text-align: center;
   padding: 2% 1%;
   height: max-content;
 }
-.rightbox {
+.tab_section {
   /* border: 1px solid red; */
   position: relative;
   display: flex;
@@ -22,7 +22,7 @@
   height: max-content;
 }
 
-.rightbox > div {
+.tab_section > div {
   /* border: 1px solid #fff; */
   position: relative;
   /* z-index: 1; */
@@ -40,7 +40,7 @@
   opacity: 0;
 }
 
-.leftbox ul li {
+.navlink {
   list-style: none;
   padding: 7% 1%;
   margin: 3% 0;
@@ -49,11 +49,18 @@
   box-shadow: 0 1px 17px #e8e8e8;
   display: block;
   transition: all 0.2s ease-in-out;
+  transform: scale(1);
 }
-.leftbox ul li i {
+
+.navlink:active {
+  transform: scale(0.95);
+  transition: transform 0.2s;
+}
+
+.navlink i {
   display: none;
 }
-.leftbox ul li:hover {
+.navlink:hover {
   color: #3fb6a8;
   transform: scale(1.1);
   cursor: pointer;
@@ -67,7 +74,7 @@
 .profile,
 .postproject,
 .rewards,
-.messages,
+.userproject,
 .information {
    position: relative; 
    display: flex;
@@ -146,27 +153,27 @@ textarea {
     flex-direction: column;
     width: 100%;
   }
-  .leftbox {
+  .tab {
     width: 100%;
     border-bottom: 1px solid #e8e8e8;
   }
-  .leftbox ul {
+  .tab ul {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
   }
-  .leftbox ul li {
+  .navlink {
     padding: 1% 1%;
     width: 18%;
   }
-  .leftbox ul li i {
+  .navlink i {
     display: block;
     font-size: 1.5em;
   }
-  .leftbox .nav__menu {
+  .tab .nav__menu {
     display: none;
   }
-  .rightbox {
+  .tab_section {
     margin-top: 3%;
     width: 100%;
   }
