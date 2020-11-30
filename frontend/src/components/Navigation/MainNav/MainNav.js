@@ -3,7 +3,8 @@ import React from "react";
 import "./MainNav.css";
 import Logo from "../../../cyobLogo.png";
 
-const MainNav = () => {
+const MainNav = (props) => {
+  const { usersession } = props;
   return (
     <React.Fragment>
       <nav className='cyan darken-3 z-depth-2'>
@@ -32,10 +33,20 @@ const MainNav = () => {
                 <a href='/about'>About</a>
               </li>
               <li>
-                <a href='/login'>Login</a>
+                {usersession ? (
+                  <a href='/dashboard'>Profile</a>
+                ) : (
+                  <a href='/login'>Login</a>
+                )}
               </li>
               <li>
-                <a href='/signup'>Sign Up</a>
+                {usersession ? (
+                  <a href='/logout'>
+                    <span className='red-text'>Log off</span>
+                  </a>
+                ) : (
+                  <a href='/signup'>Sign Up</a>
+                )}
               </li>
             </ul>
           </div>
@@ -59,14 +70,20 @@ const MainNav = () => {
           </a>
         </li>
         <li>
-          <a className='sidenav-close' href='/login'>
-            Login
-          </a>
+          {usersession ? (
+            <a href='/dashboard'>Profile</a>
+          ) : (
+            <a href='/login'>Login</a>
+          )}
         </li>
         <li>
-          <a className='sidenav-close' href='/signup'>
-            Sign Up
-          </a>
+          {usersession ? (
+            <a href='/logout'>
+              <span className='red-text'>Log off</span>
+            </a>
+          ) : (
+            <a href='/signup'>Sign Up</a>
+          )}
         </li>
       </ul>
     </React.Fragment>
