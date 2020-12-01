@@ -1,27 +1,33 @@
 const express = require("express");
+const { getDatabase } = require("../persistence/connection");
 
-const router = express.Router();
+const project = require("../controllers/project");
 
-const Admin = require("../models/admin");
-const Project = require("../models/project");
-const User = require("../models/user");
+const mongodb = require("mongodb");
 
-const admin = new Admin();
-const project = new Project();
+const Project = require("../models/projects");
+const User = require("../models/users");
+
+// const project = new Project();
 const user = new User();
 
-exports.showUsers = (req, res) => {
+exports.getUsers = (req, res) => {
   console.log("Show users");
 };
 
-exports.getAllProjects = (req, res) => {
-  admin.getAllProjects((data) => {
-    if (data) {
-      res.json(data);
-      return;
-    }
-    res.json({ errMessage: "Could not retrieve project data" });
-  });
+exports.getProjects = (req, res) => {
+  const db = getDatabase();
+  db.collection("projects")
+    .find({})
+    .toArray()
+    .then((data) => {
+      if (data.length > 0) {
+        res.json(data);
+        return;
+      }
+      res.json({ errMessage: "Could not retrieve project data" });
+    })
+    .catch((err) => console.log(err));
 };
 
 exports.approveProject = (req, res) => {
@@ -31,16 +37,20 @@ exports.approveProject = (req, res) => {
     if (!id) {
       project.getProposedProject(id, (project) => {
         if (project) {
-          admin.approveProject(project, (approved) => {
-            if (approved) {
-              res.json({ message: "Project has been approved and uploaded" });
-              return;
-            }
-            res.json({
-              errMessage:
-                "Project may have already been uploaded, Check and Try again!",
-            });
-          });
+          const db = getDatabase();
+          db.collection("active_projects")
+            .insertOne(project)
+            .then((data) => {
+              if (data.insertedCount == 1) {
+                res.json({ message: "Project has been approved and uploaded" });
+                return;
+              }
+              res.json({
+                errMessage:
+                  "Project may have already been uploaded, Check and Try again!",
+              });
+            })
+            .catch((err) => console.log(err));
         }
       });
     }
@@ -57,58 +67,96 @@ exports.updateProject = (req, res) => {
     tools: req.body.tools,
     address: req.body.address,
     city: req.body.city,
-    duration: req.body.duration,
-    point: parseInt(req.body.point, 10),
-    currentworkers: parseInt(req.body.currentworkers, 10),
-    maxworkers: parseInt(req.body.maxworkers, 10),
+    estimated_duration: req.body.duration,
+    reward_points: parseInt(req.body.point, 10),
+    current_workers: parseInt(req.body.currentworkers, 10),
+    max_workers: parseInt(req.body.maxworkers, 10),
   };
-  project.updateProject(proj, (updated) => {
-    if (updated) {
-      res.json({ message: proj._id + " has been successfully updated" });
-      return;
+  const db = getDatabase();
+  project.findApprovedProject(proj._id, (id) => {
+    if (id) {
+      db.collection("active_projects")
+        .updateOne({ _id: id }, { $set: projectRecord })
+        .then((data) => {
+          if (data.nModified == 1) {
+            res.json({ message: proj._id + " has been successfully updated" });
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    } else {
+      //find project in other table
+      project.findProposedProject(proj._id, (id) => {
+        if (id) {
+          db.collection("projects")
+            .updateOne({ _id: id }, { $set: projectRecord })
+            .then((data) => {
+              if (data.result.ok == 1) {
+                res.json({
+                  message: proj._id + " has been successfully updated",
+                });
+              }
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+        } else {
+          res.json({ errMessage: "Could not update project" });
+        }
+      });
     }
-    res.json({ errMessage: "Could not update project" });
   });
 };
 
 exports.archiveProject = (req, res) => {
   if (req.session.userid) {
-    admin.archiveProject(req.body.projid, (archived) => {
-      if (archived) {
-        res.json({ message: "Project archived" });
-        return;
-      }
-      res.json({
-        errMessage: "Project was not archived",
-      });
-    });
+    // admin.archiveProject(req.body.projid, (archived) => {
+    //   if (archived) {
+    //     res.json({ message: "Project archived" });
+    //     return;
+    //   }
+    //   res.json({
+    //     errMessage: "Project was not archived",
+    //   });
+    // });
   }
 };
 
-exports.showRedeemedRewards = (req, res) => {
-  admin.getAllRewardRequests((data) => {
-    if (data) {
-      res.json(data);
-      return;
-    }
-    res.json({
-      errMessage: "could not display rewards table",
+exports.getRewardsRequests = (req, res) => {
+  const db = getDatabase();
+  db.collection("reward_requests")
+    .find({})
+    .then((data) => {
+      if (data) {
+        res.json(data);
+        return;
+      }
+      res.json({
+        errMessage: "could not display rewards table",
+      });
+    })
+    .catch((err) => {
+      console.log(err);
     });
-  });
 };
 
-exports.removeUser = (req, res) => {
+exports.deleteUser = (req, res) => {
   user.findUser(req.body.userid, (id) => {
     if (id) {
-      admin.removeUser(req.body.userid, (deleted) => {
-        if (deleted) {
-          res.json({ message: "User Deleted" });
-          return;
-        }
-        res.json({
-          errMessage: "User was not deleted",
-        });
-      });
+      const db = getDatabase();
+      db.collection("profiles")
+        .deleteOne({ _id: new mongodb.ObjectID(userid) })
+        .then((data) => {
+          if (data.result.ok === 1) {
+            res.json({ message: "User Deleted" });
+            return;
+          }
+          res.json({
+            errMessage: "User was not deleted",
+          });
+        })
+        .catch((err) => console.log(err));
     } else {
       res.json({
         errMessage: "This user does not exist",
@@ -117,18 +165,22 @@ exports.removeUser = (req, res) => {
   });
 };
 
-exports.removeProject = (req, res) => {
+exports.deleteProject = (req, res) => {
   project.findApprovedProject(req.body.projid, (id) => {
     if (id) {
-      admin.removeProject(id, (removed) => {
-        if (removed) {
-          res.json({ message: "Project removed" });
-          return;
-        }
-        res.json({
-          errMessage: "Error with removing project",
-        });
-      });
+      const db = getDatabase();
+      db.collection("projects")
+        .deleteOne({ _id: new mongodb.ObjectID(projid) })
+        .then((data) => {
+          if (data.result.ok === 1) {
+            res.json({ message: "Project deleted" });
+            return;
+          }
+          res.json({
+            errMessage: "Error with removing project",
+          });
+        })
+        .catch((err) => console.log(err));
     } else {
       res.json({
         errMessage: "This project does not exist",
