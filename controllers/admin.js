@@ -2,14 +2,9 @@ const express = require("express");
 const { getDatabase } = require("../persistence/connection");
 
 const project = require("../controllers/project");
+const user = require("../controllers/user");
 
 const mongodb = require("mongodb");
-
-const Project = require("../models/projects");
-const User = require("../models/users");
-
-// const project = new Project();
-const user = new User();
 
 exports.getUsers = (req, res) => {
   console.log("Show users");

@@ -1,12 +1,10 @@
 const dotenv = require("dotenv");
 dotenv.config();
 const { getDatabase } = require("../persistence/connection");
-const bcrypt = require("bcryptjs");
 
 const auth = require("./auth");
 
 const admin_username = process.env.ADMIN_USER;
-const admin_password = process.env.ADMIN_PASSWORD;
 
 exports.getUserProfile = (req, res) => {
   const userid = req.session.userid;

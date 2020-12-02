@@ -1,4 +1,4 @@
-const { getDatabase } = require("../persistence/connection");
+const { getDatabase } = require("../../persistence/connection");
 const mongodb = require("mongodb");
 
 exports.updateProjectOpen = (db) => {

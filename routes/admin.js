@@ -2,19 +2,19 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  getAllProjects,
+  getProjects,
   approveProject,
-  showUsers,
+  getUsers,
   updateProject,
   archiveProject,
-  showRedeemedRewards,
-  removeUser,
-  removeProject,
+  getRewardsRequests,
+  deleteUser,
+  deleteProject,
 } = require("../controllers/admin");
 
-router.get("/showusers", showUsers);
+router.get("/getusers", getUsers);
 
-router.get("/getallprojects", getAllProjects);
+router.get("/getallprojects", getProjects);
 
 router.post("/approveproject", approveProject);
 
@@ -22,10 +22,10 @@ router.put("/updateproject", updateProject);
 
 router.delete("/archiveproject", archiveProject);
 
-router.get("/showrewards", showRedeemedRewards);
+router.get("/getrewards", getRewardsRequests);
 
-router.delete("/removeuser", removeUser);
+router.delete("/deleteuser", deleteUser);
 
-router.delete("/removeproject", removeProject);
+router.delete("/deleteproject", deleteProject);
 
 module.exports = router;

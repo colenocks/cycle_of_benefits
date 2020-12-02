@@ -12,11 +12,11 @@ const {
 
 router.get("/login", getLogin);
 
-router.get("/register", getSignup);
+router.get("/signup", getSignup);
 
 router.post("/login", postLogin);
 
-router.post("/submitregister", postSignup);
+router.post("/signup", postSignup);
 
 router.get("/usersession", getUserSession);
 
