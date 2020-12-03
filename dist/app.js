@@ -2,6 +2,20 @@ import * as functions from "./js/functions.js";
 import { FetchHandler } from "./js/fetch.js";
 
 const fetchHandler = new FetchHandler();
+/* Initialize carousel */
+document.addEventListener("DOMContentLoaded", function () {
+  var carouselElems = document.querySelectorAll(".carousel");
+  M.Carousel.init(carouselElems, {
+    fullWidth: true,
+    indicators: true,
+  });
+
+  let carouselSlider = setInterval(() => {
+    carouselElems.forEach((elem) => {
+      window.M.Carousel.getInstance(elem).next();
+    });
+  }, 3000);
+});
 
 /* Menu Button Toggle functionality */
 if (document.querySelector(".menu-btn")) {
@@ -32,30 +46,28 @@ if (document.querySelector(".signin-div")) {
 
         if (data.session == "cyobadmin") {
           /* Admin views */
-          if (document.querySelector("#viewproject")) {
+          if (document.querySelector(".view__project")) {
             const form = {
               formName: document.forms.namedItem("project-form"),
-              id: document.getElementById("view_id"),
-              type: document.getElementById("view_type"),
-              title: document.getElementById("view_title"),
-              details: document.getElementById("view_details"),
-              tools: document.getElementById("view_tools"),
-              address: document.getElementById("view_address"),
-              city: document.getElementById("view_city"),
-              status: document.getElementById("view_status"),
-              currentworkers: document.getElementById("view_current_workers"),
-              maxworkers: document.getElementById("view_no_of_workers"),
-              duration: document.getElementById("view_duration"),
-              point: document.getElementById("view_worth"),
+              id: document.querySelector("view__id"),
+              type: document.querySelector("view__type"),
+              title: document.querySelector("view__title"),
+              details: document.querySelector("view__details"),
+              tools: document.querySelector("view__tools"),
+              address: document.querySelector("view__address"),
+              city: document.querySelector("view__city"),
+              status: document.querySelector("view__status"),
+              currentworkers: document.querySelector("view__current_workers"),
+              maxworkers: document.querySelector("view__no_of_workers"),
+              duration: document.querySelector("view__duration"),
+              point: document.querySelector("view__worth"),
             };
 
             let editProject = document.getElementById("editProject");
             let enlist = document.getElementById("interest");
             let addBtn = document.getElementById("addproject-btn");
             let editBtn = document.getElementById("editproject-btn");
-            let updateProjectBtn = document.getElementById(
-              "update-project-btn"
-            );
+            let updateProjectBtn = document.getElementById("updateproject-btn");
 
             console.log("Welcome Admin");
 
@@ -103,7 +115,7 @@ if (document.querySelector(".signin-div")) {
 
             addBtn.onclick = function (e) {
               e.preventDefault();
-              let id = document.getElementById("view_id");
+              let id = document.getElementById("view__id");
               fetchHandler.approveProject(id);
             };
           }
@@ -285,11 +297,14 @@ if (document.querySelector(".boxes")) {
 
 /* Load all projects */
 if (document.querySelector(".projects")) {
+  let projectBtn = document.querySelectorAll(".project__button > button");
   fetchHandler.getProjects((projects) => {
     if (projects) {
       projects.map((item) => {
         functions.appendProjects(item);
-        functions.viewProject(fetchHandler);
+        projectBtn.onclick = () => {
+          functions.viewProject(fetchHandler, item);
+        };
       });
     } else {
       console.log("App js: No project data");
@@ -319,7 +334,7 @@ if (document.querySelector("#post_project")) {
 }
 
 /* Update Project current workers */
-if (document.querySelector("#viewproject")) {
+if (document.querySelector(".view__project")) {
   // let submitenlist = document.getElementById("enlist");
   const form = {
     projectform: document.getElementById("project-form"),

@@ -68,13 +68,15 @@ exports.postLogin = (req, res) => {
       .then((userRecord) => {
         if (userRecord) {
           let validPassword = bcrypt.compareSync(password, userRecord.password);
-          if (
-            (username === admin_username && password === admin_password) ||
-            validPassword
-          ) {
-            //on login, set user session
+          if (username === admin_username && password === admin_password) {
             req.session.userid = userRecord.username;
             res.json({
+              redirect_path: "/admin",
+            });
+          } else if (validPassword) {
+            req.session.userid = userRecord.username;
+            res.json({
+              message: "Login Successful",
               redirect_path: "/dashboard",
             });
           } else {
@@ -120,11 +122,11 @@ exports.postSignup = (req, res) => {
           if (data.insertedCount == 1) {
             console.log("new user created successfully");
             res.json({
-              status: "Registeration Successful",
+              message: "Registeration Successful",
               redirect_path: "/login",
             });
           }
-          res.json({ message: "Sorry! This User already exists" });
+          res.json({ errMessage: "Sorry! This User already exists" });
         })
         .catch((err) => {
           console.log("Save Profile Error: " + err);
