@@ -149,7 +149,7 @@ textarea {
 }
 
 @media only screen and (max-width: 600px) {
-  .boxes {
+  .dashboard {
     flex-direction: column;
     width: 100%;
   }
