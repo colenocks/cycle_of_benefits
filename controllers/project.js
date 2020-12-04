@@ -107,35 +107,16 @@ exports.getProject = (req, res) => {
       proj_id,
       (data) => {
         if (data) {
-          // res.json(data);
-          res.render("viewproject", {
-            id: data._id ? data._id : "",
-            type: data.type ? data.type : "other",
-            title: data.title ? data.title : "",
-            details: data.details ? data.details : "",
-            address: data.address ? data.address : "",
-            city: data.city ? data.city : "",
-            status: data.status ? data.status : "",
-            worth: data.reward_points ? data.reward_points : 0,
-            tools: data.tools ? data.tools : "",
-            current: data.current_workers ? data.current_workers : 0,
-            maxworkers: data.max_workers ? data.max_workers : 1,
-            postedby: data.posted_by ? data.posted_by : "",
-            duration: data.estimated_duration
-              ? data.estimated_duration
-              : "unknown",
-            image: data.image_url ? data.image_url : "",
-          });
+          res.json(data);
         } else {
           console.log("Cannot display project...");
-          // res.json({errMessage: "Cannot display project..."});
-          res.redirect("/projects");
+          res.json({ errMessage: "Cannot display project..." });
         }
       },
       req.session.userid
     );
   } else {
-    res.redirect("/projects");
+    res.json({ errMessage: "Cannot display project..." });
   }
 };
 
@@ -155,6 +136,7 @@ exports.getAllProjects = (req, res) => {
     .then((data) => {
       if (data) {
         res.json(data);
+        return;
       }
       res.json({ errMessage: "Could not retrieve project data" });
       console.log("Could not retrieve project data");

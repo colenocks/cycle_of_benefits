@@ -41,7 +41,7 @@ class Signup extends Component {
                 onSubmit={(e) => handleSignUpUser(e, this.state)}>
                 <div className='signup__header'>
                   <h4>
-                    Sign Up with{" "}
+                    Register{" "}
                     <span className='green-text'>Cycle of benefits</span>
                   </h4>
                 </div>

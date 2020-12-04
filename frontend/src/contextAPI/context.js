@@ -18,10 +18,13 @@ class CyobProvider extends Component {
       hasSignedUp: false,
       redirect_path: null,
       errMessage: null,
+      projects: [],
+      project: {},
     };
 
     this.handleLoginUser = this.handleLoginUser.bind(this);
     this.handleSignUpUser = this.handleSignUpUser.bind(this);
+    this.getAllProjects = this.getAllProjects.bind(this);
   }
 
   handleLoginUser(event, inputFields) {
@@ -45,7 +48,13 @@ class CyobProvider extends Component {
           });
         }
       })
-      .catch((error) => console.error("Login Error: ", error));
+      .catch((error) => {
+        console.error("Login Error: ", error);
+        this.setState({
+          isLoggedIn: false,
+          errMessage: null,
+        });
+      });
   }
 
   handleSignUpUser(event, inputFields) {
@@ -64,15 +73,62 @@ class CyobProvider extends Component {
         if (res.data.errMessage) {
           toast({ html: res.data.errMessage });
           this.setState({ errMessage: res.data.errMessage });
-        } else {
-          toast({ html: res.data.message });
-          this.setState({
-            hasSignedUp: true,
-            message: res.data.message,
-          });
+          return;
         }
+        toast({ html: res.data.message });
+        this.setState({
+          hasSignedUp: true,
+        });
       })
-      .catch((error) => console.error("Signup Error: ", error));
+      .catch((error) => {
+        console.error("Signup Error: ", error);
+        this.setState({
+          hasSignedUp: false,
+          errMessage: null,
+        });
+      });
+  }
+
+  getAllProjects() {
+    const url = "http://localhost:5000/projects";
+    axios
+      .get(url)
+      .then((res) => {
+        if (res.data.errMessage) {
+          toast({ html: res.data.errMessage });
+          this.setState({ errMessage: res.data.errMessage });
+          return;
+        }
+        this.setState({
+          projects: res.data,
+        });
+      })
+      .catch((err) => {
+        console.log("All Projects Error:  " + err);
+      });
+  }
+
+  getProject(id) {
+    const url = "http://localhost:5000/project/" + id;
+    axios
+      .get(url)
+      .then((res) => {
+        if (res.data.errMessage) {
+          toast({ html: res.data.errMessage });
+          this.setState({ errMessage: res.data.errMessage });
+          return;
+        }
+        this.setState({
+          project: res.data,
+        });
+      })
+      .catch((err) => {
+        console.log("All Projects Error:  " + err);
+      });
+  }
+
+  componentDidMount() {
+    this.getAllProjects();
   }
 
   render() {
@@ -82,6 +138,7 @@ class CyobProvider extends Component {
           ...this.state,
           handleLoginUser: this.handleLoginUser,
           handleSignUpUser: this.handleSignUpUser,
+          getProject: this.getProject,
         }}>
         {this.props.children}
       </CyobContext.Provider>
