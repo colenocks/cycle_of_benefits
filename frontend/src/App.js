@@ -19,7 +19,11 @@ function App() {
       <main className='main__content'>
         <Switch>
           <Route exact path='/' component={Home} />
-          <Route exact path='/project' component={SingleProject} />
+          <Route
+            exact
+            path='/project/:id'
+            render={(props) => <SingleProject {...props} />}
+          />
           <Route exact path='/projects' component={ProjectList} />
           <Route exact path='/dashboard' component={Dashboard} />
           <Route exact path='/login' component={Login} />

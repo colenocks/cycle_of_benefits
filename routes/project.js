@@ -15,13 +15,13 @@ const {
 
 router.get("/project/:id", getProject);
 
-router.get("/getprojects", getAllProjects);
+router.get("/projects", getAllProjects);
 
 router.get("/getuserproject", getUserProjects);
 
 router.post("/enlist", enlistWorker);
 
-router.delete("/dropworker", dropWorker);
+router.delete("/dropworker/:id", dropWorker);
 
 router.post("/addproject", upload.single("image"), addProject);
 

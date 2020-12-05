@@ -175,19 +175,20 @@ exports.getUserProjects = async (req, res) => {
 };
 
 exports.enlistWorker = (req, res) => {
-  if (req.session.userid) {
-    const userid = req.session.userid;
-    const projid = req.body.projid;
+  console.log("User Session: ", req.session.userid);
+  const userId = req.session.userid;
+  const projId = req.body.projId;
+  if (userId) {
     //getProject
-    _getProjectCheckAccessLevel(projid, (project) => {
+    _getProjectCheckAccessLevel(projId, (project) => {
       if (project) {
         projectUtil.checkWorklistForDuplicates(
           project._id,
-          userid,
+          userId,
           (duplicate) => {
             if (!duplicate) {
               const worklist = {
-                userId: userid,
+                userId: userId,
                 projectId: project._id,
                 title: project.title,
                 status: project.status,
@@ -230,23 +231,23 @@ exports.enlistWorker = (req, res) => {
 };
 
 exports.dropWorker = (req, res) => {
-  const projid = req.body.projid;
-  const userid = req.session.userid;
-  if (userid) {
-    projectUtil.decrementCurrentWorker(projid, (decremented) => {
+  const projId = req.params.id;
+  const userId = req.session.userid;
+  if (userId) {
+    projectUtil.decrementCurrentWorker(projId, (decremented) => {
       if (decremented) {
         //remove from worklist collection
         const db = getDatabase();
         db.collection("worklist")
           .deleteOne({
-            projectId: projid,
-            userId: userid,
+            projectId: projId,
+            userId: userId,
           })
           .then((data) => {
             if (data.deletedCount == 1) {
-              console.log(userid + " successfully dropped from " + projid);
+              console.log(userId + " successfully dropped from " + projId);
               res.json({
-                message: "You have withdrawn from this project: " + projid,
+                message: "You have withdrawn from this project: " + projId,
               });
             } else {
               res.json({

@@ -2,6 +2,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 const { getDatabase } = require("../persistence/connection");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const admin_username = process.env.ADMIN_USER;
 const admin_password = process.env.ADMIN_PASSWORD;
@@ -52,7 +53,7 @@ exports.createUser = (userobj, callback) => {
 };
 
 exports.getLogin = (req, res) => {
-  if (!req.session.userid) {
+  if (!req.sessionId) {
     res.render("login");
     return;
   }
@@ -69,13 +70,24 @@ exports.postLogin = (req, res) => {
         if (userRecord) {
           let validPassword = bcrypt.compareSync(password, userRecord.password);
           if (username === admin_username && password === admin_password) {
-            req.session.userid = userRecord.username;
+            req.sessionId = userRecord.username;
             res.json({
               redirect_path: "/admin",
             });
           } else if (validPassword) {
-            req.session.userid = userRecord.username;
+            req.sessionId = userRecord.username;
+            //create a new signature
+            const token = jwt.sign(
+              {
+                username: userRecord.username,
+                userId: userRecord._id.toString(),
+              },
+              process.env.SESS_SECRET,
+              { expiresIn: process.env.SESS_LIFETIME }
+            );
             res.json({
+              token: token,
+              sessionId: userRecord.username,
               message: "Login Successful",
               redirect_path: "/dashboard",
             });
@@ -83,7 +95,6 @@ exports.postLogin = (req, res) => {
             res.json({ errMessage: "Login Failed" });
           }
         } else {
-          console.log("Login Post Err: user not found");
           res.json({ errMessage: "User not Found" });
         }
       })
@@ -122,6 +133,7 @@ exports.postSignup = (req, res) => {
           if (data.insertedCount == 1) {
             console.log("new user created successfully");
             res.json({
+              sessionId: data.insertedId,
               message: "Registeration Successful",
               redirect_path: "/login",
             });
@@ -138,25 +150,25 @@ exports.postSignup = (req, res) => {
 };
 
 exports.getUserSession = (req, res) => {
-  if (req.session.userid) {
-    res.json({ session: req.session.userid });
+  if (req.sessionId) {
+    res.json({ sessionId: req.sessionId });
     return;
   }
   res.json({ errMessage: "Session expired, Login" });
 };
 
-exports.isLoggedIn = (req, res) => {
-  if (req.session.userid) {
-    res.redirect("/profile");
-  } else {
-    res.redirect("/login");
-  }
-};
+// exports.isLoggedIn = (req, res) => {
+//   if (req.sessionId) {
+//     res.redirect("/profile");
+//   } else {
+//     res.redirect("/login");
+//   }
+// };
 
-exports.logout = (req, res) => {
-  if (req.session.userid) {
-    req.session.destroy(() => res.redirect("/"));
-  } else {
-    res.redirect("/login");
-  }
-};
+// exports.logout = (req, res) => {
+//   if (req.sessionId) {
+//     req.session.destroy(() => res.redirect("/"));
+//   } else {
+//     res.redirect("/login");
+//   }
+// };

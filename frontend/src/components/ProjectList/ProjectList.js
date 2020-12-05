@@ -1,6 +1,7 @@
 import React, { Fragment, Component } from "react";
 import { CyobConsumer } from "../../contextAPI/context";
 import Button from "../Button/Button";
+import { Link } from "react-router-dom";
 import "./ProjectList.css";
 
 class ProjectList extends Component {
@@ -75,17 +76,19 @@ class ProjectList extends Component {
                             {project.posted_by}
                           </div>
                           <div className='project__button'>
-                            <Button
-                              text='view'
-                              onClick={() => getProject(project._id)}
-                            />
+                            <Link
+                              to={{
+                                pathname: "/project/" + project._id,
+                                state: { id: project._id },
+                              }}>
+                              <Button text='view' />
+                            </Link>
                           </div>
                         </li>
                       );
                     })}
                   </ul>
                 </div>
-                ;
               </div>
             );
           }}

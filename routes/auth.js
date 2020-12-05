@@ -20,8 +20,8 @@ router.post("/signup", postSignup);
 
 router.get("/usersession", getUserSession);
 
-router.get("/login-check", isLoggedIn);
+// router.get("/login-check", isLoggedIn);
 
-router.get("/logout", logout);
+// router.get("/logout", logout);
 
 module.exports = router;

@@ -13,6 +13,7 @@ class CyobProvider extends Component {
     super(props);
     this.state = {
       isAuth: false,
+      token: null,
       sessionId: null,
       isLoggedIn: false,
       hasSignedUp: false,
@@ -22,12 +23,34 @@ class CyobProvider extends Component {
       project: {},
     };
 
-    this.handleLoginUser = this.handleLoginUser.bind(this);
-    this.handleSignUpUser = this.handleSignUpUser.bind(this);
-    this.getAllProjects = this.getAllProjects.bind(this);
+    this.loginHandler = this.loginHandler.bind(this);
+    this.signupHandler = this.signupHandler.bind(this);
+    this.logoutHandler = this.logoutHandler.bind(this);
+    this.fetchAllProjectsHandler = this.fetchAllProjectsHandler.bind(this);
+    this.fetchProjectHandler = this.fetchProjectHandler.bind(this);
+    this.enrolWorkerHandler = this.enrolWorkerHandler.bind(this);
+    this.dropWorkerHandler = this.dropWorkerHandler.bind(this);
   }
 
-  handleLoginUser(event, inputFields) {
+  componentDidMount() {
+    this.fetchAllProjectsHandler();
+    const token = localStorage.getItem("token");
+    const expiryDate = localStorage.getItem("expiryDate");
+    if (!token || !expiryDate) {
+      return;
+    }
+    if (new Date(expiryDate) <= new Date()) {
+      this.logoutHandler();
+      return;
+    }
+    const sessionId = localStorage.getItem("sessionId");
+    const remainingMilliseconds =
+      new Date(expiryDate).getTime() - new Date().getTime();
+    this.setState({ isAuth: true, token: token, sessionId: sessionId });
+    this.setAutoLogout(remainingMilliseconds);
+  }
+
+  loginHandler(event, inputFields) {
     event.preventDefault();
     const url = "http://localhost:5000/login";
     const user = {
@@ -40,26 +63,36 @@ class CyobProvider extends Component {
         if (res.data.errMessage) {
           toast({ html: res.data.errMessage });
           this.setState({ errMessage: res.data.errMessage });
-        } else {
-          toast({ html: "Login Successful" });
-          this.setState({
-            isLoggedIn: true,
-            redirect_path: res.data.redirect_path,
-          });
+          return;
         }
+        this.setState({
+          isAuth: true,
+          token: res.data.token,
+          userId: res.data.userId,
+          redirect_path: res.data.redirect_path,
+        });
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("sessionId", res.data.sessionId);
+        const remainingMilliseconds = 60 * 30 * 1000; //30minutes
+        const expiryDate = new Date(
+          new Date().getTime() + remainingMilliseconds
+        );
+        localStorage.setItem("expiryDate", expiryDate.toISOString());
+        this.setAutoLogout(remainingMilliseconds);
+        toast({ html: "Login Successful" });
       })
       .catch((error) => {
         console.error("Login Error: ", error);
         this.setState({
           isLoggedIn: false,
-          errMessage: null,
+          errMessage: error,
         });
       });
   }
 
-  handleSignUpUser(event, inputFields) {
+  signupHandler(event, inputFields) {
     event.preventDefault();
-    const url = "http://localhost:5000/login";
+    const url = "http://localhost:5000/signup";
     const user = {
       username: inputFields.username,
       password: inputFields.password,
@@ -84,12 +117,19 @@ class CyobProvider extends Component {
         console.error("Signup Error: ", error);
         this.setState({
           hasSignedUp: false,
-          errMessage: null,
+          errMessage: error,
         });
       });
   }
 
-  getAllProjects() {
+  logoutHandler() {
+    this.setState({ isAuth: false, token: null });
+    localStorage.removeItem("token");
+    localStorage.removeItem("expiryDate");
+    localStorage.removeItem("sessionId");
+  }
+
+  fetchAllProjectsHandler() {
     const url = "http://localhost:5000/projects";
     axios
       .get(url)
@@ -108,8 +148,8 @@ class CyobProvider extends Component {
       });
   }
 
-  getProject(id) {
-    const url = "http://localhost:5000/project/" + id;
+  fetchProjectHandler(projId) {
+    const url = "http://localhost:5000/project/" + projId;
     axios
       .get(url)
       .then((res) => {
@@ -118,27 +158,65 @@ class CyobProvider extends Component {
           this.setState({ errMessage: res.data.errMessage });
           return;
         }
-        this.setState({
-          project: res.data,
-        });
+        this.setState({ project: res.data });
       })
       .catch((err) => {
-        console.log("All Projects Error:  " + err);
+        console.log("Get Error:  " + err);
       });
   }
 
-  componentDidMount() {
-    this.getAllProjects();
+  enrolWorkerHandler(event, projId) {
+    event.preventDefault();
+    const url = "http://localhost:5000/enlist";
+    const body = { projId };
+    axios
+      .post(url, body)
+      .then((res) => {
+        if (res.data.errMessage) {
+          toast({ html: res.data.errMessage });
+          this.setState({ errMessage: res.data.errMessage });
+          return;
+        }
+        toast({ html: res.data.message });
+      })
+      .catch((err) => {
+        console.log("Enlist Error:  " + err);
+      });
   }
+
+  dropWorkerHandler(projId) {
+    const url = "http://localhost:5000/dropworker/" + projId;
+    axios
+      .delete(url)
+      .then((res) => {
+        if (res.data.errMessage) {
+          toast({ html: res.data.errMessage });
+          this.setState({ errMessage: res.data.errMessage });
+          return;
+        }
+        toast({ html: res.data.message });
+      })
+      .catch((err) => {
+        console.log("DropWorker Error:  " + err);
+      });
+  }
+
+  setAutoLogout = (milliseconds) => {
+    setTimeout(() => {
+      this.logoutHandler();
+    }, milliseconds);
+  };
 
   render() {
     return (
       <CyobContext.Provider
         value={{
           ...this.state,
-          handleLoginUser: this.handleLoginUser,
-          handleSignUpUser: this.handleSignUpUser,
-          getProject: this.getProject,
+          loginHandler: this.loginHandler,
+          signupHandler: this.signupHandler,
+          fetchProjectHandler: this.fetchProjectHandler,
+          enrolWorkerHandler: this.enrolWorkerHandler,
+          dropWorkerHandler: this.dropWorkerHandler,
         }}>
         {this.props.children}
       </CyobContext.Provider>

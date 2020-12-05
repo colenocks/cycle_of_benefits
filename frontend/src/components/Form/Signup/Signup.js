@@ -28,7 +28,7 @@ class Signup extends Component {
     return (
       <CyobConsumer>
         {(value) => {
-          const { hasSignedUp, handleSignUpUser, redirect_path } = value;
+          const { hasSignedUp, signupHandler, redirect_path } = value;
 
           return hasSignedUp ? (
             // Display dialog box to sign
@@ -38,7 +38,7 @@ class Signup extends Component {
               <form
                 id='form'
                 name='signupform'
-                onSubmit={(e) => handleSignUpUser(e, this.state)}>
+                onSubmit={(e) => signupHandler(e, this.state)}>
                 <div className='signup__header'>
                   <h4>
                     Register{" "}

@@ -24,9 +24,9 @@ class Login extends Component {
     return (
       <CyobConsumer>
         {(value) => {
-          const { isLoggedIn, handleLoginUser, redirect_path } = value;
+          const { isAuth, loginHandler, redirect_path } = value;
 
-          return isLoggedIn ? (
+          return isAuth ? (
             <Redirect to={redirect_path} />
           ) : (
             <Fragment>
@@ -38,7 +38,7 @@ class Login extends Component {
                   <hr />
                   <form
                     id='loginform'
-                    onSubmit={(e) => handleLoginUser(e, this.state)}>
+                    onSubmit={(e) => loginHandler(e, this.state)}>
                     <div className='input__block'>
                       <label htmlFor='username'>Username</label>
                       <input

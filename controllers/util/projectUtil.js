@@ -14,8 +14,6 @@ exports.updateProjectOpen = (db) => {
         this.updateWorklistOpen(db).then(() => {
           console.log(`Open: ${nModified} status(es) updated`);
         });
-      } else {
-        console.log(`Open: no status updated`);
       }
     })
     .catch((err) => {
@@ -32,8 +30,6 @@ exports.updateWorklistOpen = async (db) => {
       const { nModified } = result;
       if (nModified > 0) {
         console.log(nModified + " worklist document(s) updated status to Open");
-      } else {
-        console.log("Open: no worklist statuses updated");
       }
     })
     .catch((err) => {
@@ -55,8 +51,6 @@ exports.updateWorklistAssigned = (db) => {
         console.log(
           `${nModified} worklist document(s) updated status to Assigned`
         );
-      } else {
-        console.log("Open: no worklist statuses updated");
       }
     })
     .catch((err) => {
@@ -77,8 +71,6 @@ exports.updateProjectAssigned = (db) => {
       if (nModified > 0) {
         this.updateWorklistAssigned(db);
         console.log(`${nModified} document(s) updated status to Assigned`);
-      } else {
-        console.log("Assigned: no statuses updated");
       }
     })
     .catch((err) => {
