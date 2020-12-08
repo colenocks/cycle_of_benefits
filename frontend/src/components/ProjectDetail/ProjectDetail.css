@@ -15,7 +15,15 @@
   padding: 2%;
   height: min-content;
   border: 1px solid #e8e8e8;
-  text-align: right;
+  text-transform: capitalize;
+}
+.view__type,
+.view__title,
+.view__city,
+.view__posted_by,
+.view__address,
+.view__tools {
+  text-transform: capitalize;
 }
 .project__image img {
   display: block;
@@ -30,37 +38,44 @@
   display: flex;
   flex-direction: column;
   padding: 1% 2%;
-  color: #fff;
-  font-size: 1em;
-  /* box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15); */
-}
-.view__block label {
-  color: #3fb6a8;
-  font-size: 1em;
-  text-transform: uppercase;
 }
 .view__block {
-  margin: 1% 0;
+  display: flex;
   width: 95%;
+  align-items: center;
+  margin: 1% 0;
 }
 
-.view__block input[type="text"],
-.view__block input[type="email"],
-.view__block input[type="password"] {
-  height: auto;
-  /* font-size: 0.9em; */
-  font-weight: 200;
-  width: 100%;
-  /* display: block; */
-  padding: 0.5em;
-  transition: all 1s cubic-bezier(0.64, 0.09, 0.08, 1);
-  background: rgba(255, 255, 255, 0);
-  color: #000;
-  font-family: "Roboto", sans-serif;
+.view__block label {
+  align-self: center !important;
+  text-align: left;
+  color: #3fb6a8;
+  font-size: 0.9em;
+  min-width: 30%;
+  text-transform: capitalize;
 }
 
-#editProject {
+.view__block input {
+  margin: auto !important;
+  display: block !important;
+  height: auto !important;
+  font-size: 0.9em !important;
+  padding: 1% 2% !important;
+  color: #000 !important;
+  border-bottom: 1px solid #e8e8e8 !important;
+}
+
+.hide-admin-control {
   display: none;
+}
+
+.show-admin-control {
+  display: block;
+}
+
+.no_project {
+  text-align: center;
+  text-transform: capitalize;
 }
 
 @media only screen and (max-width: 992px) {
