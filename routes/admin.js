@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  getProjects,
+  getAllProjects,
   approveProject,
   getUsers,
   updateProject,
@@ -14,7 +14,7 @@ const {
 
 router.get("/getusers", getUsers);
 
-router.get("/getallprojects", getProjects);
+router.get("/getallprojects", getAllProjects);
 
 router.post("/approveproject", approveProject);
 

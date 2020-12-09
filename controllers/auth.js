@@ -4,9 +4,6 @@ const { getDatabase } = require("../persistence/connection");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const admin_username = process.env.ADMIN_USER;
-const admin_password = process.env.ADMIN_PASSWORD;
-
 exports.findUser = (userid, callback) => {
   if (userid) {
     const db = getDatabase();
@@ -69,18 +66,15 @@ exports.postLogin = (req, res) => {
       .then((userRecord) => {
         if (userRecord) {
           let validPassword = bcrypt.compareSync(password, userRecord.password);
-          if (username === admin_username && password === admin_password) {
+          if (validPassword) {
             req.sessionId = userRecord.username;
-            res.json({
-              redirect_path: "/admin",
-            });
-          } else if (validPassword) {
-            req.sessionId = userRecord.username;
+            req.role = userRecord.role;
             //create a new signature
             const token = jwt.sign(
               {
                 username: userRecord.username,
                 userId: userRecord._id.toString(),
+                role: userRecord.role,
               },
               process.env.SESS_SECRET,
               { expiresIn: process.env.SESS_LIFETIME }
@@ -88,6 +82,7 @@ exports.postLogin = (req, res) => {
             res.json({
               token: token,
               sessionId: userRecord.username,
+              role: userRecord.role,
               message: "Login Successful",
               redirect_path: "/dashboard",
             });

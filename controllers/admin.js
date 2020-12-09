@@ -1,4 +1,3 @@
-const express = require("express");
 const { getDatabase } = require("../persistence/connection");
 
 const project = require("../controllers/project");
@@ -10,7 +9,7 @@ exports.getUsers = (req, res) => {
   console.log("Show users");
 };
 
-exports.getProjects = (req, res) => {
+exports.getAllProjects = (req, res) => {
   const db = getDatabase();
   db.collection("projects")
     .find({})

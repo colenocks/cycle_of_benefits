@@ -5,7 +5,7 @@ const { getDatabase } = require("../persistence/connection");
 const { cloudLink } = require("../persistence/cloudinary");
 const projectUtil = require("./util/projectUtil");
 
-const DB_ADMIN = process.env.ADMIN_USER;
+const DB_ADMIN = process.env.ADMIN_ROLE;
 
 const _getProjectCheckAccessLevel = (
   projectId,
@@ -113,7 +113,7 @@ exports.getProject = (req, res) => {
           res.json({ errMessage: "Cannot display project..." });
         }
       },
-      req.session.userid
+      req.role
     );
   } else {
     res.json({ errMessage: "Cannot display project..." });
@@ -144,34 +144,6 @@ exports.getAllProjects = (req, res) => {
     .catch((err) => {
       console.log(`all projects- Error running query: ${err}`);
     });
-};
-
-exports.getUserProjects = async (req, res) => {
-  if (req.session.userid) {
-    const db = getDatabase();
-    try {
-      const projects = await db
-        .collection("worklist")
-        .aggregate([
-          {
-            $lookup: {
-              from: "active_projects",
-              localField: "projectId",
-              foreignField: "_id",
-              as: "user_projects",
-            },
-          },
-        ])
-        .toArray();
-      if (projects) {
-        res.json(projects);
-      } else {
-        res.json({ errMessage: "You have not enlisted for any projects" });
-      }
-    } catch (err) {
-      console.log("getuser: ", err);
-    }
-  }
 };
 
 exports.enlistWorker = (req, res) => {

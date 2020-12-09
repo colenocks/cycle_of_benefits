@@ -4,53 +4,32 @@ const { getDatabase } = require("../persistence/connection");
 
 const auth = require("./auth");
 
-const admin_username = process.env.ADMIN_USER;
-
 exports.getUserProfile = (req, res) => {
-  const userid = req.session.userid;
-  if (userid) {
-    if (userid === admin_username) {
-      res.render("/admincontrol");
-      // res.json({redirect_path: "/admin"});
-    } else {
-      //get userdata and render profile
-      const db = getDatabase();
-      db.collection("profiles")
-        .findOne({ username: userid })
-        .then((userprofile) => {
-          if (userprofile) {
-            // res.json({userprofile});
-            res.render("profile", {
-              username: userprofile.username || "",
-              firstname: userprofile.firstname || "",
-              lastname: userprofile.lastname || "",
-              email: userprofile.email || "",
-              age: userprofile.dob || "",
-              address: userprofile.address || "",
-              phone: userprofile.phone || "",
-              nationalId: userprofile.nationalId || "",
-              state: userprofile.state || "",
-              points: userprofile.points || "0",
-            });
-            return;
-          } else {
-            res.json({ errMessage: "Could not find user profile" });
-          }
-        })
-        .catch((err) => {
-          console.log("get Profile Error: " + err);
-        });
-    }
-  } else {
-    res.redirect("/login");
+  // const userId = req.sessionId;
+  const userId = req.params.userId;
+  if (userId) {
+    const db = getDatabase();
+    db.collection("profiles")
+      .findOne({ username: userId })
+      .then((userProfile) => {
+        if (userProfile) {
+          res.json(userProfile);
+          return;
+        } else {
+          res.json({ errMessage: "Could not find user profile" });
+        }
+      })
+      .catch((err) => {
+        console.log("Get Profile Error: " + err);
+      });
   }
 };
 
 exports.updateUserProfile = (req, res) => {
   const userProfile = {
     username: req.body.username,
-    firstname: req.body.fname,
-    lastname: req.body.lname,
+    firstname: req.body.firstname,
+    lastname: req.body.lastname,
     email: req.body.email,
     dob: req.body.dob,
     address: req.body.address,
@@ -59,7 +38,7 @@ exports.updateUserProfile = (req, res) => {
     nationalId: req.body.nationalId,
   };
   auth.findUser(req.body.username, (id, username) => {
-    if (id) {
+    if (id || username) {
       const db = getDatabase();
       db.collection("profiles")
         .updateOne({ userId: id }, { $set: userProfile })
@@ -78,8 +57,48 @@ exports.updateUserProfile = (req, res) => {
   });
 };
 
+exports.getUserProjects = async (req, res) => {
+  const userId = req.params.userId;
+  if (userId) {
+    const db = getDatabase();
+    try {
+      const projects = await db
+        .collection("worklist")
+        .aggregate([
+          {
+            $lookup: {
+              from: "active_projects",
+              let: { userId: "$userId", projectId: "$projectId" },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$_id", "$$projectId"] },
+                        { $eq: [userId, "$$userId"] },
+                      ],
+                    },
+                  },
+                },
+              ],
+              as: "user_projects",
+            },
+          },
+        ])
+        .toArray();
+      if (projects) {
+        res.json(projects);
+      } else {
+        res.json({ errMessage: "You have not enlisted for any projects" });
+      }
+    } catch (err) {
+      console.log("getuser: ", err);
+    }
+  }
+};
+
 exports.redeemReward = (req, res) => {
-  const userid = req.session.userid;
+  const userid = req.sessionId;
   if (userid) {
     const reward = {
       benefit: req.body.benefit,

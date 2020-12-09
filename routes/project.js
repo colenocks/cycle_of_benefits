@@ -5,7 +5,6 @@ const { upload } = require("../persistence/cloudinary");
 const {
   getProject,
   getAllProjects,
-  getUserProjects,
   enlistWorker,
   dropWorker,
   addProject,
@@ -13,11 +12,9 @@ const {
   loadPoints,
 } = require("../controllers/project");
 
-router.get("/project/:id", getProject);
+router.get("/projects/:id", getProject);
 
 router.get("/projects", getAllProjects);
-
-router.get("/getuserproject", getUserProjects);
 
 router.post("/enlist", enlistWorker);
 

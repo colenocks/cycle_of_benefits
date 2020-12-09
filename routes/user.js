@@ -5,11 +5,14 @@ const {
   getUserProfile,
   updateUserProfile,
   redeemReward,
+  getUserProjects,
 } = require("../controllers/user");
 
-router.get("/profile", getUserProfile);
+router.get("/profile/:userId", getUserProfile);
 
-router.put("/updateuser", updateUserProfile);
+router.get("/myprojects/:userId", getUserProjects);
+
+router.put("/profile", updateUserProfile);
 
 router.put("/redeemreward", redeemReward);
 
