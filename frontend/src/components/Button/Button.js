@@ -7,7 +7,8 @@ const Button = (props) => {
     <button
       className={props.disabled ? "my__button disabled" : "my__button"}
       type={props.type ? props.type : ""}
-      disabled={props.disabled === true ? props.disabled : false}>
+      disabled={props.disabled === true ? props.disabled : false}
+      onClick={props.onClick}>
       {props.link ? (
         <Link to={props.link}>{props.text ? props.text : props.icon}</Link>
       ) : props.text ? (
