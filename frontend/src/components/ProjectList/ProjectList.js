@@ -25,7 +25,9 @@ class ProjectList extends Component {
                   key={project._id}
                   index={index}
                   project={project}
-                  viewProject={viewProject}
+                  btnLink={"/project/" + project._id}
+                  btnText='view'
+                  btnOnClick={viewProject}
                 />
               );
             })}

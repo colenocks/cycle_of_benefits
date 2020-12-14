@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { Link } from "react-router-dom";
 import Button from "../Button/Button";
 import "./ProjectDetail.css";
 
@@ -13,9 +14,10 @@ class ProjectDetail extends Component {
   }
 
   componentDidMount() {
-    const projId = this.props.match.params.id;
-    this.props.viewProject(projId);
-    this.setState({ project: this.props.project });
+    const current_project = JSON.parse(localStorage.getItem("current_project"));
+    if (current_project) {
+      this.setState({ project: current_project });
+    }
   }
 
   handleChange = ({ name, value }) => {
@@ -40,6 +42,9 @@ class ProjectDetail extends Component {
       <h4 className='no_project'>refresh project</h4>
     ) : (
       <div className='view__project'>
+        {/* <Link className='cancel-btn' to='/projects'>
+          go back
+        </Link> */}
         <div className='project__image'>
           <img
             src={project.image_url}
@@ -192,9 +197,9 @@ class ProjectDetail extends Component {
                 text='ENROL'
                 onClick={(e) => enrolWorker(e, project._id)}
               />
-              <a className='cancel-btn' href='/projects'>
+              <Link className='cancel-btn' to='/projects'>
                 Back
-              </a>
+              </Link>
             </div>
             <hr />
             <div

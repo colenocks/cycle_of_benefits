@@ -1,65 +1,6 @@
 .user__project {
   width: 100%;
-  margin: 0 auto;
 }
-
-.user_project__pills li:not(:first-child) {
-  background: rgb(212, 211, 211);
-  color: #000;
-}
-.user_project__pills li:not(:first-child):hover {
-  color: #fff;
-  background: #3fb6a8;
-}
-.user_project__pills li {
-  position: relative;
-  display: flex;
-  width: 100%;
-  padding: 0.5% 0.5%;
-  border-radius: 5px;
-  margin-bottom: 0.4em;
-}
-.user_project__pills li div {
-  padding: 0 1%;
-}
-.user_project__heading {
-  display: flex;
-  min-height: 30px;
-  align-items: center;
-  text-transform: uppercase;
-  font-size: 1.1em;
-  font-weight: 700;
-  color: #3fb6a8;
-  background: #222;
-}
-.user_project__heading div {
-  justify-content: center;
-  text-align: center;
-  padding: 0 1%;
-}
-.user_project__button button {
-  background: red;
-}
-
-.user_project__id,
-.user_project__heading__id {
-  width: 5%;
-}
-.user_project__title,
-.user_project__heading__title {
-  width: 40%;
-}
-.user_project__status,
-.user_project__heading__status {
-  width: 20%;
-  margin: 0 auto;
-}
-.user_project__worth,
-.user_project__heading__worth {
-  width: 20%;
-}
-.user_project__button,
-.user_project__heading__button {
-  width: 15%;
-  margin: 0 auto;
+.hover-red:hover {
+  background-color: #e80c3c;
 }

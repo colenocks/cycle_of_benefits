@@ -1,35 +1,40 @@
 import React from "react";
 import "./ProjectHeading.css";
 
-const ProjectHeading = () => {
+const ProjectHeading = (props) => {
+  const { noTitle, noStatus, noWorth, noWorkers, noPostedBy } = props;
   return (
     <div className='project__heading teal-text'>
       <div className='heading__id'>
         <i className='fas fa-list-ol'></i>
       </div>
-      <div className='heading__title'>
-        <i className='far fa-compass'></i>
+      <div
+        className={!noTitle ? "heading__title" : "heading__title no-display"}>
         <h6>Title</h6>
       </div>
-      <div className='heading__status'>
-        <i className='fas fa-hourglass-half'></i>
+      <div
+        className={
+          !noStatus ? "heading__status" : "heading__status no-display"
+        }>
         <h6>Status</h6>
       </div>
-      <div className='heading__worth'>
-        <i className='fa fa-hand-holding-usd'></i>
+      <div
+        className={!noWorth ? "heading__worth" : "heading__worth no-display"}>
         <h6>Worth</h6>
       </div>
-      <div className='heading__workers'>
-        <i className='fa fa-clipboard-list'></i>
+      <div
+        className={
+          !noWorkers ? "heading__workers" : "heading__workers no-display"
+        }>
         <h6>Workers</h6>
       </div>
-      <div className='heading__posted'>
-        <i className='fa fa-user'></i>
+      <div
+        className={
+          !noPostedBy ? "heading__posted" : "heading__posted no-display"
+        }>
         <h6>Posted by</h6>
       </div>
-      <div className='heading__button'>
-        <i className='fas fa-caret-square-right'></i>
-      </div>
+      <div className='heading__button'></div>
     </div>
   );
 };
