@@ -18,8 +18,11 @@ class Home extends Component {
       <main className='home'>
         <div className='section home__heading'>
           <div className='home__title'>
-            <h2>Welcome to the Cycle of benefits</h2>
-            <p>...a waste management platform</p>
+            <h2>The Cycle of benefits</h2>
+            <h5>
+              ...a waste management platform. Enlist for environmental projects
+              in exchange for benefits.{" "}
+            </h5>
           </div>
           <div className='home__carousel'>
             <div className='carousel carousel-slider'>
@@ -38,16 +41,18 @@ class Home extends Component {
             <div className='col s12 m6 l4'>
               <div className='card hoverable'>
                 <div className='card-content'>
-                  <span className='card-title'>Work on Projects</span>
+                  <span className='card-title center'>Find My Projects</span>
                   <p>
-                    I am a very simple card. I am good at containing small bits
-                    of information. I am convenient because I require little
-                    markup to use effectively.
+                    The platform is populated with environmental sanitation
+                    projects that are tagged with different rewards options and
+                    a time period or limit, depending on the amount of work to
+                    be carried out or the number of workers involved.
                   </p>
                 </div>
+
                 <div className='card-action'>
                   <Button
-                    link='/login-check'
+                    link='/login'
                     icon={
                       <i className='material-icons'>keyboard_arrow_right</i>
                     }
@@ -58,11 +63,13 @@ class Home extends Component {
             <div className='col s12 m6 l4'>
               <div className='card hoverable'>
                 <div className='card-content'>
-                  <span className='card-title'>Find Projects</span>
+                  <span className='card-title center'>Work on Projects</span>
                   <p>
-                    I am a very simple card. I am good at containing small bits
-                    of information. I am convenient because I require little
-                    markup to use effectively.
+                    Upon completion and after confirmation from a project
+                    verification body, the workers are awarded equal number of
+                    points based on the total number of reward points the
+                    projects bears. They can cash out in form of the benefits of
+                    their choice from the available options.
                   </p>
                 </div>
                 <div className='card-action'>
@@ -78,16 +85,17 @@ class Home extends Component {
             <div className='col s12 m6 l4'>
               <div className='card hoverable'>
                 <div className='card-content'>
-                  <span className='card-title'>Propose a Project</span>
+                  <span className='card-title center'>Propose a Project</span>
                   <p>
-                    I am a very simple card. I am good at containing small bits
-                    of information. I am convenient because I require little
-                    markup to use effectively.
+                    Although, only registered users can log into the system and
+                    enrol to work on one or more "Open" projects, any users can
+                    contact us if you want to propose a project. The project
+                    will be reviewed and uploaded for the public after approval.
                   </p>
                 </div>
                 <div className='card-action'>
                   <Button
-                    link='/login-check'
+                    link='/login'
                     icon={
                       <i className='material-icons'>keyboard_arrow_right</i>
                     }
