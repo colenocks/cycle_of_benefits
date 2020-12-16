@@ -1,6 +1,5 @@
 import React, { Component, Fragment } from "react";
-import { Redirect } from "react-router-dom";
-import { CyobConsumer } from "../../../contextAPI/context";
+import { Link } from "react-router-dom";
 import Button from "./../../Button/Button";
 import "./Login.css";
 
@@ -21,67 +20,56 @@ class Login extends Component {
   }
 
   render() {
+    const { loginHandler } = this.props;
     return (
-      <CyobConsumer>
-        {(value) => {
-          const { isAuth, loginHandler, redirect_path } = value;
-
-          return isAuth ? (
-            <Redirect to={redirect_path} />
-          ) : (
-            <Fragment>
-              <div className='login__form'>
-                <section className='login__body'>
-                  <div className='login__header'>
-                    <h4>Enter your login credentials</h4>
-                  </div>
-                  <hr />
-                  <form
-                    id='loginform'
-                    onSubmit={(e) => loginHandler(e, this.state)}>
-                    <div className='input__block'>
-                      <label htmlFor='username'>Username</label>
-                      <input
-                        id='username'
-                        type='text'
-                        name='username'
-                        value={this.state.username}
-                        onChange={this.handleChange}
-                        required
-                      />
-                    </div>
-                    <div className='input__block'>
-                      <label htmlFor='password'>Password</label>
-                      <input
-                        id='password'
-                        type='password'
-                        name='password'
-                        value={this.state.password}
-                        onChange={this.handleChange}
-                        required
-                      />
-                    </div>
-                    <div className='form__button'>
-                      <Button text='LOGIN' type='submit' />
-                    </div>
-                    <hr />
-                    <div className='form__info'>
-                      <p>
-                        Don't Have an Account?{" "}
-                        <span>
-                          <a href='./signup' className='green-text'>
-                            Sign up here!
-                          </a>
-                        </span>
-                      </p>
-                    </div>
-                  </form>
-                </section>
+      <Fragment>
+        <div className='login__form'>
+          <section className='login__body'>
+            <div className='login__header'>
+              <h4>Enter your login credentials</h4>
+            </div>
+            <hr />
+            <form id='loginform' onSubmit={(e) => loginHandler(e, this.state)}>
+              <div>
+                <label htmlFor='username'>Username</label>
+                <input
+                  id='username'
+                  type='text'
+                  name='username'
+                  value={this.state.username}
+                  onChange={this.handleChange}
+                  required
+                />
               </div>
-            </Fragment>
-          );
-        }}
-      </CyobConsumer>
+              <div>
+                <label htmlFor='password'>Password</label>
+                <input
+                  id='password'
+                  type='password'
+                  name='password'
+                  value={this.state.password}
+                  onChange={this.handleChange}
+                  required
+                />
+              </div>
+              <div className='form__button'>
+                <Button text='LOGIN' type='submit' />
+              </div>
+              <hr />
+              <div className='form__info'>
+                <p>
+                  Don't Have an Account?{" "}
+                  <span>
+                    <Link to='/signup' className='green-text'>
+                      Sign up here!
+                    </Link>
+                  </span>
+                </p>
+              </div>
+            </form>
+          </section>
+        </div>
+      </Fragment>
     );
   }
 }

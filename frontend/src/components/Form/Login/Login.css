@@ -2,7 +2,7 @@
   margin: 3% auto;
   color: #000;
   height: auto;
-  width: 70%;
+  width: 50%;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -21,4 +21,10 @@
   margin-bottom: 0.5em;
   font-size: 0.9em;
   text-align: center;
+}
+
+@media only screen and (max-width: 600px) {
+  .login__body {
+    width: 70%;
+  }
 }
