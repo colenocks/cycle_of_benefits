@@ -5,9 +5,9 @@ const HowToInfo = () => {
   return (
     <div className='information'>
       <div className='information__heading'>
-        <h4>
-          How it Works<i className='material-icons'>priority_high</i>
-        </h4>
+        <h3 className='center'>
+          How it Works <i className='material-icons'>priority_high</i>
+        </h3>
         <p>
           It's simple! Earn points each time you complete various project tasks.
           The points are automatically converted to the benefits of your

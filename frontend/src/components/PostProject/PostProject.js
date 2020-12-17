@@ -5,9 +5,8 @@ import "./PostProject.css";
 const PostProject = () => {
   return (
     <div className='post__project'>
-      <h3>Post a new Project</h3>
+      <h3 className='center'>Propose a Project</h3>
       <form
-        method='post'
         encType='multipart/form-data'
         action='/addproject'
         id='post_project'>
@@ -23,56 +22,40 @@ const PostProject = () => {
         </div>
         <div className='input__block'>
           <label htmlFor='title'>Title:</label>
-          <div>
-            <input id='proj_title' type='text' name='title' />
-          </div>
+          <input id='proj_title' type='text' name='title' />
         </div>
         <div className='input__block'>
-          <label htmlFor='details'>Project Details:</label>
-          <div>
-            <textarea id='proj_details' rows='6' name='details'></textarea>
-          </div>
+          <label htmlFor='details'>Details:</label>
+          <textarea id='proj_details' rows='6' name='details'></textarea>
         </div>
         <div className='input__block'>
           <label htmlFor='tools'>Required Tools:</label>
-          <div>
-            <input id='proj_tools' type='text' name='tools' />
-          </div>
+          <input id='proj_tools' type='text' name='tools' />
         </div>
         <div className='input__block'>
-          <label htmlFor='image'>Upload Picture file:</label>
-          <div>
-            <input type='file' id='proj_image' name='image' />
-          </div>
+          <label htmlFor='image'>Photos:</label>
+          <input type='file' id='proj_image' name='image' />
         </div>
         <div className='input__block'>
           <label htmlFor='address'>Address:</label>
-          <div>
-            <input id='proj_address' type='text' name='address' />
-          </div>
+          <input id='proj_address' type='text' name='address' />
         </div>
         <div className='input__block'>
           <label htmlFor='city'>City:</label>
-          <div>
-            <input id='proj_city' type='text' name='city' />
-          </div>
+          <input id='proj_city' type='text' name='city' />
         </div>
         <div className='input__block'>
-          <label htmlFor='duration'>Estimated Duration of Project: </label>
-          <div>
-            <input id='proj_duration' type='text' name='duration' />
-          </div>
+          <label htmlFor='duration'>Estimated Duration: </label>
+          <input id='proj_duration' type='text' name='duration' />
         </div>
         <div className='input__block'>
-          <label htmlFor='max_workers'>Number of Workers:</label>
-          <div>
-            <input
-              id='proj_max_workers'
-              type='number'
-              name='max_workers'
-              min='1'
-            />
-          </div>
+          <label htmlFor='max_workers'>No. of Workers:</label>
+          <input
+            id='proj_max_workers'
+            type='number'
+            name='max_workers'
+            min='1'
+          />
         </div>
         <div className='form__button'>
           <Button type='submit' text='SUBMIT' />

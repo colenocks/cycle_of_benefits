@@ -23,14 +23,12 @@
 }
 
 .tab_section > div {
-  /* border: 1px solid #fff; */
-  position: relative;
-  /* z-index: 1; */
-  width: 95%;
+  /* position: relative; */
+  width: 100%;
   margin: 1% auto;
   height: max-content;
   box-shadow: 0 1px 17px #e8e8e8;
-  padding: 1% 4%;
+  padding: 1% 2%;
   transition: all 0.5s ease-in;
 }
 
@@ -94,59 +92,62 @@
 }
 
 #profile-form {
-  /* border: 1px solid #555; */
-  /* border-radius: 20px; */
   padding: 1% 2%;
   width: 100%;
 }
-#profile-form label {
-  font-size: 1em;
+/* #profile-form label {
+  font-size: 1rem;
   color: #3fb6a8;
-  letter-spacing: normal;
-}
-#profile-form .input__block {
-  margin: 1% 0;
-}
-#profile-form input[type="text"],
-#profile-form input[type="email"],
-#profile-form input[type="date"],
-#profile-form textarea {
-  color: #000;
-  /* background: #494949; */
-  /* border-bottom: 1px solid #555; */
-  /* border: 1px solid #fff; */
+  letter-spacing: 1px;
+} */
+
+.input__block {
+  display: flex;
+  width: 97%;
+  align-items: center;
 }
 
-/* Profile styles */
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="date"] {
-  width: 100%;
-  border-radius: 5px;
-  /* line-height: 2; */
-  font-size: 1em;
-  padding: 1% 2%;
-  /* margin-left: 5px; */
-  /* border-bottom: solid 3px #000; */
-  /* background: #76b852; */
-  transition: all 0.3s cubic-bezier(0.64, 0.09, 0.08, 1);
+.input__block label {
+  align-self: flex-start !important;
+  text-align: left;
+  min-width: 30%;
+  text-transform: capitalize;
+  font-size: 1rem;
+  color: #3fb6a8;
+  letter-spacing: 1px;
+  margin-right: 1%;
+}
+
+.input__block input,
+.input__block textarea {
+  align-self: flex-start !important;
+  line-height: 1;
+  display: block !important;
+  height: auto !important;
+  display: block !important;
+  font-size: 0.9em !important;
+  padding: 0 2% !important;
+  border-radius: 3px !important;
+  border-bottom: 1px solid #e8e8e8 !important;
 }
 
 input[type="number"] {
   width: 10% !important;
-  border-radius: 5px;
-  font-size: 1em;
-  padding: 1%;
+  border: 1px solid #e8e8e8 !important;
+  text-align: center;
+  padding: 2% !important;
 }
-textarea {
-  width: 100%;
-  border-radius: 5px;
-  font-size: 1em;
-  min-height: 100px;
-  padding: 1% 2%;
+
+/* #profile-form input,
+#profile-form textarea {
+  background: #f3f3f3 !important;
+  width: 100% !important;
+  border-radius: 5px !important;
+  line-height: 1 !important;
+  font-size: 1em !important;
+  padding: 0 2% !important;
   transition: all 0.3s cubic-bezier(0.64, 0.09, 0.08, 1);
-}
+} */
 
 @media only screen and (max-width: 600px) {
   .dashboard {

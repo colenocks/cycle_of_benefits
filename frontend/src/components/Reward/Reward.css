@@ -1,18 +1,31 @@
 .rewards {
-  position: relative;
   display: flex;
   flex-direction: column;
   padding: 1% 4%;
   width: 100%;
+  /* height: auto; */
+}
+
+.load__points {
+  position: relative;
+  border-top: 1px solid #dfdfdf;
+  border-bottom: 1px solid #dfdfdf;
+}
+
+.rewards__header .badge {
+  margin: auto;
+  line-height: 1.2;
   height: auto;
+  padding: 1% !important;
+  font-size: 1.1rem !important;
 }
 
 .myrewards {
   display: flex;
   flex-direction: column;
-  padding: 2% 1%;
+  /* padding: 2% 1%; */
 }
 
-#rewardform div {
-  margin: 3% auto;
+.reward__form div {
+  margin: 2% auto;
 }

@@ -13,6 +13,10 @@ class ProjectDetail extends Component {
     };
   }
 
+  // shouldComponentUpdate(nextProps, nextState) {
+  //   return nextProps !== this.props.props;
+  // }
+
   componentDidMount() {
     const current_project = JSON.parse(localStorage.getItem("current_project"));
     if (current_project) {
@@ -28,14 +32,14 @@ class ProjectDetail extends Component {
     });
   };
 
-  toggleAdminFunctions() {
+  toggleAdminFunctions = (e) => {
+    e.preventDefault();
     let { disabled } = this.state;
     disabled ? (disabled = false) : (disabled = true);
     this.setState({ disabled });
-  }
+  };
 
   render() {
-    const { isAdmin, enrolWorker, approveProject, updateProject } = this.props;
     const { project } = this.state;
 
     return project === {} ? (
@@ -46,11 +50,19 @@ class ProjectDetail extends Component {
           go back
         </Link> */}
         <div className='project__image'>
-          <img
-            src={project.image_url}
-            alt={"cyob" + project._id + " project photo"}
-            form='project-form'
-          />
+          {this.state.disabled ? (
+            <img
+              src={project.image_url}
+              alt={"cyob" + project._id + " project photo"}
+              form='project-form'
+            />
+          ) : (
+            <input
+              type='image'
+              accept='image/*'
+              alt={"cyob" + project._id + " project photo"}
+            />
+          )}
           <div className='project__title'>
             <label form='project-form'> Project Title: </label>{" "}
             <span>{project.title}</span>
@@ -192,31 +204,38 @@ class ProjectDetail extends Component {
               />
             </div>
             <div className='form-button'>
-              <Button
-                id='interest'
-                text='ENROL'
-                onClick={(e) => enrolWorker(e, project._id)}
-              />
+              {this.props.isAdmin ? (
+                <Button
+                  text='EDIT'
+                  onClick={(e) => this.toggleAdminFunctions(e)}
+                />
+              ) : (
+                <Button
+                  id='interest'
+                  text='ENROL'
+                  onClick={(e) => this.props.enrolForProject(e, project._id)}
+                />
+              )}
               <Link className='cancel-btn' to='/projects'>
                 Back
               </Link>
             </div>
-            <hr />
-            <div
-              className={isAdmin ? "show-admin-control" : "hide-admin-control"}>
-              <Button text='EDIT' onClick={this.toggleAdminFunctions} />
+          </form>
+          <hr />
+          {this.props.isAdmin ? (
+            <div>
               <Button
                 text='ADD TO LIST'
-                onClick={(e) => approveProject(e, project._id)}
+                onClick={(e) => this.props.approveProject(e, project)}
                 disabled={this.state.disabled}
               />
               <Button
                 text='UPDATE PROJECT'
-                onClick={(e) => updateProject(e, project._id)}
+                onClick={(e) => this.props.updateProject(e, project)}
                 disabled={this.state.disabled} //Optional
               />
             </div>
-          </form>
+          ) : null}
         </div>
       </div>
     );
