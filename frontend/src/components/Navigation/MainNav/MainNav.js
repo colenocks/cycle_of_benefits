@@ -1,10 +1,18 @@
 import React from "react";
-// import { Link } from "react-router-dom";
 import "./MainNav.css";
 import Logo from "../../../cyobLogo.png";
 
+const navLinks = [
+  { text: "Home", link: "/", auth: "" },
+  { text: "About", link: "/about", auth: "" },
+  { text: "Projects", link: "/projects", auth: "" },
+  { text: "Dashboard", link: "/dashboard", auth: true },
+  { text: "Login", link: "/login", auth: false },
+  { text: "Signup", link: "/signup", auth: false },
+];
+
 const MainNav = (props) => {
-  const { usersession } = props;
+  const navItems = [...navLinks];
   return (
     <React.Fragment>
       <nav className='cyan darken-3 z-depth-2'>
@@ -23,68 +31,44 @@ const MainNav = (props) => {
               <i className='material-icons'>menu</i>
             </a>
             <ul id='nav-mobile' className='right hide-on-med-and-down'>
-              <li>
-                <a href='/'>Home</a>
-              </li>
-              <li>
-                <a href='/projects'>Projects</a>
-              </li>
-              <li>
-                <a href='/about'>About</a>
-              </li>
-              <li>
-                {usersession ? (
-                  <a href='/dashboard'>Profile</a>
-                ) : (
-                  <a href='/login'>Login</a>
-                )}
-              </li>
-              <li>
-                {usersession ? (
-                  <a href='/logout'>
-                    <span className='red-text'>Log off</span>
+              {navItems
+                .filter(
+                  (item) => item.auth === props.isAuth || item.auth === ""
+                )
+                .map((item) => (
+                  <li key={item.text}>
+                    <a href={item.link}>{item.text}</a>
+                  </li>
+                ))}
+              {props.isAuth && (
+                <li>
+                  <a href='/' onClick={() => props.logoutHandler()}>
+                    Logout
                   </a>
-                ) : (
-                  <a href='/signup'>Sign Up</a>
-                )}
-              </li>
+                </li>
+              )}
             </ul>
           </div>
         </div>
       </nav>
-
+      {/* Mobile Menu Sidenav */}
       <ul className='sidenav' id='mobile-menu'>
-        <li>
-          <a className='sidenav-close' href='/'>
-            Home
-          </a>
-        </li>
-        <li>
-          <a className='sidenav-close' href='/projects'>
-            Projects
-          </a>
-        </li>
-        <li>
-          <a className='sidenav-close' href='/about'>
-            About
-          </a>
-        </li>
-        <li>
-          {usersession ? (
-            <a href='/dashboard'>Profile</a>
-          ) : (
-            <a href='/login'>Login</a>
-          )}
-        </li>
-        <li>
-          {usersession ? (
-            <a href='/logout'>
-              <span className='red-text'>Log off</span>
+        {navItems
+          .filter((item) => item.auth === props.isAuth || item.auth === "")
+          .map((item) => (
+            <li key={item.text}>
+              <a href={item.link} className='sidenav-close'>
+                {item.text}
+              </a>
+            </li>
+          ))}
+        {props.isAuth && (
+          <li>
+            <a href='/login' onClick={() => props.logoutHandler()}>
+              Logout
             </a>
-          ) : (
-            <a href='/signup'>Sign Up</a>
-          )}
-        </li>
+          </li>
+        )}
       </ul>
     </React.Fragment>
   );
