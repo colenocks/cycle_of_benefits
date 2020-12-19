@@ -5,7 +5,13 @@ import "./Button.css";
 const Button = (props) => {
   return (
     <button
-      className={props.disabled ? "my__button disabled" : "my__button"}
+      className={
+        props.disabled
+          ? "my__button disabled"
+          : props.style
+          ? "my__button " + props.style
+          : "my__button"
+      }
       type={props.type ? props.type : ""}
       disabled={props.disabled === true ? props.disabled : false}
       onClick={props.onClick}>

@@ -10,10 +10,11 @@ class ProjectList extends Component {
       <Fragment>
         <div className='project'>
           <div className='project__header'>
-            <h4>Active Projects</h4>
+            <h4>Live Projects</h4>
             <h6>
-              Current list of all approved Projects. Enroll for projects that
-              interests you and earn rewards.
+              This is the current list of all Approved Environmental Projects.
+              Check out the details and enlist to participate in your project(s)
+              of interest in exchange for benefits.
             </h6>
           </div>
 
