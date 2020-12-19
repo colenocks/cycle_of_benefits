@@ -65,6 +65,12 @@
   border-bottom: 1px solid #e8e8e8 !important;
 }
 
+.view__block input[type="number"] {
+  justify-self: flex-start !important;
+  text-align: left !important;
+  width: fit-content !important;
+}
+
 .hide-admin-control {
   display: none;
 }

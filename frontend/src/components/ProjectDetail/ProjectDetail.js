@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
+// import axios from "axios";
 import Button from "../Button/Button";
 import "./ProjectDetail.css";
 
@@ -13,15 +14,9 @@ class ProjectDetail extends Component {
     };
   }
 
-  // shouldComponentUpdate(nextProps, nextState) {
-  //   return nextProps !== this.props.props;
-  // }
-
   componentDidMount() {
     const current_project = JSON.parse(localStorage.getItem("current_project"));
-    if (current_project) {
-      this.setState({ project: current_project });
-    }
+    this.setState({ project: current_project });
   }
 
   handleChange = ({ name, value }) => {
@@ -41,7 +36,6 @@ class ProjectDetail extends Component {
 
   render() {
     const { project } = this.state;
-
     return project === {} ? (
       <h4 className='no_project'>refresh project</h4>
     ) : (
@@ -58,9 +52,12 @@ class ProjectDetail extends Component {
             />
           ) : (
             <input
-              type='image'
+              name='image_url'
+              type='file'
               accept='image/*'
               alt={"cyob" + project._id + " project photo"}
+              onChange={(e) => this.handleChange(e.target)}
+              defaultValue={null}
             />
           )}
           <div className='project__title'>
@@ -79,7 +76,7 @@ class ProjectDetail extends Component {
                 id='type'
                 defaultValue={project.type}
                 disabled={this.state.disabled}
-                onChange={this.handleChange}
+                onChange={(e) => this.handleChange(e.target)}
               />
             </div>
             <div className='view__block'>
@@ -90,7 +87,7 @@ class ProjectDetail extends Component {
                 name='title'
                 defaultValue={project.title}
                 disabled={this.state.disabled}
-                onChange={this.handleChange}
+                onChange={(e) => this.handleChange(e.target)}
               />
             </div>
             <div className='view__block'>
@@ -101,18 +98,18 @@ class ProjectDetail extends Component {
                 name='details'
                 defaultValue={project.details}
                 disabled={this.state.disabled}
-                onChange={this.handleChange}
+                onChange={(e) => this.handleChange(e.target)}
               />
             </div>
             <div className='view__block'>
-              <label htmlFor='duration'> Duration: </label>
+              <label htmlFor='estimated_duration'> Duration: </label>
               <input
-                className='view__duration'
+                className='view__estimated_duration'
                 type='text'
-                name='duration'
+                name='estimated_duration'
                 defaultValue={project.estimated_duration}
                 disabled={this.state.disabled}
-                onChange={this.handleChange}
+                onChange={(e) => this.handleChange(e.target)}
               />
             </div>
             <div className='view__block'>
@@ -123,7 +120,7 @@ class ProjectDetail extends Component {
                 name='address'
                 defaultValue={project.address}
                 disabled={this.state.disabled}
-                onChange={this.handleChange}
+                onChange={(e) => this.handleChange(e.target)}
               />
             </div>
             <div className='view__block'>
@@ -134,7 +131,7 @@ class ProjectDetail extends Component {
                 name='city'
                 defaultValue={project.city}
                 disabled={this.state.disabled}
-                onChange={this.handleChange}
+                onChange={(e) => this.handleChange(e.target)}
               />
             </div>
             <div className='view__block'>
@@ -145,7 +142,7 @@ class ProjectDetail extends Component {
                 name='status'
                 defaultValue={project.status}
                 disabled={this.state.disabled}
-                onChange={this.handleChange}
+                onChange={(e) => this.handleChange(e.target)}
               />
             </div>
             <div className='view__block'>
@@ -156,40 +153,40 @@ class ProjectDetail extends Component {
                 name='tools'
                 defaultValue={project.tools}
                 disabled={this.state.disabled}
-                onChange={this.handleChange}
+                onChange={(e) => this.handleChange(e.target)}
               />
             </div>
             <div className='view__block'>
               <label htmlFor='current_workers'>Current Workers: </label>
               <input
                 className='view__current_workers'
-                type='text'
+                type='number'
                 name='current_workers'
                 defaultValue={project.current_workers}
                 disabled={this.state.disabled}
-                onChange={this.handleChange}
+                onChange={(e) => this.handleChange(e.target)}
               />
             </div>
             <div className='view__block'>
-              <label htmlFor='no_of_workers'>Maximum Workers: </label>
+              <label htmlFor='max_workers'>Maximum Workers: </label>
               <input
-                className='view__no_of_workers'
-                type='text'
-                name='no_of_workers'
+                className='view__max_workers'
+                type='number'
+                name='max_workers'
                 defaultValue={project.max_workers}
                 disabled={this.state.disabled}
-                onChange={this.handleChange}
+                onChange={(e) => this.handleChange(e.target)}
               />
             </div>
             <div className='view__block'>
-              <label htmlFor='worth'>Total Points: </label>
+              <label htmlFor='reward_points'>Total Points: </label>
               <input
-                className='view__worth'
-                type='text'
-                name='worth'
+                className='view__reward_points'
+                type='number'
+                name='reward_points'
                 defaultValue={project.reward_points}
                 disabled={this.state.disabled}
-                onChange={this.handleChange}
+                onChange={(e) => this.handleChange(e.target)}
               />
             </div>
             <div className='view__block'>
@@ -199,8 +196,7 @@ class ProjectDetail extends Component {
                 type='text'
                 name='posted_by'
                 defaultValue={project.posted_by}
-                disabled={this.state.disabled}
-                onChange={this.handleChange}
+                disabled
               />
             </div>
             <div className='form-button'>
@@ -226,12 +222,14 @@ class ProjectDetail extends Component {
             <div>
               <Button
                 text='ADD TO LIST'
-                onClick={(e) => this.props.approveProject(e, project)}
+                onClick={(e) =>
+                  this.props.approveProject(e, this.state.project._id)
+                }
                 disabled={this.state.disabled}
               />
               <Button
                 text='UPDATE PROJECT'
-                onClick={(e) => this.props.updateProject(e, project)}
+                onClick={(e) => this.props.updateProject(e, this.state.project)}
                 disabled={this.state.disabled} //Optional
               />
             </div>
