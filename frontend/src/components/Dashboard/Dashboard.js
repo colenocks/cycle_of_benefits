@@ -76,16 +76,23 @@ class Profile extends Component {
     }
   };
 
-  updateUserProfileHandler = (userProfile) => {
+  updateUserProfileHandler = (event, userProfile) => {
+    event.preventDefault();
     const url = "http://localhost:5000/profile";
+    const token = localStorage.getItem("token");
     axios
-      .put(url, userProfile)
+      .put(url, userProfile, { headers: { Authorization: `bearer ${token}` } })
       .then((res) => {
         if (res.data.errMessage) {
           window.M.toast({ html: res.data.errMessage });
           return;
         }
         window.M.toast({ html: res.data.message });
+        this.setState({ profile: res.data.updated_current_user });
+        localStorage.setItem(
+          "current_user",
+          JSON.stringify(res.data.updated_current_user)
+        );
       })
       .catch((err) => {
         console.log("Update UserProfile Error:  ", err);

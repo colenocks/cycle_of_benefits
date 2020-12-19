@@ -59,7 +59,7 @@ class UserProfile extends Component {
         <form
           encType='multipart/form-data'
           id='profile-form'
-          onSubmit={() => updateProfile(profile)}>
+          onSubmit={(e) => updateProfile(e, this.state.profile)}>
           <div className='input__block'>
             <label htmlFor='username'>Username: </label>
             <input
@@ -78,7 +78,7 @@ class UserProfile extends Component {
               type='text'
               name='firstname'
               defaultValue={profile.firstname}
-              onChange={this.handleChange}
+              onChange={(e) => this.handleChange(e.target)}
               readOnly={readOnly}
             />
           </div>
@@ -89,7 +89,7 @@ class UserProfile extends Component {
               type='text'
               name='lastname'
               defaultValue={profile.lastname}
-              onChange={this.handleChange}
+              onChange={(e) => this.handleChange(e.target)}
               readOnly={readOnly}
             />
           </div>
@@ -100,7 +100,7 @@ class UserProfile extends Component {
               type='email'
               name='email'
               defaultValue={profile.email}
-              onChange={this.handleChange}
+              onChange={(e) => this.handleChange(e.target)}
               readOnly={readOnly}
             />
           </div>
@@ -111,7 +111,7 @@ class UserProfile extends Component {
               type={readOnly ? "text" : "date"}
               name='dob'
               defaultValue={profile.dob}
-              onChange={this.handleChange}
+              onChange={(e) => this.handleChange(e.target)}
               max='2000-01-01'
               readOnly={readOnly}
             />
@@ -123,7 +123,7 @@ class UserProfile extends Component {
               type='text'
               name='address'
               defaultValue={profile.address}
-              onChange={this.handleChange}
+              onChange={(e) => this.handleChange(e.target)}
               readOnly={readOnly}
             />
           </div>
@@ -134,7 +134,7 @@ class UserProfile extends Component {
               type='text'
               name='phone'
               defaultValue={profile.phone}
-              onChange={this.handleChange}
+              onChange={(e) => this.handleChange(e.target)}
               readOnly={readOnly}
             />
           </div>
@@ -145,7 +145,7 @@ class UserProfile extends Component {
               type='text'
               name='state'
               defaultValue={profile.state}
-              onChange={this.handleChange}
+              onChange={(e) => this.handleChange(e.target)}
               readOnly={readOnly}
             />
           </div>
@@ -156,7 +156,7 @@ class UserProfile extends Component {
               type='text'
               name='national_id'
               defaultValue={profile.nationalId}
-              onChange={this.handleChange}
+              onChange={(e) => this.handleChange(e.target)}
               readOnly={readOnly}
             />
           </div>
