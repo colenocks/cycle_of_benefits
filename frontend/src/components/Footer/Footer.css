@@ -70,5 +70,6 @@
   .main__footer p,
   .main__footer .footer__icon {
     padding-bottom: 1em;
+    align-self: center;
   }
 }

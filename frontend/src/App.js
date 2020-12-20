@@ -234,16 +234,20 @@ class App extends Component {
       });
   };
 
-  updateProjectHandler = (event, updatedData) => {
+  updateProjectHandler = (event, updateData) => {
     event.preventDefault();
+    let url = "http://localhost:5000/updateproject/" + updateData._id;
+    let formData = new FormData();
+    for (let key in updateData) {
+      formData.append(key, updateData[key]);
+    }
     const token = localStorage.getItem("token");
-    let url = "http://localhost:5000/updateproject";
     axios
-      .put(
-        url,
-        { updatedData },
-        { headers: { Authorization: `bearer ${token}` } }
-      )
+      .put(url, formData, {
+        headers: {
+          Authorization: `bearer ${token}`,
+        },
+      })
       .then((res) => {
         if (res.data.errMessage) {
           toast({ html: res.data.errMessage });

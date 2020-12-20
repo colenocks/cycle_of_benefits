@@ -19,7 +19,23 @@ class ProjectDetail extends Component {
     this.setState({ project: current_project });
   }
 
-  handleChange = ({ name, value }) => {
+  handleInputChange = ({ name, value }) => {
+    this.setState((prevState) => {
+      let project = { ...prevState.project };
+      project[name] = value;
+      return { project };
+    });
+  };
+
+  handleFilesChange = ({ name, files }) => {
+    let value = "";
+    if (files.length > 1) {
+      value = files.map((file) => {
+        return file;
+      });
+    } else {
+      value = files[0];
+    }
     this.setState((prevState) => {
       let project = { ...prevState.project };
       project[name] = value;
@@ -48,25 +64,41 @@ class ProjectDetail extends Component {
             <img
               src={project.image_url}
               alt={"cyob" + project._id + " project photo"}
-              form='project-form'
             />
-          ) : (
-            <input
-              name='image_url'
-              type='file'
-              accept='image/*'
-              alt={"cyob" + project._id + " project photo"}
-              onChange={(e) => this.handleChange(e.target)}
-              defaultValue={null}
-            />
-          )}
+          ) : null}
           <div className='project__title'>
             <label form='project-form'> Project Title: </label>{" "}
             <span>{project.title}</span>
           </div>
         </div>
         <div id='project'>
-          <form name='project-form' id='project-form'>
+          <form
+            name='project-form'
+            id='project-form'
+            encType='multipart/form-data'>
+            {this.state.disabled ? null : (
+              <div className='view__block'>
+                <label htmlFor='image_url'>New Image:</label>
+                <input
+                  name='image_url'
+                  type='file'
+                  accept='image/*'
+                  alt={"cyob" + project._id + " project photo"}
+                  onChange={(e) => this.handleFilesChange(e.target)}
+                />
+              </div>
+            )}
+            <div className='view__block'>
+              <label htmlFor='title'>Title: </label>{" "}
+              <input
+                className='view__title'
+                type='text'
+                name='title'
+                defaultValue={project.title}
+                disabled={this.state.disabled}
+                onChange={(e) => this.handleInputChange(e.target)}
+              />
+            </div>
             <div className='view__block'>
               <label htmlFor='type'>Type: </label>
               <input
@@ -76,18 +108,7 @@ class ProjectDetail extends Component {
                 id='type'
                 defaultValue={project.type}
                 disabled={this.state.disabled}
-                onChange={(e) => this.handleChange(e.target)}
-              />
-            </div>
-            <div className='view__block'>
-              <label htmlFor='title'>Title: </label>{" "}
-              <input
-                className='view__title'
-                type='text'
-                name='title'
-                defaultValue={project.title}
-                disabled={this.state.disabled}
-                onChange={(e) => this.handleChange(e.target)}
+                onChange={(e) => this.handleInputChange(e.target)}
               />
             </div>
             <div className='view__block'>
@@ -98,7 +119,7 @@ class ProjectDetail extends Component {
                 name='details'
                 defaultValue={project.details}
                 disabled={this.state.disabled}
-                onChange={(e) => this.handleChange(e.target)}
+                onChange={(e) => this.handleInputChange(e.target)}
               />
             </div>
             <div className='view__block'>
@@ -109,7 +130,7 @@ class ProjectDetail extends Component {
                 name='estimated_duration'
                 defaultValue={project.estimated_duration}
                 disabled={this.state.disabled}
-                onChange={(e) => this.handleChange(e.target)}
+                onChange={(e) => this.handleInputChange(e.target)}
               />
             </div>
             <div className='view__block'>
@@ -120,7 +141,7 @@ class ProjectDetail extends Component {
                 name='address'
                 defaultValue={project.address}
                 disabled={this.state.disabled}
-                onChange={(e) => this.handleChange(e.target)}
+                onChange={(e) => this.handleInputChange(e.target)}
               />
             </div>
             <div className='view__block'>
@@ -131,7 +152,7 @@ class ProjectDetail extends Component {
                 name='city'
                 defaultValue={project.city}
                 disabled={this.state.disabled}
-                onChange={(e) => this.handleChange(e.target)}
+                onChange={(e) => this.handleInputChange(e.target)}
               />
             </div>
             <div className='view__block'>
@@ -142,7 +163,7 @@ class ProjectDetail extends Component {
                 name='status'
                 defaultValue={project.status}
                 disabled={this.state.disabled}
-                onChange={(e) => this.handleChange(e.target)}
+                onChange={(e) => this.handleInputChange(e.target)}
               />
             </div>
             <div className='view__block'>
@@ -153,7 +174,7 @@ class ProjectDetail extends Component {
                 name='tools'
                 defaultValue={project.tools}
                 disabled={this.state.disabled}
-                onChange={(e) => this.handleChange(e.target)}
+                onChange={(e) => this.handleInputChange(e.target)}
               />
             </div>
             <div className='view__block'>
@@ -164,7 +185,7 @@ class ProjectDetail extends Component {
                 name='current_workers'
                 defaultValue={project.current_workers}
                 disabled={this.state.disabled}
-                onChange={(e) => this.handleChange(e.target)}
+                onChange={(e) => this.handleInputChange(e.target)}
               />
             </div>
             <div className='view__block'>
@@ -175,7 +196,7 @@ class ProjectDetail extends Component {
                 name='max_workers'
                 defaultValue={project.max_workers}
                 disabled={this.state.disabled}
-                onChange={(e) => this.handleChange(e.target)}
+                onChange={(e) => this.handleInputChange(e.target)}
               />
             </div>
             <div className='view__block'>
@@ -186,7 +207,7 @@ class ProjectDetail extends Component {
                 name='reward_points'
                 defaultValue={project.reward_points}
                 disabled={this.state.disabled}
-                onChange={(e) => this.handleChange(e.target)}
+                onChange={(e) => this.handleInputChange(e.target)}
               />
             </div>
             <div className='view__block'>
