@@ -17,7 +17,7 @@ const mainRoutes = require("./routes/main");
 const hostname = process.env.LOCAL_HOST;
 const port = process.env.LOCAL_PORT;
 
-const { mongoConnect } = require("./persistence/connection");
+const { mongoConnect } = require("./database/connection");
 
 app.use(express.static(path.join(__dirname, "dist")));
 app.use(express.json({ limit: "1mb" }));

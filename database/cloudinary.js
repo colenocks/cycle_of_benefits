@@ -25,6 +25,7 @@ const storage = multer.diskStorage({
 
 const uploader = (file, folder) =>
   new Promise((resolve) => {
+    console.log("uploader file: ", file);
     cloudinary.uploader.upload(
       file,
       (result) => {

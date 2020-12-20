@@ -1,4 +1,4 @@
-const { getDatabase } = require("../../persistence/connection");
+const { getDatabase } = require("../../database/connection");
 const mongodb = require("mongodb");
 
 exports.updateProjectOpen = (db) => {
@@ -37,7 +37,7 @@ exports.updateWorklistOpen = async (db) => {
     });
 };
 
-exports.updateWorklistAssigned = (db) => {
+exports.updateWorklistAssigned = (db, callback) => {
   const filter = {
     status: { $ne: "Completed" },
     $expr: { $eq: ["$current_workers", "$max_workers"] },
@@ -48,9 +48,7 @@ exports.updateWorklistAssigned = (db) => {
     .then(({ result }) => {
       const { nModified } = result;
       if (nModified > 0) {
-        console.log(
-          `${nModified} worklist document(s) updated status to Assigned`
-        );
+        callback(nModified);
       }
     })
     .catch((err) => {
@@ -69,8 +67,9 @@ exports.updateProjectAssigned = (db) => {
     .then(({ result }) => {
       let { nModified } = result;
       if (nModified > 0) {
-        this.updateWorklistAssigned(db);
-        console.log(`${nModified} document(s) updated status to Assigned`);
+        this.updateWorklistAssigned(db, (done) => {
+          console.log(`${nModified} document(s) updated status to Assigned`);
+        });
       }
     })
     .catch((err) => {
@@ -87,11 +86,8 @@ exports.updateProjectComplete = (projid, callback) => {
     .then(({ result }) => {
       const { nModified } = result;
       if (nModified > 0) {
-        console.log(
-          `${nModified}
-                  " Project(s) have been flagged as Completed`
-        );
-        this.deleteWorklistProject(projid, db, (deleted) => {
+        console.log(`${nModified} Project(s) have been flagged as Completed`);
+        this.deleteWorklistProject(projid, (deleted) => {
           if (deleted) callback(nModified);
         });
       } else {
@@ -156,24 +152,20 @@ exports.decrementCurrentWorker = (projid, callback) => {
 };
 
 exports.checkWorklistForDuplicates = (projid, userid, callback) => {
-  this.findApprovedProject(projid, (id) => {
-    if (id) {
-      const db = getDatabase();
-      db.collection("worklist")
-        .findOne({ projectId: id, userId: userid })
-        .then((data) => {
-          // if duplicate is found
-          if (data) {
-            callback(data);
-            return;
-          }
-          callback(null);
-        })
-        .catch((err) => {
-          console.log("checkDuplicate- Error running query: " + err);
-        });
-    }
-  });
+  const db = getDatabase();
+  db.collection("worklist")
+    .findOne({ projectId: projid, userId: userid })
+    .then((data) => {
+      // if duplicate is found
+      if (data) {
+        callback(data);
+        return;
+      }
+      callback(null);
+    })
+    .catch((err) => {
+      console.log("checkDuplicate- Error running query: " + err);
+    });
 };
 
 exports.distributePoints = async (callback) => {
@@ -218,18 +210,36 @@ exports.distributePoints = async (callback) => {
     });
 };
 
-exports.deleteWorklistProject = (id, db, callback) => {
+exports.deleteWorklistProject = (id, callback) => {
+  const db = getDatabase();
   db.collection("worklist")
     .deleteOne({ projectId: id })
     .then((data) => {
-      if (data.result.ok == 1) {
+      if (data.result.n === 1) {
         console.log(data.result.n + " project has been deleted from worklist");
-        callback(data.result);
+        callback(data.result.n);
         return;
       }
       callback(null);
     })
     .catch((err) => {
       console.log(`unable to delete worklist document: ${err}`);
+    });
+};
+
+exports.getWorklistProjectId = (id, callback) => {
+  const db = getDatabase();
+  const _id = new mongodb.ObjectId(id);
+  db.collection("worklist")
+    .findOne({ _id })
+    .then((data) => {
+      if (data) {
+        callback(data.projectId);
+        return;
+      }
+      callback(null);
+    })
+    .catch((err) => {
+      console.log(`cannot find worklist document: ${err}`);
     });
 };

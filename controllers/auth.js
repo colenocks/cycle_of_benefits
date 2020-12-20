@@ -1,18 +1,17 @@
 const dotenv = require("dotenv");
 dotenv.config();
-const { getDatabase } = require("../persistence/connection");
+const { getDatabase } = require("../database/connection");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-exports.findUser = (userid, callback) => {
-  if (userid) {
+exports.findUser = (username, callback) => {
+  if (username) {
     const db = getDatabase();
-    db.collection("users")
-      .findOne({ username: userid })
+    db.collection("profiles")
+      .findOne({ username: username })
       .then((user) => {
         if (user) {
-          /****** returns BOTH the user _id and username *******/
-          callback(user._id, user.username);
+          callback(user);
         } else {
           callback(null);
         }
@@ -24,8 +23,8 @@ exports.findUser = (userid, callback) => {
 };
 
 exports.createUser = (userobj, callback) => {
-  this.findUser(userobj.username, (_id, username) => {
-    if (_id) {
+  this.findUser(userobj.username, (user) => {
+    if (user._id) {
       console.log("Found User: " + _id);
       callback(null);
       return;
@@ -84,7 +83,6 @@ exports.postLogin = (req, res) => {
               sessionId: userRecord.username,
               role: userRecord.role,
               message: "Login Successful",
-              redirect_path: "/dashboard",
             });
           } else {
             res.json({ errMessage: "Login Failed" });

@@ -1,7 +1,14 @@
-const { getDatabase } = require("../persistence/connection");
+const { getDatabase } = require("../database/connection");
+const { dataUri } = require("../middleware/multer");
+const { uploader, cloudLink } = require("../config/cloudinary");
+const {
+  filterEmptyValues,
+  filterUnchangedValueAndRemoveId,
+  typeCastNumberValues,
+} = require("../util/utility");
 
-const project = require("../controllers/project");
-const user = require("../controllers/user");
+const projectController = require("../controllers/project");
+const userController = require("../controllers/user");
 
 const mongodb = require("mongodb");
 
@@ -25,96 +32,109 @@ exports.getAllProjects = (req, res) => {
 };
 
 exports.approveProject = (req, res) => {
-  const projid = req.body.projid;
+  const projId = req.body.projId;
   //check if project is approved already
-  project.findApprovedProject(projid, (id) => {
-    if (!id) {
-      project.getProposedProject(id, (project) => {
+  projectController.findApprovedProject(projId, (data) => {
+    if (!data) {
+      projectController.findProposedProject(projId, (project) => {
         if (project) {
           const db = getDatabase();
           db.collection("active_projects")
             .insertOne(project)
             .then((data) => {
-              if (data.insertedCount == 1) {
-                res.json({ message: "Project has been approved and uploaded" });
+              if (data.insertedCount === 1) {
+                res.json({ message: "Project has been approved" });
                 return;
               }
               res.json({
-                errMessage:
-                  "Project may have already been uploaded, Check and Try again!",
+                errMessage: "Something went wrong with approving project",
               });
             })
             .catch((err) => console.log(err));
+        } else {
+          res.json({
+            errMessage: "Something Happened! Can not find project.",
+          });
         }
+      });
+    } else {
+      res.json({
+        errMessage: "Project has already been uploaded",
       });
     }
   });
 };
 
-exports.updateProject = (req, res) => {
-  const proj = {
-    _id: req.body.id,
-    type: req.body.type,
-    title: req.body.title,
-    details: req.body.details,
-    status: req.body.status,
-    tools: req.body.tools,
-    address: req.body.address,
-    city: req.body.city,
-    estimated_duration: req.body.duration,
-    reward_points: parseInt(req.body.point, 10),
-    current_workers: parseInt(req.body.currentworkers, 10),
-    max_workers: parseInt(req.body.maxworkers, 10),
-  };
+exports.updateProject = async (req, res) => {
+  const updateData = req.body;
+  const projId = req.params.projId;
+  if (!req.file) {
+    console.log("No Image File uploaded.");
+  }
+  const { url, error } = await cloudLink(req.file);
+  if (url) updateData[req.file.fieldname] = url;
+
+  let updatedData = filterEmptyValues(updateData);
   const db = getDatabase();
-  project.findApprovedProject(proj._id, (id) => {
-    if (id) {
-      db.collection("active_projects")
-        .updateOne({ _id: id }, { $set: projectRecord })
-        .then((data) => {
-          if (data.nModified == 1) {
-            res.json({ message: proj._id + " has been successfully updated" });
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    } else {
-      //find project in other table
-      project.findProposedProject(proj._id, (id) => {
-        if (id) {
-          db.collection("projects")
-            .updateOne({ _id: id }, { $set: projectRecord })
-            .then((data) => {
-              if (data.result.ok == 1) {
-                res.json({
-                  message: proj._id + " has been successfully updated",
+  projectController.findApprovedProject(projId, (oldProject) => {
+    const { _id } = oldProject;
+    if (oldProject) {
+      updatedData = filterUnchangedValueAndRemoveId(oldProject, updatedData);
+      if (Object.keys(updatedData).length < 1) {
+        res.json({ errMessage: "No changes detected!" });
+      } else {
+        updatedData = typeCastNumberValues(oldProject, updatedData);
+
+        db.collection("active_projects")
+          .updateOne({ _id: _id }, { $set: updatedData })
+          .then((data) => {
+            if (data.result.nModified === 1) {
+              //update project in other collection
+              db.collection("projects")
+                .updateOne({ _id: _id }, { $set: updatedData })
+                .then((data) => {
+                  if (data.result.nModified === 1) {
+                    projectController.findApprovedProject(
+                      _id,
+                      (updatedProject) => {
+                        res.json({
+                          message: _id + " has been successfully updated",
+                          updatedProject,
+                        });
+                      }
+                    );
+                  } else {
+                    res.json({
+                      errMessage: "Proposed: Could not update project",
+                    });
+                  }
+                })
+                .catch((err) => {
+                  console.log(err);
                 });
-              }
-            })
-            .catch((err) => {
-              console.log(err);
-            });
-        } else {
-          res.json({ errMessage: "Could not update project" });
-        }
-      });
+            } else {
+              res.json({ errMessage: "Could not update project" });
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
     }
   });
 };
 
 exports.archiveProject = (req, res) => {
-  if (req.session.userid) {
-    // admin.archiveProject(req.body.projid, (archived) => {
-    //   if (archived) {
-    //     res.json({ message: "Project archived" });
-    //     return;
-    //   }
-    //   res.json({
-    //     errMessage: "Project was not archived",
-    //   });
-    // });
-  }
+  const projId = req.body.projId;
+  admin.archiveProject(projId, (archived) => {
+    if (archived) {
+      res.json({ message: "Project archived" });
+      return;
+    }
+    res.json({
+      errMessage: "Project was not archived",
+    });
+  });
 };
 
 exports.getRewardsRequests = (req, res) => {
@@ -136,18 +156,21 @@ exports.getRewardsRequests = (req, res) => {
 };
 
 exports.deleteUser = (req, res) => {
-  user.findUser(req.body.userid, (id) => {
+  const userId = req.body.userId;
+  userController.findUser(userId, (id) => {
     if (id) {
       const db = getDatabase();
       db.collection("profiles")
-        .deleteOne({ _id: new mongodb.ObjectID(userid) })
+        .deleteOne({ _id: new mongodb.ObjectID(userId) })
         .then((data) => {
-          if (data.result.ok === 1) {
-            res.json({ message: "User Deleted" });
+          if (data.result.n === 1) {
+            res.json({
+              message: "User " + userId + " has been Deleted Sussesfully",
+            });
             return;
           }
           res.json({
-            errMessage: "User was not deleted",
+            errMessage: "User " + userId + " was not deleted",
           });
         })
         .catch((err) => console.log(err));
@@ -160,14 +183,17 @@ exports.deleteUser = (req, res) => {
 };
 
 exports.deleteProject = (req, res) => {
-  project.findApprovedProject(req.body.projid, (id) => {
-    if (id) {
+  const projId = req.body.projId;
+  projectController.findApprovedProject(projId, (data) => {
+    if (data) {
       const db = getDatabase();
-      db.collection("projects")
-        .deleteOne({ _id: new mongodb.ObjectID(projid) })
+      db.collection("active_projects")
+        .deleteOne({ _id: new mongodb.ObjectID(projId) })
         .then((data) => {
-          if (data.result.ok === 1) {
-            res.json({ message: "Project deleted" });
+          if (data.deletedCount === 1) {
+            res.json({
+              message: "Project " + projId + " has been deleted successfully",
+            });
             return;
           }
           res.json({
