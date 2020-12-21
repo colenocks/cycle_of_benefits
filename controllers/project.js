@@ -1,57 +1,47 @@
 const dotenv = require("dotenv");
 dotenv.config();
 const mongodb = require("mongodb");
-const { getDatabase } = require("../persistence/connection");
-const { cloudLink } = require("../persistence/cloudinary");
+
+const { getDatabase } = require("../database/connection");
+
+const { cloudLink } = require("../config/cloudinary");
+const { dataUri } = require("../middleware/multer");
 const projectUtil = require("./util/projectUtil");
 
 const DB_ADMIN = process.env.ADMIN_ROLE;
 
-const _getProjectCheckAccessLevel = (
+exports.getProjectCheckAccessLevel = (
   projectId,
   callback,
   accessLevel = null
 ) => {
   if (projectId) {
-    const db = getDatabase();
     if (accessLevel === DB_ADMIN) {
-      db.collection("projects")
-        .findOne({ _id: new mongodb.ObjectID(projectId) })
-        .then((data) => {
-          if (data) {
-            callback(data);
-          } else {
-            callback(null);
-          }
-        })
-        .catch((err) => {
-          console.log("Get project- Error running query: " + err);
-        });
-    } else {
-      db.collection("active_projects")
-        .findOne({ _id: new mongodb.ObjectID(projectId) })
-        .then((data) => {
-          if (data) {
-            callback(data);
-          } else {
-            callback(null);
-          }
-        })
-        .catch((err) => {
-          console.log("Get active_project- Error running query: " + err);
-        });
+      this.findProposedProject(projectId, (data) => {
+        if (data) {
+          callback(data);
+        }
+      });
+      return;
     }
+    this.findApprovedProject(projectId, (data) => {
+      if (data) {
+        callback(data);
+        return;
+      }
+      callback(null);
+    });
   }
 };
 
-exports.findApprovedProject = (projid, callback) => {
-  if (projid) {
+exports.findApprovedProject = (projId, callback) => {
+  if (projId) {
     const db = getDatabase();
     db.collection("active_projects")
-      .findOne({ _id: new mongodb.ObjectID(projid) })
+      .findOne({ _id: new mongodb.ObjectID(projId) })
       .then((data) => {
         if (data) {
-          callback(data._id);
+          callback(data);
           return;
         }
         console.log("Project does not exist");
@@ -63,14 +53,14 @@ exports.findApprovedProject = (projid, callback) => {
   }
 };
 
-exports.findProposedProject = (projid, callback) => {
-  if (projid) {
+exports.findProposedProject = (projId, callback) => {
+  if (projId) {
     const db = getDatabase();
     db.collection("projects")
-      .findOne({ _id: new mongodb.ObjectID(projid) })
+      .findOne({ _id: new mongodb.ObjectID(projId) })
       .then((data) => {
         if (data) {
-          callback(data._id);
+          callback(data);
           return;
         }
         console.log("Proposed Project does not exist");
@@ -82,28 +72,10 @@ exports.findProposedProject = (projid, callback) => {
   }
 };
 
-// exports.getProposedProject = (projectId, callback)=> {
-//   if (projectId) {
-//     const db = getDatabase();
-//     db.collection("projects")
-//       .findOne({ _id: new mongodb.ObjectID(projectId) })
-//       .then((data) => {
-//         if (data) {
-//           callback(data);
-//         } else {
-//           callback(null);
-//         }
-//       })
-//       .catch((err) => {
-//         console.log("Get Proposed Project- Error running query: " + err);
-//       });
-//   }
-// }
-
 exports.getProject = (req, res) => {
   const proj_id = req.params.id;
   if (proj_id) {
-    _getProjectCheckAccessLevel(
+    this.getProjectCheckAccessLevel(
       proj_id,
       (data) => {
         if (data) {
@@ -147,12 +119,10 @@ exports.getAllProjects = (req, res) => {
 };
 
 exports.enlistWorker = (req, res) => {
-  console.log("User Session: ", req.session.userid);
-  const userId = req.session.userid;
+  const userId = req.sessionId;
   const projId = req.body.projId;
   if (userId) {
-    //getProject
-    _getProjectCheckAccessLevel(projId, (project) => {
+    this.getProjectCheckAccessLevel(projId, (project) => {
       if (project) {
         projectUtil.checkWorklistForDuplicates(
           project._id,
@@ -177,6 +147,7 @@ exports.enlistWorker = (req, res) => {
                       if (data.insertedCount == 1) {
                         res.json({
                           message: "You have been enlisted successfully",
+                          enlisted_project: worklist,
                         });
                       }
                     })
@@ -203,35 +174,53 @@ exports.enlistWorker = (req, res) => {
 };
 
 exports.dropWorker = (req, res) => {
-  const projId = req.params.id;
-  const userId = req.session.userid;
+  const id = req.params.id;
+  const userId = req.sessionId;
+  let projId = "";
   if (userId) {
-    projectUtil.decrementCurrentWorker(projId, (decremented) => {
-      if (decremented) {
-        //remove from worklist collection
-        const db = getDatabase();
-        db.collection("worklist")
-          .deleteOne({
-            projectId: projId,
-            userId: userId,
-          })
-          .then((data) => {
-            if (data.deletedCount == 1) {
-              console.log(userId + " successfully dropped from " + projId);
-              res.json({
-                message: "You have withdrawn from this project: " + projId,
-              });
-            } else {
-              res.json({
-                errMessage: "Sorry, you are not enlisted for this project",
-              });
-            }
-          })
-          .catch((err) => console.log(err));
+    projectUtil.getWorklistProjectId(id, (_id) => {
+      if (_id) {
+        projId = _id;
+      } else {
+        projId = id;
       }
+      this.getProjectCheckAccessLevel(projId, (project) => {
+        if (project) {
+          projectUtil.decrementCurrentWorker(projId, (decremented) => {
+            if (decremented) {
+              //remove user from worklist collection
+              const db = getDatabase();
+              db.collection("worklist")
+                .deleteOne({
+                  projectId: projId,
+                  userId: userId,
+                })
+                .then((data) => {
+                  console.log(data.deletedCount);
+                  if (data.deletedCount === 1) {
+                    console.log(
+                      userId + " successfully dropped from " + projId
+                    );
+                    res.json({
+                      message:
+                        "You have withdrawn from this project: " + projId,
+                      withdrawn_project: project,
+                    });
+                  } else {
+                    res.json({
+                      errMessage:
+                        "Sorry, you are not enlisted for this project",
+                    });
+                  }
+                })
+                .catch((err) => console.log(err));
+            }
+          });
+        }
+      });
     });
   } else {
-    res.json({ errMessage: "You are not logged in" });
+    res.json({ errMessage: "You are not Authenticated!" });
   }
 };
 
@@ -239,8 +228,10 @@ exports.addProject = async (req, res) => {
   if (!req.file) {
     res.json({ errMessage: "No file uploaded" });
   }
-  const { url } = await cloudLink(req.file);
-  if (req.session.userid && url) {
+  // const file = dataUri(req).content; //<-- dataUri converts buffer to string
+  const file = req.file;
+  const { url } = await cloudLink(file);
+  if (req.sessionId && url) {
     const projectRecord = {
       type: req.body.type,
       title: req.body.title,
@@ -248,10 +239,10 @@ exports.addProject = async (req, res) => {
       details: req.body.details,
       address: req.body.address,
       city: req.body.city,
-      duration: req.body.duration,
-      maxworkers: parseInt(req.body.max, 10),
+      estimated_duration: req.body.estimated_duration,
+      max_workers: parseInt(req.body.max_workers, 10),
       image: url,
-      postedby: req.session.userid,
+      postedby: req.sessionId,
     };
     //add to database
     const db = getDatabase();
@@ -274,38 +265,14 @@ exports.addProject = async (req, res) => {
   }
 };
 
-exports.viewProject = (req, res) => {
-  if (req.session.userid == DB_ADMIN) {
-    this.findProposedProject(req.body.id, (id) => {
-      if (id) {
-        res.json({
-          redirect_path: `/project/${id}`,
-        });
-      }
-    });
-  } else {
-    this.findApprovedProject(req.body.id, (id) => {
-      if (id) {
-        res.json({
-          redirect_path: `/project/${id}`,
-        });
-      } else {
-        res.json({
-          errMessage: "Cannot find project",
-        });
-      }
-    });
-  }
-};
-
 exports.loadPoints = (req, res) => {
   const db = getDatabase();
   //get all workers from assigned projects
   db.collection("worklist")
-    .find({ status: "Assigned" })
+    .find({ status: "Assigned" }) //<-- should look for assigned projects that has been completed
     .toArray()
     .then((assignedProjects) => {
-      if (assignedProjects) {
+      if (assignedProjects.length > 0) {
         const numOfWorkers = assignedProjects.length;
         //Distribute points to associated users
         assignedProjects.forEach((project, index) => {
@@ -313,29 +280,46 @@ exports.loadPoints = (req, res) => {
           const usersEarnedPoints = Math.floor(points / numOfWorkers);
 
           const user = project.userId;
-          db.collection("profiles").updateOne(
-            { username: user },
-            { $inc: { points: usersEarnedPoints } }
-          );
-
-          if (index + 1 === numOfWorkers) {
-            console.log(
-              `${usersEarnedPoints} points distributed to ${numOfWorkers} workers`
-            );
-            //Set Project status completed after reward is distributed
-            projectUtil.updateProjectComplete(
-              project.projectId,
-              (completed) => {
-                if (completed) {
-                  res.json({ message: "Your Reward Points have been added" });
+          db.collection("profiles")
+            .updateOne(
+              { username: user },
+              { $inc: { points: usersEarnedPoints } }
+            )
+            .then(({ result }) => {
+              if (result.nModified > 0) {
+                if (index + 1 === numOfWorkers) {
+                  console.log(
+                    `${usersEarnedPoints} points distributed to ${numOfWorkers} workers`
+                  );
+                  //Set Project status completed after reward is distributed
+                  projectUtil.updateProjectComplete(
+                    project.projectId,
+                    (completed) => {
+                      if (completed) {
+                        //return updated user data
+                        db.collection("profiles")
+                          .findOne({ username: user })
+                          .then((userData) => {
+                            res.json({
+                              message: "Your Reward Points have been added",
+                              userData: userData,
+                            });
+                          })
+                          .catch((err) => console.log(err));
+                      } else {
+                        res.json({ errMessage: "Error deleting project" });
+                      }
+                    }
+                  );
                 }
+              } else {
+                res.json({ errMessage: "Error distributing points" });
               }
-            );
-          }
+            });
         });
       } else {
-        console.log("distrubuteModel: No projects have been assigned");
-        res.json({ errMessage: "Projects are yet to be completed" });
+        console.log("distrubuteModel: No projects completed/assigned");
+        res.json({ errMessage: "No new projects have completed/assigned." });
       }
     })
     .catch((err) => {

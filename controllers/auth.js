@@ -3,6 +3,7 @@ dotenv.config();
 const { getDatabase } = require("../database/connection");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { filterEmptyValues, formatStringFields } = require("../util/utility");
 
 exports.findUser = (username, callback) => {
   if (username) {
@@ -24,8 +25,8 @@ exports.findUser = (username, callback) => {
 
 exports.createUser = (userobj, callback) => {
   this.findUser(userobj.username, (user) => {
-    if (user._id) {
-      console.log("Found User: " + _id);
+    if (user) {
+      console.log("Found User: ", user);
       callback(null);
       return;
     }
@@ -46,14 +47,6 @@ exports.createUser = (userobj, callback) => {
         console.log("Create Error: " + err);
       });
   });
-};
-
-exports.getLogin = (req, res) => {
-  if (!req.sessionId) {
-    res.render("login");
-    return;
-  }
-  res.redirect("/dashboard");
 };
 
 exports.postLogin = (req, res) => {
@@ -97,25 +90,26 @@ exports.postLogin = (req, res) => {
   }
 };
 
-exports.getSignup = (req, res) => {
-  res.render("register");
-};
-
 exports.postSignup = (req, res) => {
-  const userObj = {
-    username: req.body.username,
-    password: req.body.password,
-    firstname: req.body.firstname,
-    lastname: req.body.lastname,
-    email: req.body.email,
-  };
-  this.createUser(userObj, (newUserId) => {
+  const userObj = filterEmptyValues(req.body);
+  if (userObj.length < req.body.length) {
+    res.json({ errMessage: "All fields are required to be filled." });
+    return;
+  }
+  const { password, confirm_password } = req.body;
+  if (password !== confirm_password) {
+    res.json({ errMessage: "Passwords do not match." });
+    return;
+  }
+
+  const user = formatStringFields(req.body);
+  this.createUser(user, (newUserId) => {
     if (newUserId) {
       const newUserProfile = {
-        username: userObj.username,
-        firstname: userObj.firstname,
-        lastname: userObj.lastname,
-        email: userObj.email,
+        username: user.username,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
         userId: newUserId,
       };
 
@@ -130,38 +124,15 @@ exports.postSignup = (req, res) => {
               message: "Registeration Successful",
               redirect_path: "/login",
             });
+            return;
           }
-          res.json({ errMessage: "Sorry! This User already exists" });
+          console.log("Error: Unable to create user");
         })
         .catch((err) => {
           console.log("Save Profile Error: " + err);
         });
     } else {
-      console.log("Error: Unable to create user");
+      res.json({ errMessage: "Sorry! The username has been taken" });
     }
   });
 };
-
-exports.getUserSession = (req, res) => {
-  if (req.sessionId) {
-    res.json({ sessionId: req.sessionId });
-    return;
-  }
-  res.json({ errMessage: "Session expired, Login" });
-};
-
-// exports.isLoggedIn = (req, res) => {
-//   if (req.sessionId) {
-//     res.redirect("/profile");
-//   } else {
-//     res.redirect("/login");
-//   }
-// };
-
-// exports.logout = (req, res) => {
-//   if (req.sessionId) {
-//     req.session.destroy(() => res.redirect("/"));
-//   } else {
-//     res.redirect("/login");
-//   }
-// };

@@ -12,7 +12,6 @@ const adminRoutes = require("./routes/admin");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const projectRoutes = require("./routes/project");
-const mainRoutes = require("./routes/main");
 
 const hostname = process.env.LOCAL_HOST;
 const port = process.env.LOCAL_PORT;
@@ -63,7 +62,6 @@ app.use(adminRoutes);
 app.use(authRoutes);
 app.use(userRoutes);
 app.use(projectRoutes);
-app.use(mainRoutes);
 
 // Errors : Page not found
 app.use((req, res, next) => {

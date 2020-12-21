@@ -8,7 +8,7 @@ const memory_storage = multer.memoryStorage();
 /* OR */
 const disk_storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "dist/assets");
+    cb(null, "uploads");
   },
   filename: function (req, file, cb) {
     // the null as first argument means no error
@@ -18,12 +18,12 @@ const disk_storage = multer.diskStorage({
 
 const multerUploads = multer({
   storage: disk_storage,
-  //   limits: {
-  //     fileSize: parseInt(process.env.MULTER_FILE_SIZE, 10),
-  //   },
-  //   fileFilter: function (req, file, cb) {
-  //     checkFileType(file, cb);
-  //   },
+  limits: {
+    fileSize: parseInt(process.env.MULTER_FILE_SIZE, 10),
+  },
+  fileFilter: function (req, file, cb) {
+    checkFileType(file, cb);
+  },
 });
 
 /**

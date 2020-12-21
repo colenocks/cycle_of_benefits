@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-// const { upload } = require("../persistence/cloudinary");
 const { multerUploads } = require("../middleware/multer");
 const { verifyToken } = require("../middleware/is-auth");
 const {
@@ -14,7 +13,7 @@ const {
   deleteProject,
 } = require("../controllers/admin");
 
-router.get("/getusers", verifyToken, getUsers);
+router.get("/getusers", verifyToken, getUsers); //<-- yet to implement
 
 router.get("/getallprojects", verifyToken, getAllProjects);
 
@@ -29,10 +28,10 @@ router.put(
   updateProject
 );
 
-router.delete("/archiveproject/:projId", verifyToken, archiveProject);
+router.delete("/archiveproject/:projId", verifyToken, archiveProject); //<-- yet to implement
 
-router.delete("/deleteuser/:userId", verifyToken, deleteUser);
+router.delete("/deleteuser/:userId", verifyToken, deleteUser); //<-- yet to implement
 
-router.delete("/deleteproject/:projId", verifyToken, deleteProject);
+router.delete("/deleteproject/:projId", verifyToken, deleteProject); //<-- yet to implement
 
 module.exports = router;
