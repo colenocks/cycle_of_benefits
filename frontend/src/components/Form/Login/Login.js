@@ -26,7 +26,7 @@ class Login extends Component {
         <div className='login__form'>
           <section className='login__body'>
             <div className='login__header'>
-              <h4>Enter your login credentials</h4>
+              <h4>Login</h4>
             </div>
             <hr />
             <form id='loginform' onSubmit={(e) => loginHandler(e, this.state)}>

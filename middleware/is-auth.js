@@ -8,18 +8,22 @@ exports.verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     res.json({ errMessage: "Not Authenticated.", status: 401 });
+    return;
   } else {
     const token = authHeader.split(" ")[1];
     if (!token) {
       res.json({
         errMessage: "Authorization Failed, No token provided!",
-        status: 403,
       });
+      console.log("Authorization Failed, No token provided!", 403);
+      return;
     }
 
     jwt.verify(token, secret, (err, decodedToken) => {
       if (err) {
-        res.json({ errMessage: "Verification failed.", status: 500 });
+        res.json({ errMessage: "You are not logged in.", status: 500 });
+        console.log("Verification failed.", 500);
+        return;
       }
       req.sessionId = decodedToken.username;
       next();
