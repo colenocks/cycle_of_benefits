@@ -14,42 +14,32 @@ class Reward extends Component {
   }
 
   handleChange = ({ name, value }) => {
-    this.setState((prevState) => {
-      let profile = { ...prevState.profile };
-      profile[name] = value;
-      return { profile };
+    this.setState({
+      [name]: value,
     });
   };
 
   redeemRewardHandler = (event, data) => {
     event.preventDefault();
-    const { used_points, total_points, benefit_type } = data;
-    if (used_points > total_points || total_points === 0) {
-      window.M.toast({
-        html: "You have insufficient points, earn more points",
-      });
-      return;
-    }
-    if (used_points === 0) {
-      window.M.toast({
-        html: "Select the number of points and benefit you want to redeem",
-      });
-      return;
-    }
+    const token = localStorage.getItem("token");
     const url = "http://localhost:5000/redeemreward";
     axios
-      .put(url, {
-        used_points: used_points,
-        total_points: total_points,
-        benefit_type: benefit_type,
-      })
+      .put(
+        url,
+        {
+          used_points: data.used_points,
+          total_points: data.total_points,
+          benefit_type: data.benefit_type,
+        },
+        { headers: { Authorization: `bearer ${token}` } }
+      )
       .then((res) => {
         if (res.data.errMessage) {
           window.M.toast({ html: res.data.errMessage });
           return;
         }
         window.M.toast({ html: res.data.message });
-        this.setState({ used_points: 0 });
+        this.setState({ used_points: 0, benefit_type: "Medical Benefits" });
         localStorage.setItem("current_user", JSON.stringify(res.data.userData));
       })
       .catch((err) => {
@@ -58,41 +48,41 @@ class Reward extends Component {
   };
 
   loadPoints = () => {
-    const userId = localStorage.getItem("sessionId");
+    const token = localStorage.getItem("token");
     const url = "http://localhost:5000/loadpoints";
-    if (userId) {
-      axios
-        .put(url, {})
-        .then((res) => {
-          if (res.data.errMessage) {
-            window.M.toast({ html: res.data.errMessage });
-            return;
-          }
-          window.M.toast({ html: res.data.message });
+    axios
+      .get(url, {
+        headers: {
+          Authorization: `bearer ${token}`,
+        },
+      })
+      .then((res) => {
+        if (res.data.errMessage) {
+          window.M.toast({ html: res.data.errMessage });
+          return;
+        }
+        window.M.toast({ html: res.data.message });
+        if (res.data.userData) {
           localStorage.setItem(
             "current_user",
             JSON.stringify(res.data.userData)
           );
-        })
-        .catch((err) => {
-          console.log("Load Points Fetch err: ", err);
-        });
-    }
+        }
+      })
+      .catch((err) => {
+        console.log("Load Points Fetch err: ", err);
+      });
   };
 
   render() {
-    const { total_points } = this.state;
+    const { points: total_points } = this.props.profile;
     return (
       <div className='rewards'>
         <div className='rewards__header'>
           <h3 className='center'>
             My Rewards <i className='fas fa-trophy'></i>
           </h3>
-          <span
-            className='new badge red accent-3'
-            data-badge-caption={total_points || 0}>
-            Total Points:{" "}
-          </span>
+          <div className='total-points'>Total Points: {total_points}</div>
         </div>
         <section className='rewards__section'>
           <div className='load__points'>
@@ -100,39 +90,43 @@ class Reward extends Component {
           </div>
           <div className='use-points'>
             <form
-              action='/redeemreward'
               className='reward__form'
               onSubmit={(e) => this.redeemRewardHandler(e, this.state)}>
               <div className='input__block'>
-                <label htmlFor='usepoints'>Use Points: </label>
+                <label htmlFor='used_points'>Use Points: </label>
                 <input
+                  name='used_points'
                   id='usepoints'
                   type='number'
                   min='0'
                   max={total_points}
-                  onChange={this.handleChange}
+                  onChange={(e) => this.handleChange(e.target)}
+                  defaultValue={this.state.used_points}
                 />
               </div>
               <div className='input__block'>
                 <label htmlFor='benefit'>Choose Benefit: </label>
                 <select
                   id='benefittype'
-                  name='benefit'
-                  onChange={this.handleChange}>
-                  <option value='medical'>Medical Benefits</option>
-                  <option value='clothing'>Clothing Benefits</option>
-                  <option value='educational'>Educational Benefits</option>
-                  <option value='cash'>Cash Benefits</option>
-                  <option value='food'>Food Benefits</option>
-                  <option value='transport'>Transportation Benefits</option>
+                  name='benefit_type'
+                  onChange={(e) => this.handleChange(e.target)}>
+                  <option defaultValue='' disabled hidden>
+                    Select a benefit
+                  </option>
+                  <option value='Medical Benefits'>Medical Benefits</option>
+                  <option value='Clothing Benefits'>Clothing Benefits</option>
+                  <option value='Educational Benefits'>
+                    Educational Benefits
+                  </option>
+                  <option value='Cash Benefits'>Cash Benefits</option>
+                  <option value='Food Benefits'>Food Benefits</option>
+                  <option value='Transportation Benefits'>
+                    Transportation Benefits
+                  </option>
                 </select>
               </div>
               <div className='form__button'>
-                <Button
-                  type='submit'
-                  className='left-btn my-btn'
-                  text='Redeem Reward'
-                />
+                <Button type='submit' text='Redeem Reward' />
               </div>
             </form>
           </div>

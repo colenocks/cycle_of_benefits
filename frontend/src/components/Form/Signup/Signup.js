@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import { Redirect } from "react-router-dom";
 import Button from "./../../Button/Button";
 import "./Signup.css";
 
@@ -7,34 +6,28 @@ class Signup extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      firstname: "",
-      lastname: "",
-      email: "",
-      username: "",
-      password: "",
-      confirm_password: "",
+      signupData: {},
     };
     this.handleChange = this.handleChange.bind(this);
   }
 
-  handleChange(event) {
-    this.setState({
-      [event.target.name]: event.target.value,
+  handleChange({ name, value }) {
+    this.setState((prevState) => {
+      let signupData = { ...prevState.signupData };
+      signupData[name] = value;
+      return { signupData };
     });
   }
 
   render() {
-    const { hasSignedUp, signupHandler } = this.props;
+    const { signupHandler } = this.props;
 
-    return hasSignedUp ? (
-      // Display dialog box to sign
-      <Redirect to='/login' />
-    ) : (
+    return (
       <div className='signup__form'>
         <form
           id='form'
           name='signupform'
-          onSubmit={(e) => signupHandler(e, this.state)}>
+          onSubmit={(e) => signupHandler(e, this.state.signupData)}>
           <div className='signup__header'>
             <h4>
               Register with{" "}
@@ -43,49 +36,45 @@ class Signup extends Component {
           </div>
           <hr />
           <div className='input__block'>
-            <label htmlFor='first_name'>First Name</label>
-
+            <label htmlFor='firstname'>First Name</label>
             <input
               id='firstname'
               type='text'
               name='firstname'
               value={this.state.firstname}
-              onChange={this.handleChange}
+              onChange={(e) => this.handleChange(e.target)}
               required
             />
           </div>
           <div className='input__block'>
-            <label htmlFor='last_name'>Last Name</label>
-
+            <label htmlFor='lastname'>Last Name</label>
             <input
               id='lastname'
               type='text'
               name='lastname'
               value={this.state.lastname}
-              onChange={this.handleChange}
+              onChange={(e) => this.handleChange(e.target)}
             />
           </div>
           <div className='input__block'>
             <label htmlFor='username'>Username</label>
-
             <input
               id='username'
               type='text'
               name='username'
               value={this.state.username}
-              onChange={this.handleChange}
+              onChange={(e) => this.handleChange(e.target)}
               required
             />
           </div>
           <div className='input__block'>
             <label htmlFor='email'>Email</label>
-
             <input
               id='email'
               type='email'
               name='email'
               value={this.state.email}
-              onChange={this.handleChange}
+              onChange={(e) => this.handleChange(e.target)}
               required
             />
           </div>
@@ -96,7 +85,7 @@ class Signup extends Component {
               type='password'
               name='password'
               value={this.state.password}
-              onChange={this.handleChange}
+              onChange={(e) => this.handleChange(e.target)}
               required
             />
           </div>
@@ -107,7 +96,7 @@ class Signup extends Component {
               type='password'
               name='confirm_password'
               value={this.state.confirm_password}
-              onChange={this.handleChange}
+              onChange={(e) => this.handleChange(e.target)}
               required
             />
           </div>

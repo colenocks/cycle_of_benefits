@@ -12,12 +12,15 @@
   border-bottom: 1px solid #dfdfdf;
 }
 
-.rewards__header .badge {
+.rewards__header .total-points {
   margin: auto;
   line-height: 1.2;
   height: auto;
   padding: 1% !important;
   font-size: 1.1rem !important;
+  float: right;
+  background-color: #fe5934;
+  color: #fff;
 }
 
 .myrewards {

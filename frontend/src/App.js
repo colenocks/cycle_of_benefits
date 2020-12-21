@@ -118,6 +118,7 @@ class App extends Component {
     const user = {
       username: inputFields.username,
       password: inputFields.password,
+      confirm_password: inputFields.confirm_password,
       firstname: inputFields.firstname,
       lastname: inputFields.lastname,
       email: inputFields.email,

@@ -1,6 +1,6 @@
 import React from "react";
 import "./MainNav.css";
-import Logo from "../../../cyobLogo.png";
+// import Logo from "../../../cyobLogo.png";
 
 const navLinks = [
   { text: "Home", link: "/", auth: "" },
@@ -21,7 +21,7 @@ const MainNav = (props) => {
             <a href='/' className='brand-logo'>
               <img
                 id='logo'
-                src={Logo}
+                src='https://res.cloudinary.com/icardi/image/upload/v1608351096/cyob_images/cyobLogo_lgviwg.png'
                 alt='Logo'
                 height='80px'
                 width='100px'

@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
-import Admin from "../Admin/Admin";
 import Reward from "../Reward/Reward";
 import HowToInfo from "../HowToInfo/HowToInfo";
 import UserProject from "../UserProject/UserProject";
@@ -9,7 +8,7 @@ import UserProfile from "./../UserProfile/UserProfile";
 import axios from "axios";
 import "./Dashboard.css";
 
-class Profile extends Component {
+class Dashboard extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -23,10 +22,11 @@ class Profile extends Component {
   componentDidMount() {
     this.getUserProfileHandler();
     this.getUserProjectsHandler();
-    const sessionId = localStorage.getItem("sessionId");
-    const role = localStorage.getItem("role");
-    const current_user = JSON.parse(localStorage.getItem("current_user"));
-    const user_projects = JSON.parse(localStorage.getItem("user_projects"));
+    const sessionId = localStorage.getItem("sessionId") || "";
+    const role = localStorage.getItem("role") || "";
+    const current_user = JSON.parse(localStorage.getItem("current_user")) || "";
+    const user_projects =
+      JSON.parse(localStorage.getItem("user_projects")) || "";
     if (sessionId || role || current_user || user_projects) {
       this.setState({
         sessionId: sessionId,
@@ -96,22 +96,6 @@ class Profile extends Component {
       })
       .catch((err) => {
         console.log("Update UserProfile Error:  ", err);
-      });
-  };
-
-  proposeProjectHandler = (project) => {
-    const url = "http://localhost:5000/addproject";
-    axios
-      .post(url, project)
-      .then((res) => {
-        if (res.data.errMessage) {
-          window.M.toast({ html: res.data.errMessage });
-          return;
-        }
-        window.M.toast({ html: res.data.message });
-      })
-      .catch((err) => {
-        console.log("Add Project Error:  ", err);
       });
   };
 
@@ -211,7 +195,7 @@ class Profile extends Component {
             <div
               ref={(elem) => (this.postproject = elem)}
               className='postproject noshow'>
-              <PostProject proposeProject={this.proposeProjectHandler} />
+              <PostProject />
             </div>
             <div
               ref={(elem) => (this.rewards = elem)}
@@ -245,4 +229,4 @@ class Profile extends Component {
   }
 }
 
-export default Profile;
+export default Dashboard;
