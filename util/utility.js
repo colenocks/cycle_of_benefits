@@ -15,6 +15,17 @@ exports.filterUnchangedValueAndRemoveId = (oldObj, newObj) => {
   return newObj;
 };
 
+exports.formatStringFields = (obj) => {
+  for (let key in obj) {
+    if (key === "username" || key === "email") {
+      obj[key] = obj[key].toLowerCase();
+    }
+    // if(key === "firstname" || key === "lastname"){
+    //   obj[key] = obj[key].toLowerCase()
+    // }
+  }
+  return obj;
+};
 exports.typeCastNumberValues = (oldObj, newObj) => {
   // return Object.keys(oldObj).reduce((value, key) => {
   //   if (typeof oldObj[key] === "number") {
