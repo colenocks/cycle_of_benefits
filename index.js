@@ -13,8 +13,8 @@ const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const projectRoutes = require("./routes/project");
 
-const hostname = process.env.HOST;
-const port = process.env.PORT;
+const hostname = process.env.LOCAL_HOST;
+const port = process.env.LOCAL_PORT;
 
 const { mongoConnect } = require("./database/connection");
 
