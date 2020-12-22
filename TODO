@@ -1,0 +1,9 @@
+Install mongoose✅
+remove sql related queries and connection✅
+Convert sql queries to mongo DB✅
+Separate routes from controllers ✅
+Commit✅
+transform promises to Async/Await 
+Update the rewards point of each user to equal shares of the total reward the project carries✅
+Add the reward points to each of the user's total rewards in the rewards collection✅
+Delete all record with the project status Completed from worklist collection ✅
