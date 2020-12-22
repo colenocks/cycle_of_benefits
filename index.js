@@ -12,7 +12,7 @@ const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const projectRoutes = require("./routes/project");
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT;
 
 const { mongoConnect } = require("./database/connection");
 
