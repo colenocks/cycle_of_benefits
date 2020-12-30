@@ -22,7 +22,7 @@ class Reward extends Component {
   redeemRewardHandler = (event, data) => {
     event.preventDefault();
     const token = localStorage.getItem("token");
-    const url = "http://localhost:5000/redeemreward";
+    const url = "http://localhost:5000/users/redeemreward";
     axios
       .put(
         url,
@@ -49,7 +49,7 @@ class Reward extends Component {
 
   loadPoints = () => {
     const token = localStorage.getItem("token");
-    const url = "http://localhost:5000/loadpoints";
+    const url = "http://localhost:5000/cyobapi/loadpoints";
     axios
       .get(url, {
         headers: {

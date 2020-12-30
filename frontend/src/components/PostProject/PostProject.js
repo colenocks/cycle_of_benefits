@@ -38,7 +38,7 @@ class PostProject extends Component {
 
   proposeProjectHandler = (event, project) => {
     event.preventDefault();
-    const url = "http://localhost:5000/addproject";
+    const url = "http://localhost:5000/cyobapi/addproject";
     const token = localStorage.getItem("token");
     const formData = new FormData();
     for (let key in project) {

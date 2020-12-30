@@ -117,7 +117,7 @@ exports.postSignup = (req, res) => {
       db.collection("profiles")
         .insertOne(newUserProfile)
         .then((data) => {
-          if (data.insertedCount == 1) {
+          if (data.insertedCount === 1) {
             console.log("new user created successfully");
             res.json({
               sessionId: data.insertedId,

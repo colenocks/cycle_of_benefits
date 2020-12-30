@@ -40,7 +40,7 @@ class Dashboard extends Component {
   getUserProfileHandler = () => {
     const user = this.props.sessionId;
     if (user) {
-      const url = "http://localhost:5000/profile/" + user;
+      const url = "http://localhost:5000/users/profile/" + user;
       axios
         .get(url)
         .then((res) => {
@@ -59,7 +59,7 @@ class Dashboard extends Component {
   getUserProjectsHandler = () => {
     const userId = this.props.sessionId;
     if (userId) {
-      const url = "http://localhost:5000/myprojects/" + userId;
+      const url = "http://localhost:5000/users/myprojects/" + userId;
       axios
         .get(url)
         .then((res) => {
@@ -78,7 +78,7 @@ class Dashboard extends Component {
 
   updateUserProfileHandler = (event, userProfile) => {
     event.preventDefault();
-    const url = "http://localhost:5000/profile";
+    const url = "http://localhost:5000/users/profile";
     const token = localStorage.getItem("token");
     axios
       .put(url, userProfile, { headers: { Authorization: `bearer ${token}` } })
@@ -100,7 +100,7 @@ class Dashboard extends Component {
   };
 
   withdrawFromProjectHandler = (projId) => {
-    const url = "http://localhost:5000/dropworker/" + projId;
+    const url = "http://localhost:5000/cyobapi/dropworker/" + projId;
     const token = localStorage.getItem("token");
     axios
       .delete(url, { headers: { Authorization: `bearer ${token}` } })

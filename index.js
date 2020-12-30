@@ -23,10 +23,10 @@ app.use(bodyParser.json());
 app.use(cors());
 
 //Register routes
-app.use(adminRoutes);
-app.use(authRoutes);
-app.use(userRoutes);
-app.use(projectRoutes);
+app.use("/cyobadmin", adminRoutes);
+app.use("/auth", authRoutes);
+app.use("/users", userRoutes);
+app.use("/cyobapi", projectRoutes);
 
 if (process.env.NODE_ENV === "production") {
   let frontend = path.join(__dirname, "frontend", "build");

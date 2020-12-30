@@ -61,7 +61,7 @@ class App extends Component {
 
   loginHandler = (event, inputFields) => {
     event.preventDefault();
-    const url = "http://localhost:5000/login";
+    const url = "http://localhost:5000/auth/login";
     const user = {
       username: inputFields.username,
       password: inputFields.password,
@@ -114,7 +114,7 @@ class App extends Component {
 
   signupHandler = (event, inputFields) => {
     event.preventDefault();
-    const url = "http://localhost:5000/signup";
+    const url = "http://localhost:5000/auth/signup";
     const user = {
       username: inputFields.username,
       password: inputFields.password,
@@ -159,7 +159,7 @@ class App extends Component {
   };
 
   getApprovedProjectsHandler = () => {
-    const url = "http://localhost:5000/projects";
+    const url = "http://localhost:5000/cyobapi/projects";
     axios
       .get(url)
       .then((res) => {
@@ -185,7 +185,7 @@ class App extends Component {
 
   enrolForProjectHandler = (event, projId) => {
     event.preventDefault();
-    const url = "http://localhost:5000/enlist";
+    const url = "http://localhost:5000/cyobapi/enlist";
     const token = localStorage.getItem("token");
     const user_projects = JSON.parse(localStorage.getItem("user_projects"));
     axios
@@ -215,7 +215,7 @@ class App extends Component {
   approveProjectHandler = (event, projId) => {
     event.preventDefault();
     const token = localStorage.getItem("token");
-    let url = "http://localhost:5000/approveproject";
+    let url = "cyob/approveproject";
 
     axios
       .post(
@@ -237,7 +237,7 @@ class App extends Component {
 
   updateProjectHandler = (event, updateData) => {
     event.preventDefault();
-    let url = "http://localhost:5000/updateproject/" + updateData._id;
+    let url = "http://localhost:5000/cyobadmin/updateproject/" + updateData._id;
     let formData = new FormData();
     for (let key in updateData) {
       formData.append(key, updateData[key]);

@@ -29,27 +29,27 @@ const Footer = () => {
         {date.getFullYear()}
       </p>
       <div className='footer__icon'>
-        <Link
+        <a
           className='grey-text text-lighten-3'
-          to='https://www.github.com/colenocks'
+          href='https://www.github.com/colenocks'
           target='_blank'
           rel='noreferrer'>
           <i className='fab fa-github fa-2x'></i>
-        </Link>
-        <Link
+        </a>
+        <a
           className='grey-text text-lighten-3'
-          to='https://www.linkedin.com/In/coleman-enocks'
+          href='https://www.linkedin.com/in/coleman-enocks'
           target='_blank'
           rel='noreferrer'>
           <i className='fab fa-linkedin fa-2x'></i>
-        </Link>
-        <Link
+        </a>
+        <a
           className='grey-text text-lighten-3'
-          to='https://www.twitter.com/encole9'
+          href='https://www.twitter.com/encole9'
           target='_blank'
           rel='noreferrer'>
           <i className='fab fa-twitter fa-2x'></i>
-        </Link>
+        </a>
       </div>
     </footer>
   );

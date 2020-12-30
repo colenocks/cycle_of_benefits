@@ -16,7 +16,7 @@ class Admin extends Component {
   }
 
   getAllProjectsHandler = () => {
-    const url = "http://localhost:5000/getallprojects";
+    const url = "http://localhost:5000/cyobadmin/getallprojects";
     const token = localStorage.getItem("token");
     axios
       .get(url, { headers: { Authorization: `bearer ${token}` } })
