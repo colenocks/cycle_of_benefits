@@ -1,4 +1,4 @@
-.main__footer {
+c.main__footer {
   bottom: 0;
   padding: 15px;
   min-height: 15vh;
@@ -45,16 +45,13 @@
 
 .footer__icon a {
   margin: 0 5px;
+  transition: all 0.5s ease-out;
   /* color: #fff; */
 }
 
 .footer__icon a:hover {
-  color: #55a555 !important;
-  transition: all 0.5s ease-out;
-}
-
-.border {
-  border: 1px solid red;
+  color: #e8520c !important;
+  transform: scale(1.2);
 }
 
 /* For mobile phones: */
