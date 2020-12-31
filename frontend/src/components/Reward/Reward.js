@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import Button from "./../Button/Button";
-import axios from "axios";
+import { clientRequest } from "./../../AxiosConfig";
 import "./Reward.css";
 
 class Reward extends Component {
@@ -22,17 +22,13 @@ class Reward extends Component {
   redeemRewardHandler = (event, data) => {
     event.preventDefault();
     const token = localStorage.getItem("token");
-    const url = "http://localhost:5000/users/redeemreward";
-    axios
-      .put(
-        url,
-        {
-          used_points: data.used_points,
-          total_points: data.total_points,
-          benefit_type: data.benefit_type,
-        },
-        { headers: { Authorization: `bearer ${token}` } }
-      )
+    const url = "/users/redeemreward";
+    clientRequest(token)
+      .put(url, {
+        used_points: data.used_points,
+        total_points: data.total_points,
+        benefit_type: data.benefit_type,
+      })
       .then((res) => {
         if (res.data.errMessage) {
           window.M.toast({ html: res.data.errMessage });
@@ -49,13 +45,9 @@ class Reward extends Component {
 
   loadPoints = () => {
     const token = localStorage.getItem("token");
-    const url = "http://localhost:5000/cyobapi/loadpoints";
-    axios
-      .get(url, {
-        headers: {
-          Authorization: `bearer ${token}`,
-        },
-      })
+    const url = "/cyobapi/loadpoints";
+    clientRequest(token)
+      .get(url)
       .then((res) => {
         if (res.data.errMessage) {
           window.M.toast({ html: res.data.errMessage });

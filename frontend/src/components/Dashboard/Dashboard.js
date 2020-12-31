@@ -5,7 +5,7 @@ import HowToInfo from "../HowToInfo/HowToInfo";
 import UserProject from "../UserProject/UserProject";
 import PostProject from "../PostProject/PostProject";
 import UserProfile from "./../UserProfile/UserProfile";
-import axios from "axios";
+import { clientRequest } from "./../../AxiosConfig";
 import "./Dashboard.css";
 
 class Dashboard extends Component {
@@ -40,8 +40,8 @@ class Dashboard extends Component {
   getUserProfileHandler = () => {
     const user = this.props.sessionId;
     if (user) {
-      const url = "http://localhost:5000/users/profile/" + user;
-      axios
+      const url = "/users/profile/" + user;
+      clientRequest()
         .get(url)
         .then((res) => {
           if (res.data.errMessage) {
@@ -59,8 +59,8 @@ class Dashboard extends Component {
   getUserProjectsHandler = () => {
     const userId = this.props.sessionId;
     if (userId) {
-      const url = "http://localhost:5000/users/myprojects/" + userId;
-      axios
+      const url = "/users/myprojects/" + userId;
+      clientRequest()
         .get(url)
         .then((res) => {
           if (res.data.errMessage) {
@@ -78,10 +78,10 @@ class Dashboard extends Component {
 
   updateUserProfileHandler = (event, userProfile) => {
     event.preventDefault();
-    const url = "http://localhost:5000/users/profile";
+    const url = "/users/profile";
     const token = localStorage.getItem("token");
-    axios
-      .put(url, userProfile, { headers: { Authorization: `bearer ${token}` } })
+    clientRequest(token)
+      .put(url, userProfile)
       .then((res) => {
         if (res.data.errMessage) {
           window.M.toast({ html: res.data.errMessage });
@@ -100,10 +100,10 @@ class Dashboard extends Component {
   };
 
   withdrawFromProjectHandler = (projId) => {
-    const url = "http://localhost:5000/cyobapi/dropworker/" + projId;
+    const url = "/cyobapi/dropworker/" + projId;
     const token = localStorage.getItem("token");
-    axios
-      .delete(url, { headers: { Authorization: `bearer ${token}` } })
+    clientRequest(token)
+      .delete(url)
       .then((res) => {
         if (res.data.errMessage) {
           window.M.toast({ html: res.data.errMessage });

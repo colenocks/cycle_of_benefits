@@ -1,9 +1,9 @@
 import React, { Component } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
 import Project from "./../Project/Project";
 import Button from "./../Button/Button";
 import "./Admin.css";
+import { clientRequest } from "./../../AxiosConfig";
 
 class Admin extends Component {
   constructor(props) {
@@ -16,10 +16,10 @@ class Admin extends Component {
   }
 
   getAllProjectsHandler = () => {
-    const url = "http://localhost:5000/cyobadmin/getallprojects";
+    const url = "/cyobadmin/getallprojects";
     const token = localStorage.getItem("token");
-    axios
-      .get(url, { headers: { Authorization: `bearer ${token}` } })
+    clientRequest(token)
+      .get(url)
       .then((res) => {
         if (res.data.errMessage) {
           window.M.toast({ html: res.data.errMessage });

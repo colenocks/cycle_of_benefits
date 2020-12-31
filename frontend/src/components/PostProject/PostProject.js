@@ -1,6 +1,6 @@
 import React, { Component } from "react";
-import axios from "axios";
 import Button from "./../Button/Button";
+import { clientRequest } from "./../../AxiosConfig";
 import "./PostProject.css";
 
 class PostProject extends Component {
@@ -38,14 +38,14 @@ class PostProject extends Component {
 
   proposeProjectHandler = (event, project) => {
     event.preventDefault();
-    const url = "http://localhost:5000/cyobapi/addproject";
+    const url = "/cyobapi/addproject";
     const token = localStorage.getItem("token");
     const formData = new FormData();
     for (let key in project) {
       formData.append(key, project[key]);
     }
-    axios
-      .post(url, formData, { headers: { Authorization: `bearer ${token}` } })
+    clientRequest(token)
+      .post(url, formData)
       .then((res) => {
         if (res.data.errMessage) {
           window.M.toast({ html: res.data.errMessage });

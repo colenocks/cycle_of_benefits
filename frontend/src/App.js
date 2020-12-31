@@ -12,7 +12,7 @@ import ProjectDetail from "./components/ProjectDetail/ProjectDetail";
 import ProjectList from "./components/ProjectList/ProjectList";
 import Contact from "./components/Contact/Contact";
 import PageNotFound from "./components/PageNotFound/PageNotFound";
-import axios from "axios";
+import { clientRequest } from "./AxiosConfig";
 import "./App.css";
 
 const { toast } = window.M;
@@ -61,12 +61,12 @@ class App extends Component {
 
   loginHandler = (event, inputFields) => {
     event.preventDefault();
-    const url = "http://localhost:5000/auth/login";
+    const url = "/auth/login";
     const user = {
       username: inputFields.username,
       password: inputFields.password,
     };
-    axios
+    clientRequest()
       .post(url, user)
       .then((res) => {
         if (res.data.errMessage) {
@@ -114,7 +114,7 @@ class App extends Component {
 
   signupHandler = (event, inputFields) => {
     event.preventDefault();
-    const url = "http://localhost:5000/auth/signup";
+    const url = "/auth/signup";
     const user = {
       username: inputFields.username,
       password: inputFields.password,
@@ -123,7 +123,7 @@ class App extends Component {
       lastname: inputFields.lastname,
       email: inputFields.email,
     };
-    axios
+    clientRequest()
       .post(url, user)
       .then((res) => {
         if (res.data.errMessage) {
@@ -159,8 +159,8 @@ class App extends Component {
   };
 
   getApprovedProjectsHandler = () => {
-    const url = "http://localhost:5000/cyobapi/projects";
-    axios
+    const url = "/cyobapi/projects";
+    clientRequest()
       .get(url)
       .then((res) => {
         if (res.data.errMessage) {
@@ -185,18 +185,14 @@ class App extends Component {
 
   enrolForProjectHandler = (event, projId) => {
     event.preventDefault();
-    const url = "http://localhost:5000/cyobapi/enlist";
+    const url = "/cyobapi/enlist";
     const token = localStorage.getItem("token");
     const user_projects = JSON.parse(localStorage.getItem("user_projects"));
-    axios
-      .post(
-        url,
-        { projId: projId },
-        { headers: { Authorization: `bearer ${token}` } }
-      )
+    clientRequest(token)
+      .post(url, { projId: projId })
       .then((res) => {
         if (res.data.errMessage) {
-          toast({ html: res.data.errMessage });
+          toast({ html: "You must be logged in to enrol" });
           this.setState({ errMessage: res.data.errMessage });
           return;
         }
@@ -215,14 +211,9 @@ class App extends Component {
   approveProjectHandler = (event, projId) => {
     event.preventDefault();
     const token = localStorage.getItem("token");
-    let url = "cyob/approveproject";
-
-    axios
-      .post(
-        url,
-        { projId: projId },
-        { headers: { Authorization: `bearer ${token}` } }
-      )
+    let url = "/cyob/approveproject";
+    clientRequest(token)
+      .post(url, { projId: projId })
       .then((res) => {
         if (res.data.errMessage) {
           toast({ html: res.data.errMessage });
@@ -237,18 +228,14 @@ class App extends Component {
 
   updateProjectHandler = (event, updateData) => {
     event.preventDefault();
-    let url = "http://localhost:5000/cyobadmin/updateproject/" + updateData._id;
+    let url = "/cyobadmin/updateproject/" + updateData._id;
     let formData = new FormData();
     for (let key in updateData) {
       formData.append(key, updateData[key]);
     }
     const token = localStorage.getItem("token");
-    axios
-      .put(url, formData, {
-        headers: {
-          Authorization: `bearer ${token}`,
-        },
-      })
+    clientRequest(token)
+      .put(url, formData)
       .then((res) => {
         if (res.data.errMessage) {
           toast({ html: res.data.errMessage });
