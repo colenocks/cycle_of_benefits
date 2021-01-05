@@ -4,7 +4,7 @@ let baseURL = "";
 if (env === "development") {
   baseURL = "http://localhost:5000";
 }
-console.log(baseURL);
+
 export const clientRequest = (token = null) => {
   const defaultOptions = {
     headers: {

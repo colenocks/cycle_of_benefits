@@ -19,7 +19,7 @@ const Footer = () => {
           </Link>
         </li>
         <li className='footer__link_item'>
-          <Link className='grey-text text-lighten-3' to='/market-place'>
+          <Link className='grey-text text-lighten-3' to='/'>
             Market Place
           </Link>
         </li>
