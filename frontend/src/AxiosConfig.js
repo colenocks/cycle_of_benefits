@@ -4,7 +4,6 @@ let baseURL = "";
 if (env === "development") {
   baseURL = "http://localhost:5000";
 }
-
 export const clientRequest = (token = null) => {
   const defaultOptions = {
     headers: {
